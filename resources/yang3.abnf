@@ -1,0 +1,61 @@
+
+;-----------------------------------------------------------------------------
+
+file   = tokens <ows>
+tokens = *( non-token / token )
+token  = <ws> ( identifier / string )
+non-token = <";">
+
+
+date-arg            = iso-year
+
+; An identifier MUST NOT start with (('X'|'x') ('M'|'m') ('L'|'l')) (i.e. "xml" in any case)
+identifier                      = 1*( alpha / digit / hyphen )
+; identifier                      = ( identifier-start-char *identifier-body-char)
+identifier-start-char         = alpha / underscore
+identifier-body-char          = alpha / underscore / digit / hyphen / dot / colon
+
+
+; Note that 4digit is the same as 4*4(digit); both mean exactly 4 digits
+iso-year                        = 4digit "-" 2digit "-" 2digit
+
+boolean                         = "true" / "false"
+
+string                          = <quote-double> *(text-char-no-dquote) <quote-double>
+
+<text-char>                     = vis-char / whitespace-char 
+<text-char-no-dquote>           = vis-char-no-dquote / whitespace-char 
+<text-char-no-quotes>           = vis-char-no-quotes / whitespace-char 
+
+blk-open                        = <ows> <"{"> 
+blk-close                       = <ows> <"}"> 
+term                            = <ows> <";">
+
+ws                              = 1*(<whitespace-char>)             ; 1 or more "whitespace"
+ows                             =  *(<whitespace-char>)             ; 0 or more "optional whitespace"
+<space-horiz>                   = (space-char / tab-char)           ; horizontal spacing
+<space-vert>                    = (carriage-return / line-feed)     ; vertical   spacing (EOL chars)
+<whitespace-char>               = (space-horiz / space-vert)        ; any spacing
+
+<carriage-return>               = %x0D
+<line-feed>                     = %x0A
+<space-char>                    = %x20  ; space
+<tab-char>                      = %x09  ; horizontal tab
+<quote-single>                  = %x27  ; ' char
+<quote-double>                  = %x22  ; " char
+<colon>                         = %x3A  ; : char
+<dot>                           = %x2E  ; . char
+<hyphen>                        = %x2D  ; - char
+<underscore>                    = %x5F  ; _ char
+<star>                          = %x2A  ; * char
+<slash>                         = %x2F  ; / char
+<alpha>                         = %x41-5A / %x61-7A     ; A-Z / a-z
+<digit>                         = %x30-39   ; 0-9
+<digits>                        = 1*digit   ; 1 or more digits
+<integer>                       = [ "+" / "-" ] digits  ; digits with optional sign
+<hex-digit>                     = digit / %x61 / %x62 / %x63 / %x64 / %x65 / %x66 ; only lower-case a..f
+<vis-char>                      = %x21-7E ; visible (printing) characters
+<vis-char-no-dquote>            = %x21    / %x23-7E ; all visible chars without quote-double
+<vis-char-no-squote>            = %x21-26 / %x28-7E ; all visible chars without quote-single
+<vis-char-no-quotes>            = %x21    / %x23-26 / %x28-7E ; all visible chars except both quotes
+

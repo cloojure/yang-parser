@@ -1,0 +1,1340 @@
+{:tag :module-stmt,
+ :content
+ ({:tag :optsep, :content ()}
+  {:tag :module-keyword, :content ("module")}
+  {:tag :sep,
+   :content ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+  {:tag :identifier-arg-str,
+   :content
+   ({:tag :identifier-arg,
+     :content
+     ("[:content (\"a\")][:content (\"c\")][:content (\"m\")][:content (\"e\")][:content (\"-\")][:content (\"s\")][:content (\"y\")][:content (\"s\")][:content (\"t\")][:content (\"e\")][:content (\"m\")]")})}
+  {:tag :optsep,
+   :content ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+  "{"
+  {:tag :stmtsep,
+   :content
+   ({:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+    {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+    {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+    {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+    {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+  {:tag :module-header-stmts,
+   :content
+   ({:tag :namespace-stmt,
+     :content
+     ({:tag :namespace-keyword, :content ("namespace")}
+      {:tag :sep,
+       :content ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+      {:tag :uri-str-quoted,
+       :content
+       ({:tag :DQUOTE, :content ("\"")}
+        {:tag :uri-str,
+         :content
+         ({:tag :URI,
+           :content
+           ({:tag :scheme,
+             :content
+             ({:tag :ALPHA, :content ("h")}
+              {:tag :ALPHA, :content ("t")}
+              {:tag :ALPHA, :content ("t")}
+              {:tag :ALPHA, :content ("p")})}
+            ":"
+            {:tag :hier-part,
+             :content
+             ("//"
+              {:tag :authority,
+               :content
+               ({:tag :host,
+                 :content
+                 ({:tag :reg-name,
+                   :content
+                   ({:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("a")})}
+                    {:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("c")})}
+                    {:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("m")})}
+                    {:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("e")})}
+                    {:tag :unreserved, :content (".")}
+                    {:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("e")})}
+                    {:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("x")})}
+                    {:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("a")})}
+                    {:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("m")})}
+                    {:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("p")})}
+                    {:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("l")})}
+                    {:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("e")})}
+                    {:tag :unreserved, :content (".")}
+                    {:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("c")})}
+                    {:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("o")})}
+                    {:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("m")})})})})}
+              {:tag :path-abempty,
+               :content
+               ("/"
+                {:tag :segment,
+                 :content
+                 ({:tag :pchar,
+                   :content
+                   ({:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("s")})})}
+                  {:tag :pchar,
+                   :content
+                   ({:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("y")})})}
+                  {:tag :pchar,
+                   :content
+                   ({:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("s")})})}
+                  {:tag :pchar,
+                   :content
+                   ({:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("t")})})}
+                  {:tag :pchar,
+                   :content
+                   ({:tag :unreserved,
+                     :content ({:tag :ALPHA, :content ("e")})})}
+                  {:tag :pchar,
+                   :content
+                   ({:tag :unreserved,
+                     :content
+                     ({:tag :ALPHA, :content ("m")})})})})})})})}
+        {:tag :DQUOTE, :content ("\"")})}
+      {:tag :optsep, :content ()}
+      {:tag :stmtend, :content (";")})}
+    {:tag :stmtsep,
+     :content
+     ({:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+    {:tag :prefix-stmt,
+     :content
+     ({:tag :prefix-keyword, :content ("prefix")}
+      {:tag :sep,
+       :content ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+      {:tag :prefix-arg,
+       :content
+       ("[:content (\"a\")][:content (\"c\")][:content (\"m\")][:content (\"e\")]")}
+      {:tag :optsep, :content ()}
+      {:tag :stmtend, :content (";")})}
+    {:tag :stmtsep,
+     :content
+     ({:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+      {:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})})})}
+  {:tag :linkage-stmts, :content ()}
+  {:tag :meta-stmts,
+   :content
+   ({:tag :organization-stmt,
+     :content
+     ({:tag :organization-keyword, :content ("organization")}
+      {:tag :sep,
+       :content ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+      {:tag :string-quoted,
+       :content
+       ({:tag :DQUOTE, :content ("\"")}
+        {:tag :string,
+         :content
+         ({:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("A")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("C")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("M")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("E")})}
+          {:tag :text-char-no-dquote,
+           :content
+           ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("I")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("n")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("c")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content (".")})})}
+        {:tag :DQUOTE, :content ("\"")})}
+      {:tag :optsep, :content ()}
+      {:tag :stmtend, :content (";")})}
+    {:tag :stmtsep,
+     :content
+     ({:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+    {:tag :contact-stmt,
+     :content
+     ({:tag :contact-keyword, :content ("contact")}
+      {:tag :sep,
+       :content ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+      {:tag :string-quoted,
+       :content
+       ({:tag :DQUOTE, :content ("\"")}
+        {:tag :string,
+         :content
+         ({:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("j")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("o")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("e")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("@")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("a")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("c")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("m")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("e")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content (".")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("e")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("x")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("a")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("m")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("p")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("l")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("e")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content (".")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("c")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("o")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("m")})})}
+        {:tag :DQUOTE, :content ("\"")})}
+      {:tag :optsep, :content ()}
+      {:tag :stmtend, :content (";")})}
+    {:tag :stmtsep,
+     :content
+     ({:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+    {:tag :description-stmt,
+     :content
+     ({:tag :description-keyword, :content ("description")}
+      {:tag :sep,
+       :content
+       ({:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+      {:tag :string-quoted,
+       :content
+       ({:tag :DQUOTE, :content ("\"")}
+        {:tag :string,
+         :content
+         ({:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("T")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("h")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("e")})}
+          {:tag :text-char-no-dquote,
+           :content
+           ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("m")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("o")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("d")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("u")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("l")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("e")})}
+          {:tag :text-char-no-dquote,
+           :content
+           ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("f")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("o")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("r")})}
+          {:tag :text-char-no-dquote,
+           :content
+           ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("e")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("n")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("t")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("i")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("t")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("i")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("e")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("s")})}
+          {:tag :text-char-no-dquote,
+           :content
+           ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("i")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("m")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("p")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("l")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("e")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("m")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("e")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("n")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("t")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("i")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("n")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("g")})}
+          {:tag :text-char-no-dquote,
+           :content
+           ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("t")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("h")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("e")})}
+          {:tag :text-char-no-dquote,
+           :content
+           ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("A")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("C")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("M")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("E")})}
+          {:tag :text-char-no-dquote,
+           :content
+           ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("s")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("y")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("s")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("t")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("e")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content ("m")})}
+          {:tag :text-char-no-dquote,
+           :content ({:tag :vis-char-no-dquote, :content (".")})})}
+        {:tag :DQUOTE, :content ("\"")})}
+      {:tag :optsep, :content ()}
+      {:tag :stmtend, :content (";")})}
+    {:tag :stmtsep,
+     :content
+     ({:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+      {:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})})})}
+  {:tag :revision-stmts,
+   :content
+   ({:tag :revision-stmt,
+     :content
+     ({:tag :revision-keyword, :content ("revision")}
+      {:tag :sep,
+       :content ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+      {:tag :revision-date,
+       :content
+       ({:tag :date-arg,
+         :content
+         ({:tag :DIGIT, :content ("2")}
+          {:tag :DIGIT, :content ("0")}
+          {:tag :DIGIT, :content ("0")}
+          {:tag :DIGIT, :content ("7")}
+          "-"
+          {:tag :DIGIT, :content ("1")}
+          {:tag :DIGIT, :content ("1")}
+          "-"
+          {:tag :DIGIT, :content ("0")}
+          {:tag :DIGIT, :content ("5")})})}
+      {:tag :optsep,
+       :content ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+      "{"
+      {:tag :stmtsep,
+       :content
+       ({:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+      {:tag :description-stmt,
+       :content
+       ({:tag :description-keyword, :content ("description")}
+        {:tag :sep,
+         :content ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+        {:tag :string-quoted,
+         :content
+         ({:tag :DQUOTE, :content ("\"")}
+          {:tag :string,
+           :content
+           ({:tag :text-char-no-dquote,
+             :content ({:tag :vis-char-no-dquote, :content ("I")})}
+            {:tag :text-char-no-dquote,
+             :content ({:tag :vis-char-no-dquote, :content ("n")})}
+            {:tag :text-char-no-dquote,
+             :content ({:tag :vis-char-no-dquote, :content ("i")})}
+            {:tag :text-char-no-dquote,
+             :content ({:tag :vis-char-no-dquote, :content ("t")})}
+            {:tag :text-char-no-dquote,
+             :content ({:tag :vis-char-no-dquote, :content ("i")})}
+            {:tag :text-char-no-dquote,
+             :content ({:tag :vis-char-no-dquote, :content ("a")})}
+            {:tag :text-char-no-dquote,
+             :content ({:tag :vis-char-no-dquote, :content ("l")})}
+            {:tag :text-char-no-dquote,
+             :content
+             ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            {:tag :text-char-no-dquote,
+             :content ({:tag :vis-char-no-dquote, :content ("r")})}
+            {:tag :text-char-no-dquote,
+             :content ({:tag :vis-char-no-dquote, :content ("e")})}
+            {:tag :text-char-no-dquote,
+             :content ({:tag :vis-char-no-dquote, :content ("v")})}
+            {:tag :text-char-no-dquote,
+             :content ({:tag :vis-char-no-dquote, :content ("i")})}
+            {:tag :text-char-no-dquote,
+             :content ({:tag :vis-char-no-dquote, :content ("s")})}
+            {:tag :text-char-no-dquote,
+             :content ({:tag :vis-char-no-dquote, :content ("i")})}
+            {:tag :text-char-no-dquote,
+             :content ({:tag :vis-char-no-dquote, :content ("o")})}
+            {:tag :text-char-no-dquote,
+             :content ({:tag :vis-char-no-dquote, :content ("n")})}
+            {:tag :text-char-no-dquote,
+             :content ({:tag :vis-char-no-dquote, :content (".")})})}
+          {:tag :DQUOTE, :content ("\"")})}
+        {:tag :optsep, :content ()}
+        {:tag :stmtend, :content (";")})}
+      {:tag :stmtsep,
+       :content
+       ({:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+        {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+      "}")}
+    {:tag :stmtsep,
+     :content
+     ({:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+      {:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+      {:tag :WSP, :content ({:tag :SP, :content (" ")})})})}
+  {:tag :body-stmts,
+   :content
+   ({:tag :data-def-stmt,
+     :content
+     ({:tag :container-stmt,
+       :content
+       ({:tag :container-keyword, :content ("container")}
+        {:tag :sep,
+         :content ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+        {:tag :identifier-arg-str,
+         :content
+         ({:tag :identifier-arg,
+           :content
+           ("[:content (\"s\")][:content (\"y\")][:content (\"s\")][:content (\"t\")][:content (\"e\")][:content (\"m\")]")})}
+        {:tag :optsep,
+         :content ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+        "{"
+        {:tag :stmtsep,
+         :content
+         ({:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+        {:tag :data-def-stmt,
+         :content
+         ({:tag :leaf-stmt,
+           :content
+           ({:tag :leaf-keyword, :content ("leaf")}
+            {:tag :sep,
+             :content
+             ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            {:tag :identifier-arg-str,
+             :content
+             ({:tag :identifier-arg,
+               :content
+               ("[:content (\"h\")][:content (\"o\")][:content (\"s\")][:content (\"t\")][:content (\"-\")][:content (\"n\")][:content (\"a\")][:content (\"m\")][:content (\"e\")]")})}
+            {:tag :optsep,
+             :content
+             ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            "{"
+            {:tag :stmtsep,
+             :content
+             ({:tag :line-break,
+               :content ({:tag :LF, :content ("\n")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            {:tag :type-stmt,
+             :content
+             ({:tag :type-keyword, :content ("type")}
+              {:tag :sep,
+               :content
+               ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+              {:tag :identifier-ref-arg-str,
+               :content
+               ({:tag :identifier-ref-arg,
+                 :content
+                 ("[:content (\"s\")][:content (\"t\")][:content (\"r\")][:content (\"i\")][:content (\"n\")][:content (\"g\")]")})}
+              {:tag :optsep, :content ()}
+              ";")}
+            {:tag :stmtsep,
+             :content
+             ({:tag :line-break,
+               :content ({:tag :LF, :content ("\n")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            {:tag :description-stmt,
+             :content
+             ({:tag :description-keyword, :content ("description")}
+              {:tag :sep,
+               :content
+               ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+              {:tag :string-quoted,
+               :content
+               ({:tag :DQUOTE, :content ("\"")}
+                {:tag :string,
+                 :content
+                 ({:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("H")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("o")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("s")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("t")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("n")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("a")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("m")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("e")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :WSP,
+                     :content ({:tag :SP, :content (" ")})})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("f")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("o")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("r")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :WSP,
+                     :content ({:tag :SP, :content (" ")})})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("t")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("h")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("i")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("s")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :WSP,
+                     :content ({:tag :SP, :content (" ")})})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("s")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("y")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("s")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("t")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("e")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("m")})})}
+                {:tag :DQUOTE, :content ("\"")})}
+              {:tag :optsep, :content ()}
+              {:tag :stmtend, :content (";")})}
+            {:tag :stmtsep,
+             :content
+             ({:tag :line-break,
+               :content ({:tag :LF, :content ("\n")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            "}")})}
+        {:tag :stmtsep,
+         :content
+         ({:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+          {:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+        {:tag :data-def-stmt,
+         :content
+         ({:tag :leaf-list-stmt,
+           :content
+           ({:tag :leaf-list-keyword, :content ("leaf-list")}
+            {:tag :sep,
+             :content
+             ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            {:tag :identifier-arg-str,
+             :content
+             ({:tag :identifier-arg,
+               :content
+               ("[:content (\"d\")][:content (\"o\")][:content (\"m\")][:content (\"a\")][:content (\"i\")][:content (\"n\")][:content (\"-\")][:content (\"s\")][:content (\"e\")][:content (\"a\")][:content (\"r\")][:content (\"c\")][:content (\"h\")]")})}
+            {:tag :optsep,
+             :content
+             ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            "{"
+            {:tag :stmtsep,
+             :content
+             ({:tag :line-break,
+               :content ({:tag :LF, :content ("\n")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            {:tag :type-stmt,
+             :content
+             ({:tag :type-keyword, :content ("type")}
+              {:tag :sep,
+               :content
+               ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+              {:tag :identifier-ref-arg-str,
+               :content
+               ({:tag :identifier-ref-arg,
+                 :content
+                 ("[:content (\"s\")][:content (\"t\")][:content (\"r\")][:content (\"i\")][:content (\"n\")][:content (\"g\")]")})}
+              {:tag :optsep, :content ()}
+              ";")}
+            {:tag :stmtsep,
+             :content
+             ({:tag :line-break,
+               :content ({:tag :LF, :content ("\n")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            {:tag :description-stmt,
+             :content
+             ({:tag :description-keyword, :content ("description")}
+              {:tag :sep,
+               :content
+               ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+              {:tag :string-quoted,
+               :content
+               ({:tag :DQUOTE, :content ("\"")}
+                {:tag :string,
+                 :content
+                 ({:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("L")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("i")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("s")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("t")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :WSP,
+                     :content ({:tag :SP, :content (" ")})})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("o")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("f")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :WSP,
+                     :content ({:tag :SP, :content (" ")})})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("d")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("o")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("m")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("a")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("i")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("n")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :WSP,
+                     :content ({:tag :SP, :content (" ")})})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("n")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("a")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("m")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("e")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("s")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :WSP,
+                     :content ({:tag :SP, :content (" ")})})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("t")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("o")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :WSP,
+                     :content ({:tag :SP, :content (" ")})})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("s")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("e")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("a")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("r")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("c")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("h")})})}
+                {:tag :DQUOTE, :content ("\"")})}
+              {:tag :optsep, :content ()}
+              {:tag :stmtend, :content (";")})}
+            {:tag :stmtsep,
+             :content
+             ({:tag :line-break,
+               :content ({:tag :LF, :content ("\n")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            "}")})}
+        {:tag :stmtsep,
+         :content
+         ({:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+          {:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+        {:tag :data-def-stmt,
+         :content
+         ({:tag :list-stmt,
+           :content
+           ({:tag :list-keyword, :content ("list")}
+            {:tag :sep,
+             :content
+             ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            {:tag :identifier-arg-str,
+             :content
+             ({:tag :identifier-arg,
+               :content
+               ("[:content (\"i\")][:content (\"n\")][:content (\"t\")][:content (\"e\")][:content (\"r\")][:content (\"f\")][:content (\"a\")][:content (\"c\")][:content (\"e\")]")})}
+            {:tag :optsep,
+             :content
+             ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            "{"
+            {:tag :stmtsep,
+             :content
+             ({:tag :line-break,
+               :content ({:tag :LF, :content ("\n")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            {:tag :key-stmt,
+             :content
+             ({:tag :key-keyword, :content ("key")}
+              {:tag :sep,
+               :content
+               ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+              {:tag :key-arg,
+               :content
+               ({:tag :node-identifier,
+                 :content
+                 ("[:content (\"n\")][:content (\"a\")][:content (\"m\")][:content (\"e\")]")})}
+              {:tag :stmtend, :content (";")})}
+            {:tag :stmtsep,
+             :content
+             ({:tag :line-break,
+               :content ({:tag :LF, :content ("\n")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            {:tag :description-stmt,
+             :content
+             ({:tag :description-keyword, :content ("description")}
+              {:tag :sep,
+               :content
+               ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+              {:tag :string-quoted,
+               :content
+               ({:tag :DQUOTE, :content ("\"")}
+                {:tag :string,
+                 :content
+                 ({:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("L")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("i")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("s")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("t")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :WSP,
+                     :content ({:tag :SP, :content (" ")})})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("o")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("f")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :WSP,
+                     :content ({:tag :SP, :content (" ")})})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("i")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("n")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("t")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("e")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("r")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("f")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("a")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("c")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("e")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("s")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :WSP,
+                     :content ({:tag :SP, :content (" ")})})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("i")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("n")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :WSP,
+                     :content ({:tag :SP, :content (" ")})})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("t")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("h")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("e")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :WSP,
+                     :content ({:tag :SP, :content (" ")})})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("s")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("y")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("s")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("t")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("e")})}
+                  {:tag :text-char-no-dquote,
+                   :content
+                   ({:tag :vis-char-no-dquote, :content ("m")})})}
+                {:tag :DQUOTE, :content ("\"")})}
+              {:tag :optsep, :content ()}
+              {:tag :stmtend, :content (";")})}
+            {:tag :stmtsep,
+             :content
+             ({:tag :line-break,
+               :content ({:tag :LF, :content ("\n")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            {:tag :data-def-stmt,
+             :content
+             ({:tag :leaf-stmt,
+               :content
+               ({:tag :leaf-keyword, :content ("leaf")}
+                {:tag :sep,
+                 :content
+                 ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+                {:tag :identifier-arg-str,
+                 :content
+                 ({:tag :identifier-arg,
+                   :content
+                   ("[:content (\"n\")][:content (\"a\")][:content (\"m\")][:content (\"e\")]")})}
+                {:tag :optsep,
+                 :content
+                 ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+                "{"
+                {:tag :stmtsep,
+                 :content
+                 ({:tag :line-break,
+                   :content ({:tag :LF, :content ("\n")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+                {:tag :type-stmt,
+                 :content
+                 ({:tag :type-keyword, :content ("type")}
+                  {:tag :sep,
+                   :content
+                   ({:tag :WSP,
+                     :content ({:tag :SP, :content (" ")})})}
+                  {:tag :identifier-ref-arg-str,
+                   :content
+                   ({:tag :identifier-ref-arg,
+                     :content
+                     ("[:content (\"s\")][:content (\"t\")][:content (\"r\")][:content (\"i\")][:content (\"n\")][:content (\"g\")]")})}
+                  {:tag :optsep, :content ()}
+                  ";")}
+                {:tag :stmtsep,
+                 :content
+                 ({:tag :line-break,
+                   :content ({:tag :LF, :content ("\n")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+                "}")})}
+            {:tag :stmtsep,
+             :content
+             ({:tag :line-break,
+               :content ({:tag :LF, :content ("\n")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            {:tag :data-def-stmt,
+             :content
+             ({:tag :leaf-stmt,
+               :content
+               ({:tag :leaf-keyword, :content ("leaf")}
+                {:tag :sep,
+                 :content
+                 ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+                {:tag :identifier-arg-str,
+                 :content
+                 ({:tag :identifier-arg,
+                   :content
+                   ("[:content (\"t\")][:content (\"y\")][:content (\"p\")][:content (\"e\")]")})}
+                {:tag :optsep,
+                 :content
+                 ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+                "{"
+                {:tag :stmtsep,
+                 :content
+                 ({:tag :line-break,
+                   :content ({:tag :LF, :content ("\n")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+                {:tag :type-stmt,
+                 :content
+                 ({:tag :type-keyword, :content ("type")}
+                  {:tag :sep,
+                   :content
+                   ({:tag :WSP,
+                     :content ({:tag :SP, :content (" ")})})}
+                  {:tag :identifier-ref-arg-str,
+                   :content
+                   ({:tag :identifier-ref-arg,
+                     :content
+                     ("[:content (\"s\")][:content (\"t\")][:content (\"r\")][:content (\"i\")][:content (\"n\")][:content (\"g\")]")})}
+                  {:tag :optsep, :content ()}
+                  ";")}
+                {:tag :stmtsep,
+                 :content
+                 ({:tag :line-break,
+                   :content ({:tag :LF, :content ("\n")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+                "}")})}
+            {:tag :stmtsep,
+             :content
+             ({:tag :line-break,
+               :content ({:tag :LF, :content ("\n")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            {:tag :data-def-stmt,
+             :content
+             ({:tag :leaf-stmt,
+               :content
+               ({:tag :leaf-keyword, :content ("leaf")}
+                {:tag :sep,
+                 :content
+                 ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+                {:tag :identifier-arg-str,
+                 :content
+                 ({:tag :identifier-arg,
+                   :content
+                   ("[:content (\"m\")][:content (\"t\")][:content (\"u\")]")})}
+                {:tag :optsep,
+                 :content
+                 ({:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+                "{"
+                {:tag :stmtsep,
+                 :content
+                 ({:tag :line-break,
+                   :content ({:tag :LF, :content ("\n")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+                {:tag :type-stmt,
+                 :content
+                 ({:tag :type-keyword, :content ("type")}
+                  {:tag :sep,
+                   :content
+                   ({:tag :WSP,
+                     :content ({:tag :SP, :content (" ")})})}
+                  {:tag :identifier-ref-arg-str,
+                   :content
+                   ({:tag :identifier-ref-arg,
+                     :content
+                     ("[:content (\"i\")][:content (\"n\")][:content (\"t\")][:content (\"3\")][:content (\"2\")]")})}
+                  {:tag :optsep, :content ()}
+                  ";")}
+                {:tag :stmtsep,
+                 :content
+                 ({:tag :line-break,
+                   :content ({:tag :LF, :content ("\n")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+                  {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+                "}")})}
+            {:tag :stmtsep,
+             :content
+             ({:tag :line-break,
+               :content ({:tag :LF, :content ("\n")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+              {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+            "}")})}
+        {:tag :stmtsep,
+         :content
+         ({:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})}
+          {:tag :WSP, :content ({:tag :SP, :content (" ")})})}
+        "}")})}
+    {:tag :stmtsep,
+     :content
+     ({:tag :line-break, :content ({:tag :LF, :content ("\n")})})})}
+  "}"
+  {:tag :optsep,
+   :content
+   ({:tag :line-break, :content ({:tag :LF, :content ("\n")})}
+    {:tag :line-break, :content ({:tag :LF, :content ("\n")})})})}

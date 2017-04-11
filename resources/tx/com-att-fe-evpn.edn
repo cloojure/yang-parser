@@ -1,0 +1,85 @@
+{:module
+ {:com-att-fe-evpn
+  {:contact "AIC Network",
+   :description "EVPN",
+   :evpn {:uses "evpn-grouping"},
+   :evpn-config-response
+     {:response-code
+        {:name "response-code",
+         :type "string",
+         :description "evpn configuration response code"},
+      :response-message
+        {:name "response-message",
+         :type "string",
+         :description "evpn configuration response"}},
+   :evpn-grouping {
+    :evi-assignment
+        {:evi
+           {:name "evi",
+            :type "com-att-common-definitiontypes:evi-range",
+            :description "evi"},
+         :route-target
+           {:route-target-role
+              {:name "route-target-role",
+               :type "com-att-common-definitiontypes:rt-role",
+               :description "import, export or both"},
+            :format
+              {:name "format",
+               :type "com-att-common-definitiontypes:as-format",
+               :description "two-byte or four-byte"},
+            :as-num
+              {:name "as-num",
+               :type "uint32",
+               :range ["range-simple" "1..4294967295"],
+               :description "as-num for RT"},
+            :as-index
+              {:name "as-index",
+               :type "uint32",
+               :range ["range-simple" "0..4294967295"],
+               :description "as-index for RT"}}},
+    :esi-assignment
+      {:evpn-interface
+         {:bundle-interface-name
+            {:name "bundle-interface-name",
+             :type "string",
+             :description "bundle interface name"},
+          :ethernet-segment-id
+            {:esi-type
+               {:name "esi-type",
+                :type "com-att-common-definitiontypes:esi-type",
+                :description "ESI type"},
+             :byte01
+               {:name "byte01",
+                :type "com-att-common-definitiontypes:Hex-integer",
+                :description "ESI 1st Byte"},
+             :byte23
+               {:name "byte23",
+                :type "com-att-common-definitiontypes:Hex-integer",
+                :description "ESI 2nd and 3rd Byte"},
+             :byte45
+             {:name "byte45",
+              :type "com-att-common-definitiontypes:Hex-integer",
+              :description "ESI 4th and 5th Byte"},
+             :byte67
+             {:name "byte67",
+              :type "com-att-common-definitiontypes:Hex-integer",
+              :description "ESI 6th and 7th Byte"},
+             :byte89
+             {:name "byte89",
+              :type "com-att-common-definitiontypes:Hex-integer",
+              :description "ESI 8th and 9th Byte"}},
+          :multi-homing-mode
+          {:name "multi-homing-mode",
+           :type "com-att-common-definitiontypes:homing-mode",
+           :description "mode-type"}}}},
+   :import
+   [{:name "com-att-common-definitiontypes",
+     :prefix "com-att-common-definitiontypes"}],
+   :namespace "http://com/att/fe/evpn",
+   :organization "AT&T, Inc.",
+   :prefix "com-att-fe-evpn",
+   :revision {:name "2016-05-14", :description "Initial Revision"},
+   :rpc
+   {:name "evpn-configuration",
+    :rpc-input {:uses "evpn-grouping"},
+    :rpc-output {:uses "evpn-config-response"}}}}}

@@ -1,0 +1,40 @@
+{:module
+ {:com-att-no-beif
+  {:contact "AIC Fabric Design",
+   :container
+       {:name "bundle-ethernet", :uses "bundle-ethernet-grouping"},
+   :description "bundle-ethernet interface on Leaf",
+   :grouping
+       {:bundle-ethernet-grouping
+            [{:name "bundle-interface-name",
+              :type "string",
+              :description "name of the interface"}
+             {:name "bundle-interface-description",
+              :type "string",
+              :description
+              "interface description should include the type of interface, eg: A-Leaf, P-Leaf, C-Leaf"}
+             {:name "bundle-interface-mtu",
+              :type "com-att-common-definitiontypes:mtu-size",
+              :description "interface MTU"}
+             {:name "bundle-system-mac",
+              :type "yang:mac-address",
+              :description "LACP System-MAC"}
+             {:name "bundle-load-interval",
+              :type "uint32",
+              :range ["range-simple" "0..600"],
+              :description "load-interval in seconds"}],
+        :bundle-ethernet-config-response
+            [{:name "response-code",
+              :type "string",
+              :description "bundle ethernet configuration response code"}
+             {:name "response-message",
+              :type "string",
+              :description "bundle ethernet configuration response"}]},
+   :import
+       [{:name "com-att-common-definitiontypes",
+         :prefix "com-att-common-definitiontypes"}
+        {:name "ietf-yang-types", :prefix "yang"}],
+   :namespace "http://com/att/no/beif",
+   :organization "AT&T, Inc.",
+   :prefix "com-att-no-beif",
+   :revision {:name "2016-05-14", :description "Initial Revision"}}}}

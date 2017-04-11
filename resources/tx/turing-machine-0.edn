@@ -1,0 +1,134 @@
+[:module
+ [:name "turing-machine"]
+ [:namespace "http://example.net/turing-machine"]
+ [:prefix "tm"]
+ [:description "Data model for the Turing Machine."]
+ [:revision [:name "2013-12-27"] [:description "Initial revision."]]
+ [:typedef
+  [:name "tape-symbol"]
+  [:type [:name "string"] [:length "0..1"]]
+  [:description
+   "Type of symbols appearing in tape cells. A blank is represented as an empty string where necessary."]]
+ [:typedef
+  [:name "cell-index"]
+  [:type [:name "int64"]]
+  [:description "Type for indexing tape cells."]]
+ [:typedef
+  [:name "state-index"]
+  [:type [:name "uint16"]]
+  [:description "Type for indexing states of the control unit."]]
+ [:typedef
+  [:name "head-dir"]
+  [:type
+   [:name "enumeration"]
+   [:enum [:name "left"]]
+   [:enum [:name "right"]]]
+  [:default "right"]
+  [:description
+   "Possible directions for moving the read/write head, one cell to the left or right (default)."]]
+ [:grouping
+  [:name "tape-cells"]
+  [:description
+   "The tape of the Turing Machine is represented as a sparse array."]
+  [:list
+   [:name "cell"]
+   [:key "coord"]
+   [:description "List of non-blank cells."]
+   [:leaf
+    [:name "coord"]
+    [:type [:name "cell-index"]]
+    [:description "Coordinate (index) of the tape cell."]]
+   [:leaf
+    [:name "symbol"]
+    [:type [:name "tape-symbol"] [:length "1"]]
+    [:description
+     "Symbol appearing in the tape cell. Blank (empty string) is not allowed here because the 'cell' list only contains non-blank cells."]]]]
+ [:container
+  [:name "turing-machine"]
+  [:description "State data and configuration of a Turing Machine."]
+  [:leaf
+   [:name "state"]
+   [:type [:name "state-index"]]
+   [:config false]
+   [:mandatory true]
+   [:description
+    "Current state of the control unit. The initial state is 0."]]
+  [:leaf
+   [:name "head-position"]
+   [:type [:name "cell-index"]]
+   [:config false]
+   [:mandatory true]
+   [:description "Position of tape read/write head."]]
+  [:container
+   [:name "tape"]
+   [:config false]
+   [:description "The contents of the tape."]
+   [:uses "tape-cells"]]
+  [:container
+   [:name "transition-function"]
+   [:description
+    "The Turing Machine is configured by specifying the transition function."]
+   [:list
+    [:name "delta"]
+    [:key "label"]
+    [:unique "input/state input/symbol"]
+    [:description "The list of transition rules."]
+    [:leaf
+     [:name "label"]
+     [:type [:name "string"]]
+     [:description "An arbitrary label of the transition rule."]]
+    [:container
+     [:name "input"]
+     [:description
+      "Input parameters (arguments) of the transition rule."]
+     [:leaf
+      [:name "state"]
+      [:type [:name "state-index"]]
+      [:mandatory true]
+      [:description "Current state of the control unit."]]
+     [:leaf
+      [:name "symbol"]
+      [:type [:name "tape-symbol"]]
+      [:mandatory true]
+      [:description "Symbol read from the tape cell."]]]
+    [:container
+     [:name "output"]
+     [:description "Output values of the transition rule."]
+     [:leaf
+      [:name "state"]
+      [:type [:name "state-index"]]
+      [:description
+       "New state of the control unit. If this leaf is not present, the state doesn't change."]]
+     [:leaf
+      [:name "symbol"]
+      [:type [:name "tape-symbol"]]
+      [:description
+       "Symbol to be written to the tape cell. If this leaf is not present, the symbol doesn't change."]]
+     [:leaf
+      [:name "head-move"]
+      [:type [:name "head-dir"]]
+      [:description "Move the head one cell to the left or right"]]]]]]
+ [:rpc
+  [:name "initialize"]
+  [:description
+   "Initialize the Turing Machine as follows: 1. Put the control unit into the initial state (0). 2. Move the read/write head to the tape cell with coordinate zero. 3. Write the string from the 'tape-content' input parameter to the tape, character by character, starting at cell 0. The tape is othewise empty."]
+  [:rpc-input
+   [:leaf
+    [:name "tape-content"]
+    [:type [:name "string"]]
+    [:default ""]
+    [:description
+     "The string with which the tape shall be initialized. The leftmost symbol will be at tape coordinate 0."]]]]
+ [:rpc
+  [:name "run"]
+  [:description "Start the Turing Machine operation."]]
+ [:notification
+  [:name "halted"]
+  [:description
+   "The Turing Machine has halted. This means that there is no transition rule for the current state and tape symbol."]
+  [:leaf
+   [:name "state"]
+   [:type [:name "state-index"]]
+   [:mandatory true]
+   [:description
+    "The state of the control unit in which the machine has halted."]]]]

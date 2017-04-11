@@ -1,0 +1,462 @@
+module yuma-proc {
+
+    namespace "http://netconfcentral.org/ns/yuma-proc";
+
+    prefix proc;
+
+    organization  "Netconf Central";
+
+    contact "Andy Bierman <andy@netconfcentral.org>.";
+
+    description 
+      "NETCONF /proc file system monitoring.
+
+     Copyright (c) 2009 - 2013 Andy Bierman and the persons
+     identified as authors of the code.  All rights reserved.
+
+     Redistribution and use in source and binary forms, with or
+     without modification, is permitted pursuant to, and subject
+     to the license terms contained in, the BSD 3-Clause License
+     http://opensource.org/licenses/BSD-3-Clause";
+
+    revision 2013-07-16 {
+        description  
+	  "Add AnonHugePages counter for ubuntu 13.04 support.";
+    }
+
+    revision 2012-10-10 {
+        description  
+	  "Add more counters for ubuntu 12.04 support.";
+    }
+
+    revision 2010-06-01 {
+        description  
+	  "Add more counters for ubuntu 10.04 support.";
+    }
+
+    revision 2009-11-21 {
+        description  
+	  "Renamed proc to yuma-proc.";
+    }
+
+    revision 2009-07-17 {
+        description  
+	  "Initial version.";
+    }
+
+    typedef YesNo {
+      type enumeration {
+        enum no;
+        enum yes;
+      }
+    }
+
+    container proc {
+        description "/proc file system monitoring data.";
+
+        config false;
+
+        container cpuinfo {
+          description
+            "/proc/cpuinfo file system monitoring data.";
+
+          list cpu {
+             key processor;
+
+             leaf processor {
+               type uint32;
+               description "Processor Identifier";
+             }
+
+             leaf vendor_id {
+               type string;
+               description "Vendor Identifier";
+             }
+
+             leaf cpu_family {
+               type uint32;
+               description "CPU family number";
+             }
+
+             leaf model {
+               type uint32;
+               description "Model number";
+             }
+
+             leaf model_name {
+               type string;
+               description "Model name";
+             }
+
+             leaf stepping {
+               type uint32;
+               description "Stepping number";
+             }
+
+             leaf microcode {
+               type string;
+               description "Microcode hex string";
+             }
+
+             leaf cpu_MHz {
+               type decimal64 {
+                  fraction-digits 3;
+               }
+               description "CPU mega-hurtz number";
+             }
+
+             leaf cache_size {
+               type string;
+               description "Cache size string";
+             }
+
+             leaf physical_id {
+               type uint32;
+               description "Physical Identifier number";
+             }
+
+             leaf siblings {
+               type uint32;
+               description "Siblings number";
+             }
+
+             leaf core_id {
+               type uint32;
+               description "Core identifier number";
+             }
+
+             leaf cpu_cores {
+               type uint32;
+               description "Number of CPU cores";
+             }
+
+             leaf apicid {
+               type uint32;
+               description "APICID number";
+             }
+
+             leaf initial_apicid {
+               type uint32;
+               description "Initial APICID number";
+             }
+
+             leaf fdiv_bug {
+               type YesNo;
+               description "fdiv bug present";
+             }
+
+             leaf hlt_bug {
+               type YesNo;
+               description "hlt bug present";
+             }
+
+             leaf f00f_bug {
+               type YesNo;
+               description "f00f bug present";
+             }
+
+             leaf coma_bug {
+               type YesNo;
+               description "coma bug present";
+             }
+
+             leaf fpu {
+               type YesNo;
+               description "FPU present";
+             }
+
+             leaf fpu_exception {
+               type YesNo;
+               description "FPU exception supported";
+             }
+
+             leaf cpuid_level {
+               type uint32;
+               description "CPU ID level number";
+             }
+
+             leaf wp {
+               type YesNo;
+               description "wp enabled";
+             }
+
+             leaf flags {
+               type string;
+               description "flags string";
+             }
+
+             leaf bogomips {
+               type decimal64 {
+                 fraction-digits 2;
+               }
+               description "bogo MIPs number";
+             }
+
+             leaf TLB_size {
+               type string;
+               description "TLB size: number of pages";
+             }
+
+             leaf clflush_size {
+               type uint32;
+               description "CL flush size number";
+             }
+
+             leaf cache_alignment {
+               type uint32;
+               description "Cache alignment number";
+             }
+
+             leaf address_sizes {
+               type string;
+               description "Address sizes string";
+             }
+
+             leaf power_management {
+               type string;
+               description "power management string";
+             }
+          }         
+        }
+
+        container meminfo {
+          description "/proc/meminfo system monitoring data.";
+
+          leaf MemTotal {
+            type string;
+            description "Memory Total string";
+          }
+
+          leaf MemFree {
+            type string;
+            description "Memory Free string";
+          }
+
+          leaf Buffers {
+            type string;
+            description "Buffers string";
+          }
+
+          leaf Cached {
+            type string;
+            description "Cached string";
+          }
+
+          leaf SwapCached {
+            type string;
+            description "Swap Cached string";
+          }
+
+          leaf Active {
+            type string;
+            description "Active string";
+          }
+
+          leaf Active_anon_ {
+            type string;
+            description "Active(anon) string";
+          }
+
+          leaf Active_file_ {
+            type string;
+            description "Active(file) string";
+          }
+
+          leaf Inactive {
+            type string;
+            description "Inactive string";
+          }
+
+          leaf Inactive_anon_ {
+            type string;
+            description "Inactive(anon) string";
+          }
+
+          leaf Inactive_file_ {
+            type string;
+            description "Inactive(file) string";
+          }
+
+          leaf Unevictable {
+            type string;
+            description "Unevictable string";
+          }
+
+          leaf Mlocked {
+            type string;
+            description "Mlocked string";
+          }
+          
+          leaf HighTotal {
+            type string;
+            description "High Total string";
+          }
+
+          leaf HighFree {
+            type string;
+            description "High Free string";
+          }
+
+          leaf LowTotal {
+            type string;
+            description "Low Total string";
+          }
+
+          leaf LowFree {
+            type string;
+            description "Low Free string";
+          }
+
+          leaf SwapTotal {
+            type string;
+            description "Swap Total string";
+          }
+
+          leaf SwapFree {
+            type string;
+            description "Swap Free string";
+          }
+
+          leaf Dirty {
+            type string;
+            description "Dirty string";
+          }
+
+          leaf Writeback {
+            type string;
+            description "Writeback string";
+          }
+
+          leaf AnonPages {
+            type string;
+            description "Anonymous Pages string";
+          }
+
+          leaf Mapped {
+            type string;
+            description "Mapped string";
+          }
+
+          leaf Shmem {
+            type string;
+            description "Shmem string";
+          }
+
+          leaf Slab {
+            type string;
+            description "Slab string";
+          }
+
+          leaf SReclaimable {
+            type string;
+            description "SReclaimable string";
+          }
+
+          leaf SUnreclaim {
+            type string;
+            description "SUnreclaim string";
+          }
+
+          leaf KernelStack {
+            type string;
+            description "KernelStack string";
+          }
+
+          leaf PageTables {
+            type string;
+            description "PageTables string";
+          }
+
+          leaf NFS_Unstable {
+            type string;
+            description "NFS Unstable string";
+          }
+
+          leaf Bounce {
+            type string;
+            description "Bounce string";
+          }
+
+          leaf WritebackTmp {
+            type string;
+            description "Writeback Temp string";
+          }
+
+          leaf CommitLimit {
+            type string;
+            description "Commit Limit string";
+          }
+
+          leaf Committed_AS {
+            type string;
+            description "Committed AS string";
+          }
+
+          leaf VmallocTotal {
+            type string;
+            description "Vmalloc Total string";
+          }
+
+          leaf VmallocUsed {
+            type string;
+            description "Vmalloc Used string";
+          }
+
+          leaf VmallocChunk {
+            type string;
+            description "Vmalloc Chunk string";
+          }
+
+          leaf HardwareCorrupted {
+            type string;
+            description "HardwareCorrupted string";
+          }
+
+          leaf AnonHugePages {
+            type string;
+            description "Anonymous Huge Pages string (kBytes)";
+          }
+
+          leaf HugePages_Total {
+            type uint32;
+            description "Huge Pages Total number";
+          }
+
+          leaf HugePages_Free {
+            type uint32;
+            description "Huge Pages Free number";
+          }
+
+          leaf HugePages_Rsvd {
+            type uint32;
+            description "Huge Pages Reserved number";
+          }
+
+          leaf HugePages_Surp {
+            type uint32;
+            description "Huge Pages Surplus number";
+          }
+
+          leaf Hugepagesize {
+            type string;
+            description "Huge Page size string";
+          }
+
+          leaf DirectMap4k {
+            type string;
+            description "Direct Map 4k string";
+          }
+
+          leaf DirectMap2M {
+            type string;
+            description "Direct Map 2M string";
+          }
+
+          leaf DirectMap4M {
+            type string;
+            description "Direct Map 4M string";
+          }
+
+        }
+   }
+}

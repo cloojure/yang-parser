@@ -1,0 +1,31 @@
+[:module
+ [:name "brocade-terminal"]
+ [:namespace "urn:brocade.com:mgmt:brocade-terminal"]
+ [:prefix "terminal"]
+ [:organization "Brocade Communications Systems, Inc."]
+ [:contact
+  "Brocade Communications Systems, Inc. Postal: 130 Holger Way San Jose, CA 95134 U.S.A Tel: +1-408-333-8000 E-mail: support@Brocade.com web: www.brocade.com."]
+ [:description
+  "This management submodule is an instrumentation to manage CLI terminal related features."]
+ [:revision
+  [:name "2011-04-18"]
+  [:description "Initial version of the management module terminal."]]
+ [:typedef
+  [:name "terminal-type"]
+  [:type [:name "enumeration"] [:enum [:name "vty"] [:value "2"]]]]
+ [:container
+  [:name "terminal-cfg"]
+  [:list
+   [:name "line"]
+   [:key "sessionid"]
+   [:max-elements "1"]
+   [:leaf [:name "sessionid"] [:type [:name "terminal-type"]]]
+   [:leaf
+    [:name "exec-timeout"]
+    [:type
+     [:name "uint32"]
+     [:range
+      [:range-composite
+       "0..136"
+       [:error-message
+        "CLI session idle time must be in the range 0 - 136 minutes"]]]]]]]]

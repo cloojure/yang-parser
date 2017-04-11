@@ -1,0 +1,43 @@
+[:module
+ [:name "brocade-rbridge"]
+ [:namespace "urn:brocade.com:mgmt:brocade-rbridge"]
+ [:prefix "rbridge"]
+ [:organization "Brocade Communications Systems, Inc."]
+ [:contact
+  "Brocade Communications Systems, Inc. Postal: 130 Holger Way San Jose, CA 95134 U.S.A Tel: +1-408-333-8000 E-mail: support@Brocade.com web: www.brocade.com."]
+ [:description
+  "This management module is an instrumentation to manage rbridge-id feature."]
+ [:revision
+  [:name "2011-06-21"]
+  [:description
+   "Initial version of this management module brocade-rbridge."]]
+ [:typedef
+  [:name "raslog-console"]
+  [:type
+   [:name "enumeration"]
+   [:enum [:name "INFO"] [:value "1"]]
+   [:enum [:name "ERROR"] [:value "2"]]
+   [:enum [:name "WARNING"] [:value "3"]]
+   [:enum [:name "CRITICAL"] [:value "4"]]]]
+ [:list
+  [:name "rbridge-id"]
+  [:key "rbridge-id"]
+  [:leaf [:name "rbridge-id"] [:type [:name "uint32"]]]
+  [:leaf [:name "swbd-number"] [:type [:name "int32"]] [:config false]]
+  [:container
+   [:name "interface-nodespecific"]
+   [:leaf [:name "ns-vlan"] [:type [:name "int32"]]]
+   [:leaf [:name "ns-ethernet"] [:type [:name "int32"]]]]
+  [:container [:name "ip"] [:description "Internet Protoccol (IP)."]]
+  [:container
+   [:name "ipv6"]
+   [:description "Internet Protoccol (IPv6)."]]
+  [:container [:name "router"] [:description "The routing system."]]
+  [:container
+   [:name "switch-attributes"]
+   [:leaf
+    [:name "chassis-name"]
+    [:type [:name "string"] [:length "1..30"]]]
+   [:leaf
+    [:name "host-name"]
+    [:type [:name "string"] [:length "1..30"]]]]]]

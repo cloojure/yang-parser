@@ -1,0 +1,264 @@
+[:module
+ [:name "yuma-xsd"]
+ [:namespace "http://www.w3.org/2001/XMLSchema"]
+ [:prefix "xsd"]
+ [:organization "Netconf Central"]
+ [:contact "Andy Bierman <andy@netconfcentral.org>"]
+ [:description
+  "XSD derived types for usage in YANG. Copyright (c) 2007 - 2009 Andy Bierman and the persons identified as authors of the code. All rights reserved. Redistribution and use in source and binary forms, with or without modification, is permitted pursuant to, and subject to the license terms contained in, the BSD 3-Clause License http://opensource.org/licenses/BSD-3-Clause"]
+ [:revision
+  [:name "2009-11-21"]
+  [:description "Rename xsd to yuma-xsd."]]
+ [:revision
+  [:name "2007-12-06"]
+  [:description
+   "Initial revision. There is more work to do filling in patterns for some of the string types"]]
+ [:typedef
+  [:name "normalizedString"]
+  [:description "XSD normalized string"]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#normalizedString"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "token"]
+  [:description "XSD token string"]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#token"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "base64Binary"]
+  [:description "XSD base64 binary encoded string"]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#base64Binary"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "hexBinary"]
+  [:description "XSD hex binary encoded string"]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#hexBinary"]
+  [:type [:name "binary"]]]
+ [:typedef
+  [:name "integer"]
+  [:description
+   "XSD unbounded integer type. This cannot be given a range like a number. This pattern does not supoort string representations of numbers, such as one two three"]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#integer"]
+  [:type [:name "string"] [:pattern "[\\-+]?[0-9]+"]]]
+ [:typedef
+  [:name "positiveInteger"]
+  [:description
+   "XSD unbounded positive integer. This cannot be given a range like a number. This pattern does not supoort string representations of numbers, such as one two three"]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#positiveInteger"]
+  [:type [:name "string"] [:pattern "[\\+]?[1-9]+[0-9]*"]]]
+ [:typedef
+  [:name "negativeInteger"]
+  [:description
+   "XSD unbounded negative integer. This cannot be given a range like a number. This pattern does not supoort string representations of numbers, such as one two three"]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#negativeInteger"]
+  [:type [:name "string"] [:pattern "[\\-]?[1-9]+[0-9]*"]]]
+ [:typedef
+  [:name "nonNegativeInteger"]
+  [:description
+   "XSD unbounded non-negative integer. This cannot be given a range like a number. This pattern does not supoort string representations of numbers, such as one two three"]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#nonNegativeInteger"]
+  [:type [:name "string"] [:pattern "[\\+]?[0-9]*"]]]
+ [:typedef
+  [:name "nonPositiveInteger"]
+  [:description
+   "XSD unbounded non-positive integer. This cannot be given a range like a number. This pattern does not supoort string representations of numbers, such as one two three"]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#nonPositiveInteger"]
+  [:type [:name "string"] [:pattern "\\-[1-9]+[0-9]*"]]]
+ [:typedef
+  [:name "long"]
+  [:description "XSD 64 bit signed integer."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#long"]
+  [:type [:name "int64"]]]
+ [:typedef
+  [:name "unsignedLong"]
+  [:description "XSD 64 bit unsigned integer."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#unsignedLong"]
+  [:type [:name "uint64"]]]
+ [:typedef
+  [:name "int"]
+  [:description "XSD 32 bit signed integer."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#int"]
+  [:type [:name "int32"]]]
+ [:typedef
+  [:name "unsignedInt"]
+  [:description "XSD 32 bit unsigned integer."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#unsignedInt"]
+  [:type [:name "uint32"]]]
+ [:typedef
+  [:name "short"]
+  [:description "XSD 16 bit signed integer."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#short"]
+  [:type [:name "int16"]]]
+ [:typedef
+  [:name "unsignedShort"]
+  [:description "XSD 16 bit unsigned integer."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#unsignedShort"]
+  [:type [:name "uint16"]]]
+ [:typedef
+  [:name "byte"]
+  [:description "XSD 8 bit signed integer."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#byte"]
+  [:type [:name "int8"]]]
+ [:typedef
+  [:name "unsignedByte"]
+  [:description "XSD 8 bit unsigned integer."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#unsignedByte"]
+  [:type [:name "uint8"]]]
+ [:typedef
+  [:name "decimal"]
+  [:description
+   "XSD decimal data type. [To do: not sure if this is a bounded real number or an unbounded real number.]."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#decimal"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "duration"]
+  [:description "XSD duration string type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#duration"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "dateTime"]
+  [:description "XSD date and time string type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#dateTime"]
+  [:type
+   [:name "string"]
+   [:pattern
+    "-?\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|(\\+|-)\\d{2}:\\d{2})"]]]
+ [:typedef
+  [:name "date"]
+  [:description "XSD date string type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#date"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "time"]
+  [:description "XSD time string type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#time"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "gYear"]
+  [:description "XSD year string type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#gYear"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "gYearMonth"]
+  [:description "XSD year and month string type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#gYearMonth"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "gMonth"]
+  [:description "XSD month string type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#gMonth"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "gMonthDay"]
+  [:description "XSD month and day string type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#gMonthDay"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "gDay"]
+  [:description "XSD day string type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#gDay"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "Name"]
+  [:description "XSD name string type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#Name"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "QName"]
+  [:description "XSD namespace-qualified name string type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#QName"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "NCName"]
+  [:description "XSD not-namespace-qualified name string type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#NCName"]
+  [:type [:name "string"] [:pattern "[\\i-[:]][\\c-[:]]*"]]]
+ [:typedef
+  [:name "anyURI"]
+  [:description "XSD universal resource identifier string type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#anyURI"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "language"]
+  [:description "XSD language identifier string type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#language"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "ID"]
+  [:description "XSD ID attribute type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#ID"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "IDREF"]
+  [:description "XSD IDREF attribute type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#IDREF"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "IDREFS"]
+  [:description "XSD IDREFS attribute type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#IDREFS"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "ENTITY"]
+  [:description "XSD ENTITY attribute type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#ENTITY"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "ENTITIES"]
+  [:description "XSD ENTITIES attribute type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#ENTITIES"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "NOTATION"]
+  [:description "XSD NOTATION attribute type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#NOTATION"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "NMTOKEN"]
+  [:description "XSD NMTOKEN attribute type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#NMTOKEN"]
+  [:type [:name "string"]]]
+ [:typedef
+  [:name "NMTOKENS"]
+  [:description "XSD NMTOKENS attribute type."]
+  [:reference
+   "http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#NMTOKENS"]
+  [:type [:name "string"]]]]

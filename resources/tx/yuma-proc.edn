@@ -1,0 +1,348 @@
+[:module
+ [:name "yuma-proc"]
+ [:namespace "http://netconfcentral.org/ns/yuma-proc"]
+ [:prefix "proc"]
+ [:organization "Netconf Central"]
+ [:contact "Andy Bierman <andy@netconfcentral.org>."]
+ [:description
+  "NETCONF /proc file system monitoring. Copyright (c) 2009 - 2013 Andy Bierman and the persons identified as authors of the code. All rights reserved. Redistribution and use in source and binary forms, with or without modification, is permitted pursuant to, and subject to the license terms contained in, the BSD 3-Clause License http://opensource.org/licenses/BSD-3-Clause"]
+ [:revision
+  [:name "2013-07-16"]
+  [:description "Add AnonHugePages counter for ubuntu 13.04 support."]]
+ [:revision
+  [:name "2012-10-10"]
+  [:description "Add more counters for ubuntu 12.04 support."]]
+ [:revision
+  [:name "2010-06-01"]
+  [:description "Add more counters for ubuntu 10.04 support."]]
+ [:revision
+  [:name "2009-11-21"]
+  [:description "Renamed proc to yuma-proc."]]
+ [:revision [:name "2009-07-17"] [:description "Initial version."]]
+ [:typedef
+  [:name "YesNo"]
+  [:type
+   [:name "enumeration"]
+   [:enum [:name "no"]]
+   [:enum [:name "yes"]]]]
+ [:container
+  [:name "proc"]
+  [:description "/proc file system monitoring data."]
+  [:config false]
+  [:container
+   [:name "cpuinfo"]
+   [:description "/proc/cpuinfo file system monitoring data."]
+   [:list
+    [:name "cpu"]
+    [:key "processor"]
+    [:leaf
+     [:name "processor"]
+     [:type [:name "uint32"]]
+     [:description "Processor Identifier"]]
+    [:leaf
+     [:name "vendor_id"]
+     [:type [:name "string"]]
+     [:description "Vendor Identifier"]]
+    [:leaf
+     [:name "cpu_family"]
+     [:type [:name "uint32"]]
+     [:description "CPU family number"]]
+    [:leaf
+     [:name "model"]
+     [:type [:name "uint32"]]
+     [:description "Model number"]]
+    [:leaf
+     [:name "model_name"]
+     [:type [:name "string"]]
+     [:description "Model name"]]
+    [:leaf
+     [:name "stepping"]
+     [:type [:name "uint32"]]
+     [:description "Stepping number"]]
+    [:leaf
+     [:name "microcode"]
+     [:type [:name "string"]]
+     [:description "Microcode hex string"]]
+    [:leaf
+     [:name "cpu_MHz"]
+     [:type [:name "decimal64"] [:fraction-digits "3"]]
+     [:description "CPU mega-hurtz number"]]
+    [:leaf
+     [:name "cache_size"]
+     [:type [:name "string"]]
+     [:description "Cache size string"]]
+    [:leaf
+     [:name "physical_id"]
+     [:type [:name "uint32"]]
+     [:description "Physical Identifier number"]]
+    [:leaf
+     [:name "siblings"]
+     [:type [:name "uint32"]]
+     [:description "Siblings number"]]
+    [:leaf
+     [:name "core_id"]
+     [:type [:name "uint32"]]
+     [:description "Core identifier number"]]
+    [:leaf
+     [:name "cpu_cores"]
+     [:type [:name "uint32"]]
+     [:description "Number of CPU cores"]]
+    [:leaf
+     [:name "apicid"]
+     [:type [:name "uint32"]]
+     [:description "APICID number"]]
+    [:leaf
+     [:name "initial_apicid"]
+     [:type [:name "uint32"]]
+     [:description "Initial APICID number"]]
+    [:leaf
+     [:name "fdiv_bug"]
+     [:type [:name "YesNo"]]
+     [:description "fdiv bug present"]]
+    [:leaf
+     [:name "hlt_bug"]
+     [:type [:name "YesNo"]]
+     [:description "hlt bug present"]]
+    [:leaf
+     [:name "f00f_bug"]
+     [:type [:name "YesNo"]]
+     [:description "f00f bug present"]]
+    [:leaf
+     [:name "coma_bug"]
+     [:type [:name "YesNo"]]
+     [:description "coma bug present"]]
+    [:leaf
+     [:name "fpu"]
+     [:type [:name "YesNo"]]
+     [:description "FPU present"]]
+    [:leaf
+     [:name "fpu_exception"]
+     [:type [:name "YesNo"]]
+     [:description "FPU exception supported"]]
+    [:leaf
+     [:name "cpuid_level"]
+     [:type [:name "uint32"]]
+     [:description "CPU ID level number"]]
+    [:leaf
+     [:name "wp"]
+     [:type [:name "YesNo"]]
+     [:description "wp enabled"]]
+    [:leaf
+     [:name "flags"]
+     [:type [:name "string"]]
+     [:description "flags string"]]
+    [:leaf
+     [:name "bogomips"]
+     [:type [:name "decimal64"] [:fraction-digits "2"]]
+     [:description "bogo MIPs number"]]
+    [:leaf
+     [:name "TLB_size"]
+     [:type [:name "string"]]
+     [:description "TLB size: number of pages"]]
+    [:leaf
+     [:name "clflush_size"]
+     [:type [:name "uint32"]]
+     [:description "CL flush size number"]]
+    [:leaf
+     [:name "cache_alignment"]
+     [:type [:name "uint32"]]
+     [:description "Cache alignment number"]]
+    [:leaf
+     [:name "address_sizes"]
+     [:type [:name "string"]]
+     [:description "Address sizes string"]]
+    [:leaf
+     [:name "power_management"]
+     [:type [:name "string"]]
+     [:description "power management string"]]]]
+  [:container
+   [:name "meminfo"]
+   [:description "/proc/meminfo system monitoring data."]
+   [:leaf
+    [:name "MemTotal"]
+    [:type [:name "string"]]
+    [:description "Memory Total string"]]
+   [:leaf
+    [:name "MemFree"]
+    [:type [:name "string"]]
+    [:description "Memory Free string"]]
+   [:leaf
+    [:name "Buffers"]
+    [:type [:name "string"]]
+    [:description "Buffers string"]]
+   [:leaf
+    [:name "Cached"]
+    [:type [:name "string"]]
+    [:description "Cached string"]]
+   [:leaf
+    [:name "SwapCached"]
+    [:type [:name "string"]]
+    [:description "Swap Cached string"]]
+   [:leaf
+    [:name "Active"]
+    [:type [:name "string"]]
+    [:description "Active string"]]
+   [:leaf
+    [:name "Active_anon_"]
+    [:type [:name "string"]]
+    [:description "Active(anon) string"]]
+   [:leaf
+    [:name "Active_file_"]
+    [:type [:name "string"]]
+    [:description "Active(file) string"]]
+   [:leaf
+    [:name "Inactive"]
+    [:type [:name "string"]]
+    [:description "Inactive string"]]
+   [:leaf
+    [:name "Inactive_anon_"]
+    [:type [:name "string"]]
+    [:description "Inactive(anon) string"]]
+   [:leaf
+    [:name "Inactive_file_"]
+    [:type [:name "string"]]
+    [:description "Inactive(file) string"]]
+   [:leaf
+    [:name "Unevictable"]
+    [:type [:name "string"]]
+    [:description "Unevictable string"]]
+   [:leaf
+    [:name "Mlocked"]
+    [:type [:name "string"]]
+    [:description "Mlocked string"]]
+   [:leaf
+    [:name "HighTotal"]
+    [:type [:name "string"]]
+    [:description "High Total string"]]
+   [:leaf
+    [:name "HighFree"]
+    [:type [:name "string"]]
+    [:description "High Free string"]]
+   [:leaf
+    [:name "LowTotal"]
+    [:type [:name "string"]]
+    [:description "Low Total string"]]
+   [:leaf
+    [:name "LowFree"]
+    [:type [:name "string"]]
+    [:description "Low Free string"]]
+   [:leaf
+    [:name "SwapTotal"]
+    [:type [:name "string"]]
+    [:description "Swap Total string"]]
+   [:leaf
+    [:name "SwapFree"]
+    [:type [:name "string"]]
+    [:description "Swap Free string"]]
+   [:leaf
+    [:name "Dirty"]
+    [:type [:name "string"]]
+    [:description "Dirty string"]]
+   [:leaf
+    [:name "Writeback"]
+    [:type [:name "string"]]
+    [:description "Writeback string"]]
+   [:leaf
+    [:name "AnonPages"]
+    [:type [:name "string"]]
+    [:description "Anonymous Pages string"]]
+   [:leaf
+    [:name "Mapped"]
+    [:type [:name "string"]]
+    [:description "Mapped string"]]
+   [:leaf
+    [:name "Shmem"]
+    [:type [:name "string"]]
+    [:description "Shmem string"]]
+   [:leaf
+    [:name "Slab"]
+    [:type [:name "string"]]
+    [:description "Slab string"]]
+   [:leaf
+    [:name "SReclaimable"]
+    [:type [:name "string"]]
+    [:description "SReclaimable string"]]
+   [:leaf
+    [:name "SUnreclaim"]
+    [:type [:name "string"]]
+    [:description "SUnreclaim string"]]
+   [:leaf
+    [:name "KernelStack"]
+    [:type [:name "string"]]
+    [:description "KernelStack string"]]
+   [:leaf
+    [:name "PageTables"]
+    [:type [:name "string"]]
+    [:description "PageTables string"]]
+   [:leaf
+    [:name "NFS_Unstable"]
+    [:type [:name "string"]]
+    [:description "NFS Unstable string"]]
+   [:leaf
+    [:name "Bounce"]
+    [:type [:name "string"]]
+    [:description "Bounce string"]]
+   [:leaf
+    [:name "WritebackTmp"]
+    [:type [:name "string"]]
+    [:description "Writeback Temp string"]]
+   [:leaf
+    [:name "CommitLimit"]
+    [:type [:name "string"]]
+    [:description "Commit Limit string"]]
+   [:leaf
+    [:name "Committed_AS"]
+    [:type [:name "string"]]
+    [:description "Committed AS string"]]
+   [:leaf
+    [:name "VmallocTotal"]
+    [:type [:name "string"]]
+    [:description "Vmalloc Total string"]]
+   [:leaf
+    [:name "VmallocUsed"]
+    [:type [:name "string"]]
+    [:description "Vmalloc Used string"]]
+   [:leaf
+    [:name "VmallocChunk"]
+    [:type [:name "string"]]
+    [:description "Vmalloc Chunk string"]]
+   [:leaf
+    [:name "HardwareCorrupted"]
+    [:type [:name "string"]]
+    [:description "HardwareCorrupted string"]]
+   [:leaf
+    [:name "AnonHugePages"]
+    [:type [:name "string"]]
+    [:description "Anonymous Huge Pages string (kBytes)"]]
+   [:leaf
+    [:name "HugePages_Total"]
+    [:type [:name "uint32"]]
+    [:description "Huge Pages Total number"]]
+   [:leaf
+    [:name "HugePages_Free"]
+    [:type [:name "uint32"]]
+    [:description "Huge Pages Free number"]]
+   [:leaf
+    [:name "HugePages_Rsvd"]
+    [:type [:name "uint32"]]
+    [:description "Huge Pages Reserved number"]]
+   [:leaf
+    [:name "HugePages_Surp"]
+    [:type [:name "uint32"]]
+    [:description "Huge Pages Surplus number"]]
+   [:leaf
+    [:name "Hugepagesize"]
+    [:type [:name "string"]]
+    [:description "Huge Page size string"]]
+   [:leaf
+    [:name "DirectMap4k"]
+    [:type [:name "string"]]
+    [:description "Direct Map 4k string"]]
+   [:leaf
+    [:name "DirectMap2M"]
+    [:type [:name "string"]]
+    [:description "Direct Map 2M string"]]
+   [:leaf
+    [:name "DirectMap4M"]
+    [:type [:name "string"]]
+    [:description "Direct Map 4M string"]]]]]

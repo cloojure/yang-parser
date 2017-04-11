@@ -1,0 +1,63 @@
+
+module com-att-no-phyiffab {
+	
+	namespace "http://com/att/no/phyiffab";
+	prefix com-att-no-phyiffab;
+		
+	
+	
+	
+	organization "AT&T, Inc.";
+	
+	contact "AIC Network";
+	
+	description "Physical Interface on Leaf ";
+	
+	revision 2016-05-14 {
+    	description   "Initial Revision";
+    }
+    
+    grouping physical-interface-grouping {
+    	
+    	list interface-list {
+    		key interface-name;
+    		
+    		leaf interface-name {
+				type string;
+				description "Physical interface name";
+			}
+			leaf interface-description {
+				type string;
+				description "Physical interface description";
+			}
+			leaf bundle-id {
+				type uint32 {
+            		range "1..65535";
+          		}
+				description "bundle-id";
+			}
+			
+		}
+    } 
+    
+    grouping physical-interface-config-response {
+    	leaf response-code {
+    		type string;
+    		description "physical-interface configuration response code";
+    	}
+    	leaf response-message {
+    		type string;
+    		description "physical-interface configuration response";
+    	}    
+    }
+    
+    
+    container physical-interface {
+    	uses physical-interface-grouping;
+    }
+    
+    
+    
+    
+
+}

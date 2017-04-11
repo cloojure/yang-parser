@@ -1,0 +1,241 @@
+; Note: YANG requires dependency declarations (i.e. "description") to come after the higher-level
+; construct (e.g. "module") in which it is used
+
+module = <ows> <"module"> <ws> ident-name <blk-open>
+         *( namespace
+          / prefix
+          / import
+          / extension
+          / organization
+          / contact
+          / description
+          / revision
+          / typedef
+          / list    ; #todo if missing sends instaparse -> infinite loop!
+          / grouping
+          / container
+          / rpc
+          / notification
+          / identity )
+         <blk-close> <ows>
+
+revision = <ows> <"revision"> <ws> date-arg <blk-open>
+           *( description
+            / reference )
+           <blk-close>
+
+typedef = <ows> <"typedef"> <ws> ident-name <blk-open>
+          *( description  
+           / reference
+           / type
+           / default )
+          <blk-close>
+<type>              = type-simple / type-composite
+type-simple         = <ows> <"type"> <ws> identifier <term>
+type-composite      = <ows> <"type"> <ws> identifier <blk-open> 
+                      *( length
+                       / fraction-digits
+                       / range
+                       / pattern
+                       / enum 
+                       / type 
+                       / base 
+                       / bit )
+                      <blk-close> 
+
+length              = <ows> <"length">   <ws> string-quoted <term>
+pattern             = <ows> <"pattern">  <ws> string-quoted <term>
+
+range               = range-simple / range-composite
+range-simple        = <ows> <"range"> <ws> string-quoted <term>
+range-composite     = <ows> <"range"> <ws> string-quoted <blk-open> 
+                      *( description
+                       / error-message )
+                      <blk-close> 
+
+<enum>              = enum-simple / enum-composite
+enum-simple         = <ows> <"enum"> <ws> identifier  <term>
+enum-composite      = <ows> <"enum"> <ws> identifier  <blk-open> 
+                      *( description
+                       / value )
+                      <blk-close> 
+
+bit                 = <ows> <"bit"> <ws> ident-name <blk-open>
+                         ows 
+                         description
+                         ows
+                      <blk-close>
+
+import  = <ows> <"import"> <ws> ident-name <blk-open>
+          *( prefix
+           / description  )
+           <blk-close>
+
+extension  = <ows> <"extension"> <ws> ident-name <blk-open>
+               ows [description] 
+             <blk-close>
+
+grouping = <ows> <"grouping"> <ws> ident-name <blk-open>
+            *( leaf
+             / list
+             / container
+             / description )
+           <blk-close>
+
+container = container-simple / container-composite
+<container-simple>    = <ows> <"container"> <ws> ident-name <term>
+<container-composite> = <ows> <"container"> <ws> ident-name <blk-open>
+            [container-extension-stmt]
+            *( uses     ; #todo if missing sends instaparse -> infinite loop!
+             / config   ; #todo    (same) for turing-machine.yang
+             / leaf
+             / leaf-list 
+             / list 
+             / container 
+             / presence 
+             / description )
+           <blk-close>
+container-extension-stmt = <ows> [prefix-sym ":"] container-extensions <term>
+container-extensions = ( "default-deny-write"
+                       / "default-deny-all" )
+
+prefix-sym = identifier     ; #todo match to /prefix/ statement
+
+list = <ows> <"list"> <ws> ident-name <blk-open>
+       *( key
+        / unique        ; #todo if missing sends instaparse -> infinite loop!
+        / max-elements
+        / leaf
+        / leaf-list
+        / list
+        / container
+        / type
+        / ordered-by
+        / choice
+        / description )
+       <blk-close>
+
+leaf-list  = <ows> <"leaf-list"> <ws> ident-name <blk-open>
+             *( key
+              / leaf
+              / type
+              / description )
+             <blk-close>
+
+leaf = <ows> <"leaf"> <ws> ident-name <blk-open>
+       *( type
+        / config
+        / mandatory
+        / default
+        / description  )
+       <blk-close>
+
+choice = <ows> <"choice"> <ws> ident-name <blk-open>
+       *( description
+        / case )
+       <blk-close>
+
+case = <ows> <"case"> <ws> ident-name <blk-open>
+       *( description
+        / leaf )
+       <blk-close>
+
+identity = <ows> <"identity"> <ws> ident-name <blk-open>
+       *( description
+        / base )
+       <blk-close>
+base = <ows> <"base"> <ws> ident-name <term>
+
+rpc = <ows> <"rpc"> <ws> ident-name <blk-open>
+      *( rpc-input 
+       / description )
+      <blk-close>
+
+rpc-input = <ows> <"input"> <blk-open>
+            *( leaf 
+             / description )
+            <blk-close>
+
+notification =  <ows> <"notification"> <ws> ident-name <blk-open>
+                *( leaf 
+                 / description )
+                <blk-close>
+
+unique              = <ows> <"unique">            <ws> string-quoted    <term>
+namespace           = <ows> <"namespace">         <ws> string-quoted    <term>
+description         = <ows> <"description">       <ws> string-quoted    <term>
+error-message       = <ows> <"error-message">     <ws> string-quoted    <term>
+reference           = <ows> <"reference">         <ws> string-quoted    <term>
+presence            = <ows> <"presence">          <ws> string-quoted    <term>
+organization        = <ows> <"organization">      <ws> string-quoted    <term>
+contact             = <ows> <"contact">           <ws> string-quoted    <term>
+key                 = <ows> <"key">               <ws> identifier       <term>
+uses                = <ows> <"uses">              <ws> identifier       <term>
+prefix              = <ows> <"prefix">            <ws> identifier       <term>
+ordered-by          = <ows> <"ordered-by">        <ws> identifier       <term>
+config              = <ows> <"config">            <ws> boolean          <term>
+mandatory           = <ows> <"mandatory">         <ws> boolean          <term>
+default             = <ows> <"default">           <ws> (identifier / string-quoted) <term> ; #todo was string-quoted
+value               = <ows> <"value">             <ws> (integer / string-quoted) <term>
+max-elements        = <ows> <"max-elements">      <ws> integer <term>
+fraction-digits     = <ows> <"fraction-digits">   <ws> integer <term>
+
+;-----------------------------------------------------------------------------
+
+ident-name          = identifier
+date-arg            = iso-year
+
+; An identifier MUST NOT start with (('X'|'x') ('M'|'m') ('L'|'l')) (i.e. "xml" in any case)
+identifier                      =  (alpha / underscore)
+                                  *(alpha / underscore / digit / hyphen / dot / colon)
+
+; Note that 4digit is the same as 4*4(digit); both mean exactly 4 digits
+iso-year                        = 4digit "-" 2digit "-" 2digit
+
+boolean                         = "true" / "false"
+
+<string-quoted>                 = string-quoted-simple / string-quoted-compound 
+string-quoted-compound          = string-quoted-simple 1*(<ows> <"+"> <ows> string-quoted-simple)
+string-quoted-simple            = string-quoted-double / string-quoted-single          
+<string-quoted-double>          = <quote-double> *(text-char-no-dquote) <quote-double>
+<string-quoted-single>          = <quote-single> *(text-char-no-squote) <quote-single>
+
+<text-char-no-dquote>           = vis-char-no-dquote / whitespace-char 
+<text-char-no-squote>           = vis-char-no-squote / whitespace-char 
+<text-char>                     = vis-char / whitespace-char 
+
+blk-open                        = <ows> <"{"> 
+blk-close                       = <ows> <"}"> 
+term                            = <ows> <";">
+
+sp                              = 1*(<space-horiz>)                 ; 1 or more "spacing"
+osp                             =  *(<space-horiz>)                 ; 0 or more "optional spacing"
+vs                              = 1*(<space-vert>)                  ; 1 or more "vert spacing"
+ovs                             =  *(<space-vert>)                  ; 0 or more "optional vert spacing"
+ws                              = 1*(<whitespace-char>)             ; 1 or more "whitespace"
+ows                             =  *(<whitespace-char>)             ; 0 or more "optional whitespace"
+<space-horiz>                   = (space-char / tab-char)           ; horizontal spacing
+<space-vert>                    = (carriage-return / line-feed)     ; vertical   spacing (EOL chars)
+<whitespace-char>               = (space-horiz / space-vert)        ; any spacing
+
+<carriage-return>               = %x0D
+<line-feed>                     = %x0A
+<space-char>                    = %x20  ; space
+<tab-char>                      = %x09  ; horizontal tab
+<quote-single>                  = %x27  ; ' char
+<quote-double>                  = %x22  ; " char
+<colon>                         = %x3A  ; : char
+<dot>                           = %x2E  ; . char
+<hyphen>                        = %x2D  ; - char
+<underscore>                    = %x5F  ; _ char
+<star>                          = %x2A  ; * char
+<slash>                         = %x2F  ; / char
+<alpha>                         = %x41-5A / %x61-7A     ; A-Z / a-z
+<digit>                         = %x30-39   ; 0-9
+<digits>                        = 1*digit   ; 1 or more digits
+<integer>                       = [ "+" / "-" ] digits  ; digits with optional sign
+<hex-digit>                     = digit / %x61 / %x62 / %x63 / %x64 / %x65 / %x66 ; only lower-case a..f
+<vis-char>                      = %x21-7E ; visible (printing) characters
+<vis-char-no-dquote>            = %x21    / %x23-7E ; all visible chars without quote-double
+<vis-char-no-squote>            = %x21-26 / %x28-7E ; all visible chars without quote-single
+

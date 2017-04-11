@@ -1,0 +1,38 @@
+{:module
+ {:com-att-no-phyiffab
+  {:contact "AIC Network",
+   :description "Physical Interface on Leaf",
+   :namespace "http://com/att/no/phyiffab",
+   :organization "AT&T, Inc.",
+
+   :physical-interface-grouping
+       {:interface-list
+        {:interface-name
+         {:name "interface-name",
+          :type "string",
+          :description "Physical interface name"},
+         :interface-description
+         {:name "interface-description",
+          :type "string",
+          :description "Physical interface description"},
+         :bundle-id
+         {:name "bundle-id",
+          :type "uint32",
+          :range ["range-simple" "1..65535"],
+          :description "bundle-id"}}},
+
+   :physical-interface-config-response
+       {:response-code
+        {:name "response-code",
+         :type "string",
+         :description "physical-interface configuration response code"},
+        :response-message
+        {:name "response-message",
+         :type "string",
+         :description "physical-interface configuration response"}},
+
+   :physical-interface 
+       {:uses "physical-interface-grouping"},
+
+   :prefix "com-att-no-phyiffab",
+   :revision {:name "2016-05-14", :description "Initial Revision"}}}}

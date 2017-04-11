@@ -1,0 +1,1052 @@
+module-stmt       = <optsep> <module-keyword> <sep> identifier
+                      <optsep>
+                      <"{"> <stmtsep>
+                          module-header-stmts
+                          linkage-stmts
+                          meta-stmts
+                          revision-stmts
+                          body-stmts
+                      <"}"> <optsep>
+
+submodule-stmt      = <optsep> submodule-keyword <sep> identifier
+                      <optsep>
+                      "{" <stmtsep>
+                          submodule-header-stmts
+                          linkage-stmts
+                          meta-stmts
+                          revision-stmts
+                          body-stmts
+                      "}" <optsep>
+
+<module-header-stmts> = ;; these stmts can appear in any order
+                      [yang-version-stmt <stmtsep>]
+                       namespace-stmt <stmtsep>
+                       prefix-stmt <stmtsep>
+
+submodule-header-stmts =
+                      ;; these stmts can appear in any order
+                      [yang-version-stmt <stmtsep>]
+                       belongs-to-stmt <stmtsep>
+
+<meta-stmts>        = ;; these stmts can appear in any order
+                      [organization-stmt <stmtsep>]
+                      [contact-stmt <stmtsep>]
+                      [description-stmt <stmtsep>]
+                      [reference-stmt <stmtsep>]
+
+<linkage-stmts>     = ;; these stmts can appear in any order
+                      *(import-stmt <stmtsep>)
+                      *(include-stmt <stmtsep>)
+                      *(<comment> <stmtsep>)
+
+revision-stmts      = *(revision-stmt <stmtsep>)
+
+<body-stmts>        = *((extension-stmt /
+                         feature-stmt /
+                         identity-stmt /
+                         typedef-stmt /
+                         grouping-stmt /
+                         data-def-stmt /
+                         augment-stmt /
+                         rpc-stmt /
+                         <comment> /
+                         notification-stmt /
+                         deviation-stmt) <stmtsep>)
+
+<data-def-stmt>     = container-stmt /
+                      leaf-stmt /
+                      leaf-list-stmt /
+                      list-stmt /
+                      choice-stmt /
+                      anyxml-stmt /
+                      uses-stmt
+
+yang-version-stmt   = yang-version-keyword <sep> yang-version-arg-str
+                      <optsep> <stmtend>
+
+yang-version-arg-str = string-quoted ; #awt was: < a string that matches the rule yang-version-arg >
+
+yang-version-arg    = "1"
+
+import-stmt         = import-keyword <sep> identifier <optsep>
+                      "{" <stmtsep>
+                          prefix-stmt <stmtsep>
+                          [revision-date-stmt <stmtsep>]
+                      "}"
+
+include-stmt        = include-keyword <sep> identifier <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           [revision-date-stmt <stmtsep>]
+                       "}")
+; #awt #todo
+;-----------------------------------------------------------------------------
+URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+
+<hier-part>     = "//" authority path-abempty
+              / path-absolute
+              / path-rootless
+              / path-empty
+
+URI-reference = URI / relative-ref
+
+absolute-URI  = scheme ":" hier-part [ "?" query ]
+
+relative-ref  = relative-part [ "?" query ] [ "#" fragment ]
+
+relative-part = "//" authority path-abempty
+              / path-absolute
+              / path-noscheme
+              / path-empty
+
+scheme        = alpha *( alpha / DIGIT / "+" / "-" / "." )
+
+<authority>     = [ userinfo "@" ] host [ ":" port ]
+userinfo      = *( unreserved / pct-encoded / sub-delims / ":" )
+<host>          = IP-literal / IPv4address / reg-name
+port          = *DIGIT
+
+IP-literal    = "[" ( IPv6address / IPvFuture  ) "]"
+
+IPvFuture     = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
+
+IPv6address   =                            6( h16 ":" ) ls32
+              /                       "::" 5( h16 ":" ) ls32
+              / [               h16 ] "::" 4( h16 ":" ) ls32
+              / [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32
+              / [ *2( h16 ":" ) h16 ] "::" 2( h16 ":" ) ls32
+              / [ *3( h16 ":" ) h16 ] "::"    h16 ":"   ls32
+              / [ *4( h16 ":" ) h16 ] "::"              ls32
+              / [ *5( h16 ":" ) h16 ] "::"              h16
+              / [ *6( h16 ":" ) h16 ] "::"
+
+h16           = 1*4HEXDIG
+ls32          = ( h16 ":" h16 ) / IPv4address
+IPv4address   = dec-octet "." dec-octet "." dec-octet "." dec-octet
+
+dec-octet     = DIGIT                 ; 0-9
+              / %x31-39 DIGIT         ; 10-99
+              / "1" 2DIGIT            ; 100-199
+              / "2" %x30-34 DIGIT     ; 200-249
+              / "25" %x30-35          ; 250-255
+
+reg-name      = *( unreserved / pct-encoded / sub-delims )
+
+path          = path-abempty    ; begins with "/" or is empty
+              / path-absolute   ; begins with "/" but not "//"
+              / path-noscheme   ; begins with a non-colon segment
+              / path-rootless   ; begins with a segment
+              / path-empty      ; zero characters
+
+<path-abempty>  = *( "/" segment )
+path-absolute = "/" [ segment-nz *( "/" segment ) ]
+path-noscheme = segment-nz-nc *( "/" segment )
+path-rootless = segment-nz *( "/" segment )
+path-empty    = 0<pchar>
+
+segment       = *pchar
+segment-nz    = 1*pchar
+segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@" )
+              ; non-zero-length segment without any colon ":"
+
+<pchar>         = unreserved / pct-encoded / sub-delims / ":" / "@"
+
+query         = *( pchar / "/" / "?" )
+
+fragment      = *( pchar / "/" / "?" )
+
+pct-encoded   = "%" HEXDIG HEXDIG
+
+<unreserved>    = alpha / DIGIT / "-" / "." / "_" / "~"
+reserved      = gen-delims / sub-delims
+gen-delims    = ":" / "/" / "?" / "#" / "[" / "]" / "@"
+sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+              / "*" / "+" / "," / ";" / "="
+
+;-----------------------------------------------------------------------------
+<uri-str>           = URI  ; #awt was: < a string that matches the rule URI in RFC 3986 >
+<uri-str-quoted>    = <DQUOTE> uri-str <DQUOTE> ; #awt was: < a string that matches the rule URI in RFC 3986 >
+
+namespace-stmt      = <namespace-keyword> <sep> uri-str-quoted <optsep> <stmtend>
+
+
+prefix-stmt         = <prefix-keyword> <sep> prefix
+                      <optsep> <stmtend>
+
+belongs-to-stmt     = belongs-to-keyword <sep> identifier
+                      <optsep>
+                      "{" <stmtsep>
+                          prefix-stmt <stmtsep>
+                      "}"
+
+organization-stmt   = <organization-keyword> <sep> string-quoted
+                      <optsep> <stmtend>
+
+contact-stmt        = <contact-keyword> <sep> string-quoted <optsep> <stmtend>
+
+revision-stmt       = <revision-keyword> <sep> revision-date <optsep>
+                      ( ";" /
+                       <"{"> <stmtsep>
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                       <"}"> )
+
+revision-date       =  date-arg
+
+revision-date-stmt = revision-date-keyword <sep> revision-date <stmtend>
+
+extension-stmt      = extension-keyword <sep> identifier <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           ;; these stmts can appear in any order
+                           [argument-stmt <stmtsep>]
+                           [status-stmt <stmtsep>]
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                       "}")
+
+argument-stmt       = argument-keyword <sep> identifier <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           [yin-element-stmt <stmtsep>]
+                       "}")
+
+yin-element-stmt    = yin-element-keyword <sep> yin-element-arg-str
+                      <stmtend>
+
+yin-element-arg-str = string-quoted ; #awt was: < a string that matches the rule yin-element-arg >
+
+yin-element-arg     = true-keyword / false-keyword
+
+identity-stmt       = identity-keyword <sep> identifier <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           ; these stmts can appear in any order  #awt false 
+                           ; #awt if present, must occur in order listed here
+                           [base-stmt <stmtsep>]
+                           [status-stmt <stmtsep>]
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                       "}")
+
+base-stmt           = base-keyword <sep> identifier-ref-arg
+                      <optsep> <stmtend>
+
+feature-stmt        = feature-keyword <sep> identifier <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           ;; these stmts can appear in any order
+                           *(if-feature-stmt <stmtsep>)
+                           [status-stmt <stmtsep>]
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                       "}")
+
+if-feature-stmt     = if-feature-keyword <sep> identifier-ref-arg
+                      <optsep> <stmtend>
+
+typedef-stmt        = <typedef-keyword> <sep> identifier <optsep>
+                      <"{"> <stmtsep>
+                          type-stmt <stmtsep>
+                          ; #awt #todo make all order-independent like this?
+                          ; #awt #todo also need to worry about exactly-once and zero-or-one occurrances
+                          *(  ; these stmts can appear in any order #awt changed for order indep
+                              [units-stmt <stmtsep>]
+                              [default-stmt <stmtsep>]
+                              [status-stmt <stmtsep>]
+                              [description-stmt <stmtsep>]
+                              [reference-stmt <stmtsep>]
+                           )
+                       <"}">
+
+leafref-specification =
+                      ;; these stmts can appear in any order
+                      path-stmt <stmtsep>
+                      [require-instance-stmt <stmtsep>]
+
+path-stmt           = path-keyword <sep> path-arg-str <stmtend>
+
+require-instance-stmt = require-instance-keyword <sep>
+                         require-instance-arg-str <stmtend>
+
+require-instance-arg-str = string-quoted ; #awt was: < a string that matches the rule require-instance-arg >
+
+require-instance-arg = true-keyword / false-keyword
+
+
+instance-identifier-specification =
+                      [require-instance-stmt <stmtsep>]
+
+identityref-specification =
+                      base-stmt <stmtsep>
+
+union-specification = 1*(type-stmt <stmtsep>)
+
+bits-specification  = 1*(bit-stmt <stmtsep>)
+
+bit-stmt            = bit-keyword <sep> identifier <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           ;; these stmts can appear in any order
+                           [position-stmt <stmtsep>]
+                           [status-stmt <stmtsep>]
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                         ; "}" #awt type deleted
+                       "}")
+
+position-stmt       = position-keyword <sep>
+                      position-value-arg-str <stmtend>
+
+position-value-arg-str = string-quoted ; #awt was: < a string that matches the rule position-value-arg >
+
+position-value-arg  = non-negative-integer-value
+
+status-stmt         = status-keyword <sep> status-arg-str <stmtend>
+
+status-arg-str      = string-quoted ; #awt was: < a string that matches the rule status-arg >
+
+status-arg          = current-keyword /
+                      obsolete-keyword /
+                      deprecated-keyword
+
+presence-stmt       = presence-keyword <sep> string-quoted <stmtend>
+
+ordered-by-stmt     = ordered-by-keyword <sep> ordered-by-arg <stmtend> ; #awt
+
+ordered-by-arg      = user-keyword / system-keyword
+ordered-by-arg-str  = string-quoted ; #awt was: < a string that matches the rule ordered-by-arg >
+
+grouping-stmt       = <grouping-keyword> <sep> identifier <optsep>
+                      (";" /
+                       <"{"> <stmtsep>
+                           ;; these stmts can appear in any order
+                           [status-stmt <stmtsep>]
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                           *((typedef-stmt /
+                              grouping-stmt) <stmtsep>)
+                           *(data-def-stmt <stmtsep>)
+                       <"}"> )
+
+container-stmt      = <container-keyword> <sep> identifier <optsep>
+                      (";" /
+                       <"{"> <stmtsep>
+                           ;; these stmts can appear in any order   #awt false! #todo
+                           [when-stmt <stmtsep>]
+                           *(if-feature-stmt <stmtsep>)
+                           *(must-stmt <stmtsep>)
+                           [presence-stmt <stmtsep>]
+                           [description-stmt <stmtsep>]
+                           [config-stmt <stmtsep>]
+                           [status-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                           *((typedef-stmt /
+                              grouping-stmt) <stmtsep>)
+                           *(data-def-stmt <stmtsep>)
+                       <"}"> )
+
+leaf-stmt           = <leaf-keyword> <sep> identifier <optsep>
+                      <"{"> <stmtsep>
+                          ;; these stmts can appear in any order  #awt false!
+                          [when-stmt <stmtsep>]
+                          *(if-feature-stmt <stmtsep>)
+                          type-stmt <stmtsep>
+                          [units-stmt <stmtsep>]
+                          *(must-stmt <stmtsep>)
+                          [default-stmt <stmtsep>]
+                          [config-stmt <stmtsep>]
+                          [mandatory-stmt <stmtsep>]
+                          [status-stmt <stmtsep>]
+                          [description-stmt <stmtsep>]
+                          [reference-stmt <stmtsep>]
+                       <"}">
+
+leaf-list-stmt      = <leaf-list-keyword> <sep> identifier <optsep>
+                      <"{"> <stmtsep>
+                          ;; these stmts can appear in any order
+                          [when-stmt <stmtsep>]
+                          *(if-feature-stmt <stmtsep>)
+                          type-stmt <stmtsep>
+                          [units-stmt <stmtsep>]
+                          *(must-stmt <stmtsep>)
+                          [config-stmt <stmtsep>]
+                          [min-elements-stmt <stmtsep>]
+                          [max-elements-stmt <stmtsep>]
+                          [ordered-by-stmt <stmtsep>]
+                          [status-stmt <stmtsep>]
+                          [description-stmt <stmtsep>]
+                          [reference-stmt <stmtsep>]
+                       <"}">
+
+list-stmt           = <list-keyword> <sep> identifier <optsep>
+                      <"{"> <stmtsep>
+                        ;; these stmts can appear in any order
+                       *(  ; #awt fixed? arbitrary order & repetition. Needed?
+                          [when-stmt <stmtsep>]
+                          [if-feature-stmt <stmtsep>]
+                          [must-stmt <stmtsep>]
+                          [key-stmt <stmtsep>]
+                          [unique-stmt <stmtsep>]
+                          [config-stmt <stmtsep>]
+                          [min-elements-stmt <stmtsep>]
+                          [max-elements-stmt <stmtsep>]
+                          [ordered-by-stmt <stmtsep>]
+                          [status-stmt <stmtsep>]
+                          [description-stmt <stmtsep>]
+                          [reference-stmt <stmtsep>]
+                          [typedef-stmt <stmtsep>] 
+                          [grouping-stmt <stmtsep>]
+                          [data-def-stmt <stmtsep>]
+                        )
+                      <"}">
+
+key-stmt            = <key-keyword> <sep> key-arg <stmtend>  ; #awt
+
+<key-arg>           = node-identifier *(<sep> node-identifier)
+key-arg-str         = string-quoted ; #awt was: < a string that matches the rule key-arg >
+
+choice-stmt         = choice-keyword <sep> identifier <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           ;; these stmts can appear in any order
+                           [when-stmt <stmtsep>]
+                           *(if-feature-stmt <stmtsep>)
+                           [default-stmt <stmtsep>]
+                           [config-stmt <stmtsep>]
+                           [mandatory-stmt <stmtsep>]
+                           [status-stmt <stmtsep>]
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                           *((short-case-stmt / case-stmt) <stmtsep>)
+                       "}")
+
+short-case-stmt     = container-stmt /
+                      leaf-stmt /
+                      leaf-list-stmt /
+                      list-stmt /
+                      anyxml-stmt
+
+case-stmt           = case-keyword <sep> identifier <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           ;; these stmts can appear in any order
+                           [when-stmt <stmtsep>]
+                           *(if-feature-stmt <stmtsep>)
+                           [status-stmt <stmtsep>]
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                           *(data-def-stmt <stmtsep>)
+                       "}")
+
+anyxml-stmt         = anyxml-keyword <sep> identifier <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           ;; these stmts can appear in any order
+                           [when-stmt <stmtsep>]
+                           *(if-feature-stmt <stmtsep>)
+                           *(must-stmt <stmtsep>)
+                           [config-stmt <stmtsep>]
+                           [mandatory-stmt <stmtsep>]
+                           [status-stmt <stmtsep>]
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                        "}")
+
+uses-stmt           = uses-keyword <sep> identifier-ref-arg <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           ;; these stmts can appear in any order
+                           [when-stmt <stmtsep>]
+                           *(if-feature-stmt <stmtsep>)
+                           [status-stmt <stmtsep>]
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                           *(refine-stmt <stmtsep>)
+                           *(uses-augment-stmt <stmtsep>)
+                       "}")
+
+refine-stmt         = refine-keyword <sep> refine-arg-str <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           (refine-container-stmts /
+                            refine-leaf-stmts /
+                            refine-leaf-list-stmts /
+                            refine-list-stmts /
+                            refine-choice-stmts /
+                            refine-case-stmts /
+                            refine-anyxml-stmts)
+                       "}")
+
+refine-arg-str      = string-quoted ; #awt was: < a string that matches the rule refine-arg >
+
+refine-arg          = descendant-schema-nodeid
+
+refine-container-stmts =
+                      ;; these stmts can appear in any order
+                      *(must-stmt <stmtsep>)
+                      [presence-stmt <stmtsep>]
+                      [config-stmt <stmtsep>]
+                      [description-stmt <stmtsep>]
+                      [reference-stmt <stmtsep>]
+
+refine-leaf-stmts   = ;; these stmts can appear in any order
+                      *(must-stmt <stmtsep>)
+                      [default-stmt <stmtsep>]
+                      [config-stmt <stmtsep>]
+                      [mandatory-stmt <stmtsep>]
+                      [description-stmt <stmtsep>]
+                      [reference-stmt <stmtsep>]
+
+refine-leaf-list-stmts =
+                      ;; these stmts can appear in any order
+                      *(must-stmt <stmtsep>)
+                      [config-stmt <stmtsep>]
+                      [min-elements-stmt <stmtsep>]
+                      [max-elements-stmt <stmtsep>]
+                      [description-stmt <stmtsep>]
+                      [reference-stmt <stmtsep>]
+
+refine-list-stmts   = ;; these stmts can appear in any order
+                      *(must-stmt <stmtsep>)
+                      [config-stmt <stmtsep>]
+                      [min-elements-stmt <stmtsep>]
+                      [max-elements-stmt <stmtsep>]
+                      [description-stmt <stmtsep>]
+                      [reference-stmt <stmtsep>]
+
+refine-choice-stmts = ;; these stmts can appear in any order
+                      [default-stmt <stmtsep>]
+                      [config-stmt <stmtsep>]
+                      [mandatory-stmt <stmtsep>]
+                      [description-stmt <stmtsep>]
+                      [reference-stmt <stmtsep>]
+
+refine-case-stmts   = ;; these stmts can appear in any order
+                      [description-stmt <stmtsep>]
+                      [reference-stmt <stmtsep>]
+
+
+refine-anyxml-stmts = ;; these stmts can appear in any order
+                      *(must-stmt <stmtsep>)
+                      [config-stmt <stmtsep>]
+                      [mandatory-stmt <stmtsep>]
+                      [description-stmt <stmtsep>]
+                      [reference-stmt <stmtsep>]
+
+uses-augment-stmt   = augment-keyword <sep> uses-augment-arg-str <optsep>
+                      "{" <stmtsep>
+                          ;; these stmts can appear in any order
+                          [when-stmt <stmtsep>]
+                          *(if-feature-stmt <stmtsep>)
+                          [status-stmt <stmtsep>]
+                          [description-stmt <stmtsep>]
+                          [reference-stmt <stmtsep>]
+                          1*((data-def-stmt <stmtsep>) /
+                             (case-stmt <stmtsep>))
+                       "}"
+
+uses-augment-arg-str = string-quoted ; #awt was: < a string that matches the rule uses-augment-arg >
+
+uses-augment-arg    = descendant-schema-nodeid
+
+augment-stmt        = augment-keyword <sep> augment-arg-str <optsep>
+                      "{" <stmtsep>
+                          ;; these stmts can appear in any order
+                          [when-stmt <stmtsep>]
+                          *(if-feature-stmt <stmtsep>)
+                          [status-stmt <stmtsep>]
+                          [description-stmt <stmtsep>]
+                          [reference-stmt <stmtsep>]
+                          1*((data-def-stmt <stmtsep>) /
+                             (case-stmt <stmtsep>))
+                       "}"
+
+augment-arg-str     = string-quoted ; #awt was: < a string that matches the rule augment-arg >
+
+augment-arg         = absolute-schema-nodeid
+
+when-stmt           = when-keyword <sep> string-quoted <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           ;; these stmts can appear in any order
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                        "}")
+
+rpc-stmt            = rpc-keyword <sep> identifier <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           ;; these stmts can appear in any order
+                           *(if-feature-stmt <stmtsep>)
+                           [status-stmt <stmtsep>]
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                           *((typedef-stmt /
+                              grouping-stmt) <stmtsep>)
+                           [input-stmt <stmtsep>]
+                           [output-stmt <stmtsep>]
+                       "}")
+
+input-stmt          = input-keyword <optsep>
+                      "{" <stmtsep>
+                          ;; these stmts can appear in any order
+                          *((typedef-stmt /
+                             grouping-stmt) <stmtsep>)
+                          1*(data-def-stmt <stmtsep>)
+                      "}"
+
+output-stmt         = output-keyword <optsep>
+                      "{" <stmtsep>
+                          ;; these stmts can appear in any order
+                          *((typedef-stmt /
+                             grouping-stmt) <stmtsep>)
+                          1*(data-def-stmt <stmtsep>)
+                      "}"
+
+notification-stmt   = notification-keyword <sep>
+                      identifier <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           ;; these stmts can appear in any order
+                           *(if-feature-stmt <stmtsep>)
+                           [status-stmt <stmtsep>]
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                           *((typedef-stmt /
+                              grouping-stmt) <stmtsep>)
+                           *(data-def-stmt <stmtsep>)
+                       "}")
+
+
+;-----------------------------------------------------------------------------
+;-----------------------------------------------------------------------------
+
+enum-specification  = 1*(enum-stmt <stmtsep>)
+
+enum-stmt           = <enum-keyword> <sep> identifier <optsep>
+                      (<";"> /
+                       <"{"> <stmtsep>
+                           ;; these stmts can appear in any order
+                           [value-stmt <stmtsep>]
+                           [status-stmt <stmtsep>]
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                        <"}"> )
+
+<string-restrictions> = ;; these stmts can appear in any order
+                     [length-stmt <stmtsep>]
+                     *(pattern-stmt <stmtsep>)
+
+length-stmt         = <length-keyword> <sep> length-arg-str <optsep>
+                      ( <";"> /
+                       "{" <stmtsep>
+                           ;; these stmts can appear in any order
+                           [error-message-stmt <stmtsep>]
+                           [error-app-tag-stmt <stmtsep>]
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                        "}")
+
+pattern-stmt        = pattern-keyword <sep> string-quoted <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           ;; these stmts can appear in any order
+                           [error-message-stmt <stmtsep>]
+                           [error-app-tag-stmt <stmtsep>]
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                        "}")
+
+decimal64-specification = 1*(fraction-digits-stmt <stmtsep>)  ; #awt repair
+
+; fraction-digits-stmt = fraction-digits-keyword <sep> fraction-digits-arg <stmtend>  ; #awt orig
+fraction-digits-stmt = fraction-digits-keyword <sep> positive-integer-value <stmtend>  ; #awt
+
+
+fraction-digits-arg = ("1" ["0" / "1" / "2" / "3" / "4" / "5" / "6" / "7" / "8"])
+                      / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9"
+fraction-digits-arg-str = string-quoted ; #awt was: < a string that matches the rule fraction-digits-arg >
+
+range-stmt          = range-keyword <sep> range-arg-str <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           ;; these stmts can appear in any order
+                           [error-message-stmt <stmtsep>]
+                           [error-app-tag-stmt <stmtsep>]
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                        "}")
+
+numerical-restrictions = range-stmt <stmtsep>
+
+description-stmt    = <description-keyword> <sep> string-quoted <optsep> <stmtend>
+
+reference-stmt      = reference-keyword <sep> string-quoted <optsep> <stmtend>
+
+min-elements-stmt   = min-elements-keyword <sep> min-value-arg <stmtend>     ; #awt #todo
+
+min-value-arg       = non-negative-integer-value
+min-value-arg-str   = string-quoted ; #awt was: < a string that matches the rule min-value-arg >
+
+max-elements-stmt   = max-elements-keyword <sep> max-value-arg <stmtend>     ; #awt #todo
+
+max-value-arg       = unbounded-keyword / positive-integer-value
+max-value-arg-str   = string-quoted ; #awt was: < a string that matches the rule max-value-arg >
+
+value-stmt          = value-keyword <sep> integer-value <stmtend>
+
+config-stmt         = config-keyword <sep> config-arg <stmtend>  ; #awt
+config-arg          = true-keyword / false-keyword
+config-arg-str      = string-quoted ; #awt was: < a string that matches the rule config-arg >
+
+mandatory-stmt      = mandatory-keyword <sep> mandatory-arg <stmtend>  ; #awt
+mandatory-arg       = true-keyword / false-keyword
+mandatory-arg-str   = string-quoted ; #awt was: < a string that matches the rule mandatory-arg >
+
+type-stmt           = <type-keyword> <sep> identifier-ref-arg <optsep>
+                      ( <";"> /
+                       <"{"> <stmtsep>
+                           type-body-stmts
+                       <"}"> )
+
+<type-body-stmts>   = numerical-restrictions /
+                      decimal64-specification /
+                      string-restrictions /
+                      enum-specification /
+                      leafref-specification /
+                      identityref-specification /
+                      instance-identifier-specification /
+                      bits-specification /
+                      union-specification
+
+default-stmt        = <default-keyword> <sep> string-quoted <stmtend>
+ ; default-stmt        = <default-keyword> <sep> identifier <stmtend> #awt why not this?
+
+unique-stmt         = unique-keyword <sep> unique-arg-str <stmtend>
+
+unique-arg-str      = string-quoted ; #awt was: < a string that matches the rule unique-arg >
+
+unique-arg          = descendant-schema-nodeid
+                     *(<sep> descendant-schema-nodeid)
+
+must-stmt           = must-keyword <sep> string-quoted <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           ;; these stmts can appear in any order
+                           [error-message-stmt <stmtsep>]
+                           [error-app-tag-stmt <stmtsep>]
+                           [description-stmt <stmtsep>]
+                           [reference-stmt <stmtsep>]
+                        "}")
+
+error-message-stmt  = error-message-keyword <sep> string-quoted <stmtend>
+
+error-app-tag-stmt  = error-app-tag-keyword <sep> string-quoted <stmtend>
+
+deviation-stmt      = deviation-keyword <sep>
+                      deviation-arg-str <optsep>
+                      "{" <stmtsep>
+                          ;; these stmts can appear in any order
+                          [description-stmt <stmtsep>]
+                          [reference-stmt <stmtsep>]
+                          (deviate-not-supported-stmt /
+                            1*(deviate-add-stmt /
+                               deviate-replace-stmt /
+                               deviate-delete-stmt))
+                      "}"
+
+deviation-arg-str   = string-quoted ; #awt was: < a string that matches the rule deviation-arg >
+
+deviation-arg       = absolute-schema-nodeid
+
+deviate-not-supported-stmt =
+                     deviate-keyword <sep>
+                     not-supported-keyword <optsep>
+                     (";" /
+                      "{" <stmtsep>
+                      "}")
+
+deviate-add-stmt    = deviate-keyword <sep> add-keyword <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           [units-stmt <stmtsep>]
+                           *(must-stmt <stmtsep>)
+                           *(unique-stmt <stmtsep>)
+                           [default-stmt <stmtsep>]
+                           [config-stmt <stmtsep>]
+                           [mandatory-stmt <stmtsep>]
+                           [min-elements-stmt <stmtsep>]
+                           [max-elements-stmt <stmtsep>]
+                       "}")
+
+deviate-delete-stmt = deviate-keyword <sep> delete-keyword <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           [units-stmt <stmtsep>]
+                           *(must-stmt <stmtsep>)
+                           *(unique-stmt <stmtsep>)
+                           [default-stmt <stmtsep>]
+                       "}")
+
+deviate-replace-stmt = deviate-keyword <sep> replace-keyword <optsep>
+                      (";" /
+                       "{" <stmtsep>
+                           [type-stmt <stmtsep>]
+                           [units-stmt <stmtsep>]
+                           [default-stmt <stmtsep>]
+                           [config-stmt <stmtsep>]
+                           [mandatory-stmt <stmtsep>]
+                           [min-elements-stmt <stmtsep>]
+                           [max-elements-stmt <stmtsep>]
+                       "}")
+
+;; Ranges
+
+range-arg-str       = string-quoted ; #awt was: < a string that matches the rule range-arg >
+
+range-arg           = range-part *(<optsep> "|" <optsep> range-part)
+
+range-part          = range-boundary
+                      [<optsep> ".." <optsep> range-boundary]
+
+range-boundary      = min-keyword / max-keyword /
+                      integer-value / decimal-value
+
+;; Lengths
+
+<length-arg-str>    = string-quoted ; #awt was: < a string that matches the rule length-arg >
+
+length-arg          = length-part *(<optsep> "|" <optsep> length-part)
+
+length-part         = length-boundary
+                      [<optsep> ".." <optsep> length-boundary]
+
+length-boundary     = min-keyword / max-keyword /
+                      non-negative-integer-value
+
+;; Date
+
+; date-arg-str        = date-arg ; #awt was: < a string that matches the rule date-arg >
+
+<date-arg>            = 4DIGIT "-" 2DIGIT "-" 2DIGIT
+
+;; Schema Node Identifiers
+
+schema-nodeid       = absolute-schema-nodeid /
+                      descendant-schema-nodeid
+
+absolute-schema-nodeid = 1*("/" node-identifier)
+
+descendant-schema-nodeid = node-identifier
+                           absolute-schema-nodeid
+
+<node-identifier>   = [prefix ":"] identifier
+
+
+;; Instance Identifiers
+
+instance-identifier = 1*("/" (node-identifier *predicate))
+
+predicate           = "[" *whitespace (predicate-expr / pos) *whitespace "]"
+
+predicate-expr      = (node-identifier / ".") *whitespace "=" *whitespace
+                      ((<DQUOTE> string <DQUOTE>) /
+                       (SQUOTE string SQUOTE))
+
+pos                 = non-negative-integer-value
+
+;; leafref path
+
+path-arg-str        = string-quoted ; #awt was: < a string that matches the rule path-arg >
+
+path-arg            = absolute-path / relative-path
+
+absolute-path       = 1*("/" (node-identifier *path-predicate))
+
+relative-path       = 1*(".." "/") descendant-path
+
+descendant-path     = node-identifier
+                      [*path-predicate absolute-path]
+
+path-predicate      = "[" *whitespace path-equality-expr *whitespace "]"
+
+path-equality-expr  = node-identifier *whitespace "=" *whitespace path-key-expr
+
+path-key-expr       = current-function-invocation *whitespace "/" *whitespace
+                      rel-path-keyexpr
+
+rel-path-keyexpr    = 1*(".." *whitespace "/" *whitespace)
+                      *(node-identifier *whitespace "/" *whitespace)
+                      node-identifier
+
+;;; Keywords, using abnfgen's syntax for case-sensitive strings
+
+;; statement keywords
+anyxml-keyword      = 'anyxml'
+argument-keyword    = 'argument'
+augment-keyword     = 'augment'
+base-keyword        = 'base'
+belongs-to-keyword  = 'belongs-to'
+bit-keyword         = 'bit'
+case-keyword        = 'case'
+choice-keyword      = 'choice'
+config-keyword      = 'config'
+contact-keyword     = 'contact'
+container-keyword   = 'container'
+default-keyword     = 'default'
+description-keyword = 'description'
+enum-keyword        = 'enum'
+error-app-tag-keyword = 'error-app-tag'
+error-message-keyword = 'error-message'
+extension-keyword   = 'extension'
+deviation-keyword   = 'deviation'
+deviate-keyword     = 'deviate'
+feature-keyword     = 'feature'
+fraction-digits-keyword = 'fraction-digits'
+grouping-keyword    = 'grouping'
+identity-keyword    = 'identity'
+if-feature-keyword  = 'if-feature'
+import-keyword      = 'import'
+include-keyword     = 'include'
+input-keyword       = 'input'
+key-keyword         = 'key'
+leaf-keyword        = 'leaf'
+leaf-list-keyword   = 'leaf-list'
+length-keyword      = 'length'
+list-keyword        = 'list'
+mandatory-keyword   = 'mandatory'
+max-elements-keyword = 'max-elements'
+min-elements-keyword = 'min-elements'
+module-keyword      = 'module'
+must-keyword        = 'must'
+namespace-keyword   = 'namespace'
+notification-keyword= 'notification'
+ordered-by-keyword  = 'ordered-by'
+organization-keyword= 'organization' 
+output-keyword      = 'output'
+path-keyword        = 'path'
+pattern-keyword     = 'pattern'
+position-keyword    = 'position'
+<prefix-keyword>    = 'prefix'
+presence-keyword    = 'presence'
+range-keyword       = 'range'
+reference-keyword   = 'reference'
+refine-keyword      = 'refine'
+require-instance-keyword = 'require-instance'
+revision-keyword          = 'revision'
+revision-date-keyword     = 'revision-date'
+rpc-keyword         = 'rpc'
+status-keyword      = 'status'
+submodule-keyword   = 'submodule'
+type-keyword        = 'type'
+typedef-keyword     = 'typedef'
+unique-keyword      = 'unique'
+units-keyword       = 'units'
+uses-keyword        = 'uses'
+value-keyword       = 'value'
+when-keyword        = 'when'
+yang-version-keyword= 'yang-version'
+yin-element-keyword = 'yin-element'
+
+;; other keywords
+
+add-keyword         = 'add'
+current-keyword     = 'current'
+delete-keyword      = 'delete'
+deprecated-keyword  = 'deprecated'
+false-keyword       = 'false'
+max-keyword         = 'max'
+min-keyword         = 'min'
+not-supported-keyword = 'not-supported'
+obsolete-keyword    = 'obsolete'
+replace-keyword     = 'replace'
+system-keyword      = 'system'
+true-keyword        = 'true'
+unbounded-keyword   = 'unbounded'
+user-keyword        = 'user'
+
+current-function-invocation = current-keyword *whitespace "(" *whitespace ")"
+
+;; Basic Rules
+
+; #todo
+<stmtend>             = ";" / "{" *unknown-statement "}"
+<stmtsep>           = *(whitespace / line-break / unknown-statement)
+; #awt out of order
+unknown-statement   = prefix ":" identifier [<sep> string] <optsep>
+                      (";" / "{" *unknown-statement2 "}")
+
+unknown-statement2   = [prefix ":"] identifier [<sep> string] <optsep>
+                       (";" / "{" *unknown-statement2 "}")
+units-stmt          = units-keyword <sep> string-quoted <optsep> <stmtend>
+
+<sep>               = 1*(whitespace / line-break) ; unconditional separator
+<optsep>            =  *(whitespace / line-break)
+
+non-zero-digit                  = %x31-39
+positive-integer-value          = (non-zero-digit *DIGIT)
+non-negative-integer-value      = "0" / positive-integer-value
+integer-value                   = ("-" non-negative-integer-value)  /
+
+zero-integer-value  = 1*DIGIT
+
+decimal-value       = integer-value ("." zero-integer-value)
+
+; RFC 5234 core rules.
+
+<alpha>             = %x41-5A / %x61-7A ; A-Z / a-z
+CR                  = %x0D ; carriage return
+CRLF                = CR LF ; Internet standard new line
+<DIGIT>             = %x30-39 ; 0-9
+SQUOTE              = %x27 ; ' (Single Quote)
+<DQUOTE>            = %x22 ; " (Double Quote)
+HEXDIG              = DIGIT / %x61 / %x62 / %x63 / %x64 / %x65 / %x66 ; only lower-case a..f
+HTAB                = %x09 ; horizontal tab
+LF                  = %x0A ; linefeed
+<SP>                = %x20 ; space
+vis-chars           = %x21-7E ; visible (printing) characters
+<whitespace>        = SP / HTAB
+
+;-----------------------------------------------------------------------------
+; #awt #todo mods discovered using sample yang models
+
+line-break          = CRLF / LF
+
+<dot>                 = %x2E ; period character
+<hyphen>              = %x2D ; hyphen character
+<underscore>          = %x5F ; underscore character
+
+<vischar-no-dquote>     = %x21 / %x23-7E ; all visible chars without double-quote
+<text-char-no-dquote>   = vischar-no-dquote / whitespace / line-break  ; normal "text" chars without double-quote
+
+; string              = identifier ; #awt was: < an unquoted string as returned by the scanner >
+; string              = *(vis-chars / whitespace)  ; #awt
+string                = *(text-char-no-dquote)  ; #awt
+<string-quoted>       = <DQUOTE> string <DQUOTE>
+
+; An identifier MUST NOT start with (('X'|'x') ('M'|'m') ('L'|'l'))
+identifier          =   (alpha / underscore)
+                       *(alpha / DIGIT / underscore / hyphen / dot)  ; #awt
+; identifier-quoted    = <DQUOTE> identifier <DQUOTE>   ; #awt
+; identifier-arg      = identifier
+; identifier-arg-str  = identifier-arg ; #awt was: < a string that matches the rule identifier-arg >
+  ; #awt these should not both be identical; should the 2nd one be identifier-quoted ???
+
+<prefix>              = identifier
+; <prefix-arg>          = identifier ; #awt remove dup
+; prefix-arg-str      = identifier-quoted ; #awt was: < a string that matches the rule prefix-arg >
+
+<identifier-ref-arg>  = [prefix ":"] identifier
+; identifier-ref-arg-str = identifier-ref-arg ; #awt was: < a string that matches the rule identifier-ref-arg >
+
+cpp-comment-begin   = %x2F %x2F 
+cpp-comment         = cpp-comment-begin *(vis-chars / whitespace)
+
+c-comment-begin     = %x2F %x2A     ; /* 
+c-comment-end       = %x2A %x2F     ; */
+c-comment           = c-comment-begin  *(vis-chars / whitespace / line-break) 
+                      c-comment-end
+
+comment             = c-comment / cpp-comment
+

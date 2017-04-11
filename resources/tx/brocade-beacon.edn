@@ -1,0 +1,11 @@
+[:module
+ [:name "beacon"]
+ [:namespace "urn:brocade.com:mgmt:brocade-beacon"]
+ [:prefix "beacon"]
+ [:revision
+  [:name "2011-10-31"]
+  [:description "Initial version of this management module."]]
+ [:container
+  [:name "beacon"]
+  [:container [:name "enable"]]
+  [:container [:name "disable"]]]]

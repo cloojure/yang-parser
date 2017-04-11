@@ -1,0 +1,59 @@
+
+Overall observation: 
+  RFC 6020 is a "legal" or "committee" document meant only for human consumption.  
+  It is not meant to be executable (i.e. not meant to be consumed by machine to define a parser)
+
+-----------------------------------------------------------------------------
+From the InstaParse docs:
+
+    However, in ABNF notation, angle brackets are meant to be used for prose descriptions of
+    some concept that can't be mechanically specified in the grammar. For example:
+        P = <a prime number>
+
+-----------------------------------------------------------------------------
+One may interepret the ABNF from RFC 6020 as a kind of "loose upper bound". That's kind of like
+saying "Alan cannot jump higher than 10 feet".  This does not
+
+  - tell you exactly how high Alan can jump
+  - tell you anything about how high Alan can jump relative to other people.
+  - tell you how to calculate Alan's max jump height
+  - it only tells you that anything that can jump 10 feet (or higher) isn't Alan 
+
+-----------------------------------------------------------------------------
+Examples from RFC 6020:
+
+p142, "This grammar assumes that the scanner replaces YANG comments with a single space character."
+
+p162, string = < an unquoted string as returned by the scanner >
+
+p162, 
+  1. duplication: why are there 2 def's?
+       identifier-arg-str  = < a string that matches the rule identifier-arg >
+       identifier-arg      = identifier
+
+      The reason is that these expressions are all interpreted the same by YANG:
+           int   year  ;
+           int  "year" ;
+          "int"  year  ;
+          "int" "year" ;
+
+      From the RFC:  
+          "The following strings are equivalent:"
+          ---------------------------------
+            hello
+           "hello"
+           'hello'
+           "hel" + "lo"
+           'hel' + "lo"
+          ---------------------------------
+
+  2. no (practical) way for ABNF to reject "xmlName", "XmlName", "xml-name", "XML-name", etc
+   ;; An identifier MUST NOT start with (('X'|'x') ('M'|'m') ('L'|'l'))
+   identifier          = (ALPHA / "_")
+                         *(ALPHA / DIGIT / "_" / "-" / ".")
+
+  3. which one is it (problem since '*' isn't greedy like in regex)
+        1*("abc...xyz")
+        name -> [:ident "name"]
+        name -> [ [:ident "n"] [:ident "a"] [:ident "m"] [:ident "e"] ]
+     
