@@ -1,5 +1,6 @@
 (ns tst.parse.core
   (:use parse.core
+        parse.transform
         tupelo.test
         clojure.test)
   (:require

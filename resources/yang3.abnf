@@ -1,25 +1,16 @@
 
 ;-----------------------------------------------------------------------------
 
-file   = tokens <ows>
-tokens = *( non-token / token )
-token  = <ws> ( identifier / string )
-non-token = <";">
+file   = tokens
+tokens = *( <ws> / non-token / token )
+token  =  ( identifier / string )
+non-token = <';'>
 
 
-date-arg            = iso-year
-
-; An identifier MUST NOT start with (('X'|'x') ('M'|'m') ('L'|'l')) (i.e. "xml" in any case)
-identifier                      = 1*( alpha / digit / hyphen )
-; identifier                      = ( identifier-start-char *identifier-body-char)
-identifier-start-char         = alpha / underscore
-identifier-body-char          = alpha / underscore / digit / hyphen / dot / colon
-
-
-; Note that 4digit is the same as 4*4(digit); both mean exactly 4 digits
-iso-year                        = 4digit "-" 2digit "-" 2digit
-
-boolean                         = "true" / "false"
+; An identifier MUST NOT start with (('X'|'x') ('M'|'m') ('L'|'l')) (i.e. 'xml' in any case)
+identifier                      = identifier-start-char *identifier-body-char
+identifier-start-char           = alpha / underscore
+identifier-body-char            = alpha / underscore / digit / hyphen / dot / colon
 
 string                          = <quote-double> *(text-char-no-dquote) <quote-double>
 
@@ -27,12 +18,16 @@ string                          = <quote-double> *(text-char-no-dquote) <quote-d
 <text-char-no-dquote>           = vis-char-no-dquote / whitespace-char 
 <text-char-no-quotes>           = vis-char-no-quotes / whitespace-char 
 
-blk-open                        = <ows> <"{"> 
-blk-close                       = <ows> <"}"> 
-term                            = <ows> <";">
+blk-open                        = <ows> <'{'> 
+blk-close                       = <ows> <'}'> 
+term                            = <ows> <';'>
+date-arg                        = iso-year
+; Note that 4digit is the same as 4*4(digit); both mean exactly 4 digits
+iso-year                        = 4digit '-' 2digit '-' 2digit
+boolean                         = 'true' / 'false'
 
-ws                              = 1*(<whitespace-char>)             ; 1 or more "whitespace"
-ows                             =  *(<whitespace-char>)             ; 0 or more "optional whitespace"
+ws                              = 1*(<whitespace-char>)             ; 1 or more 'whitespace'
+ows                             =  *(<whitespace-char>)             ; 0 or more 'optional whitespace'
 <space-horiz>                   = (space-char / tab-char)           ; horizontal spacing
 <space-vert>                    = (carriage-return / line-feed)     ; vertical   spacing (EOL chars)
 <whitespace-char>               = (space-horiz / space-vert)        ; any spacing

@@ -1,4 +1,5 @@
 (ns parse.core
+  (use parse.transform)
   (:require
     [clojure.java.io :as io]
     [clojure.set :as set]
@@ -136,44 +137,6 @@
                 (reset! ctx new-ctx-map)))))
     (str/join (grab :result @ctx))))
 
-(defn yang-transform
-  [parse-tree]
-  (insta/transform
-    {
-     :string-compound str
-     :string-simple   str
-     :string          (fn [& args] [:string (str/join args) ] )
-     :identifier      (fn [& args] [:identifier (str/join args) ] )
-     :iso-year        str
-
-     :boolean         (fn fn-boolean [arg] (java.lang.Boolean. arg))
-
-     :base            (fn fn-base-arg [[_ name]] [:base name])
-
-     :ident-name      (fn fn-name-arg [arg] [:name arg])
-     :date-arg        (fn fn-name-arg [arg] [:name arg])
-     :namespace       (fn fn-namespace [arg] [:namespace arg])
-     :prefix          (fn fn-prefix [arg] [:prefix arg])
-     :description     (fn fn-description [arg] [:description (tm/collapse-whitespace arg)])
-     :error-message   (fn fn-description [arg] [:error-message (tm/collapse-whitespace arg)])
-     :contact         (fn fn-description [arg] [:contact (tm/collapse-whitespace arg)])
-     :length          (fn fn-length [arg] [:length arg])
-
-     :enum-simple     (fn fn-enum-simple [& args]
-                        [:enum [:name (first args)]])
-     :enum-composite  (fn fn-enum-composite [& args]
-                        (let [name    (first args)
-                              content (rest args)]
-                          (t/prepend :enum [:name name] content)))
-
-     :type-simple     (fn fn-type-simple [& args]
-                        [:type [:name (first args)]])
-     :type-composite  (fn fn-type-composite [& args]
-                        (let [name    (first args)
-                              content (rest args)]
-                          (t/prepend :type [:name name] content)))
-     } parse-tree))
-
 (def yang-root-names ; #todo
  [   "acme"
      "toaster"
@@ -186,21 +149,17 @@
      "yuma-xsd"
    ])
 
-(defn create-yang-parser
-  "Creates & returns a yang parser from the ABNF definition located in `resources/<filename>` "
-  [filename]
-  (insta/parser (io/resource filename) ; e.g. "yang3.abnf"
-    :input-format     :abnf
-    ; :auto-whitespace  :standard   ; #todo broken at present
-    ; :output-format    :enlive
-  ))
+(defn create-abnf-parser
+  "Given an ABNF syntax string, creates & returns a parser"
+  [abnf-str]
+  (insta/parser abnf-str :input-format :abnf ))
 
 (defn -main
   [& args]
   (println "main - enter")
   (doseq [curr-file yang-root-names]
     (newline)
-    (let [yang-parser (create-yang-parser "yang2.abnf")
+    (let [yang-parser (create-abnf-parser (io/resource "yang2.abnf"))
           file-in     (str "resources/"       curr-file ".yang")
           file-tx     (str "resources/tx/"    curr-file ".edn")
           data-in     (slurp file-in)

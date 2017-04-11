@@ -8,7 +8,7 @@
    [org.clojure/test.check "0.9.0"]
    [instaparse "1.4.5"]
    [potemkin "0.4.3"]
-   [tupelo "0.9.31"]
+   [tupelo "0.9.34"]
  ]
 
   ; "lein test"         will not  run tests marked with the ":slow" metadata
