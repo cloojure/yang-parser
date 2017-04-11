@@ -351,29 +351,5 @@
                  {:tag :B, :content ('b' 'b')})})}"))))
   )
 
-;(defn parse-source-text
-;  [src-str]
-;  (let [
-;        src-nocomment   (remove-comments src-str)
-;        src-parsed      (yang-parser src-nocomment)
-;        src-transformed (yang-transform src-parsed)]
-;    src-transformed))
 
-(dotest
-  (let [yp (create-yang-parser "yang3.abnf")
-        s1 (ts/single-quotes->double-quotes " 'hello'")
-        r1a (yp s1)
-        r1b (yang-transform r1a)
-
-        s2 (ts/single-quotes->double-quotes " name" )
-        r2a (yp s2)
-        r2b (yang-transform r2a)
-        ]
-    (is= [:file [:tokens [:token [:string "h" "e" "l" "l" "o"]]]] (spyx r1a))
-    (is= [:file [:tokens [:token [:string "hello"]]]] (spyx r1b))
-
-    (is= [:file [:tokens [:token [:identifier "n" "a" "m" "e"]]]] (spyx r2a))
-    (is= [:file [:tokens [:token [:identifier "name"]]]] (spyx r2b))
-  )
-)
 
