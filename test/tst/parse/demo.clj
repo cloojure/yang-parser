@@ -4,6 +4,7 @@
         tupelo.test
         clojure.test)
   (:require
+    [clojure.java.io :as io]
     [clojure.set :as set]
     [clojure.string :as str]
     [clojure.test.check :as tc]
@@ -76,8 +77,7 @@ identifier                      = identifier-start-char *identifier-body-char
         s1-ast   (yang-transform s1-tree)
         ]
     (is= [:string "h" "e" "l" "l" "o"] s1-tree)
-    (is= [:string "hello"] s1-ast)
-    )
+    (is= [:string "hello"] s1-ast))
   (let [abnf-src (str abnf-identifier abnf-base)
         yp       (create-abnf-parser abnf-src)
         s1       "name"
@@ -85,10 +85,9 @@ identifier                      = identifier-start-char *identifier-body-char
         s1-ast   (yang-transform s1-tree)]
     (is= [:identifier "n" "a" "m" "e"] s1-tree)
     (is= [:identifier "name"] s1-ast)
-    (throws?
-      (let [s3      "xml-name"
-            s3-tree (yp s3)
-            s3-ast  (yang-transform s3-tree)]))))
+    (throws? (let [s3      "xml-name"
+                   s3-tree (yp s3)
+                   s3-ast  (yang-transform s3-tree)]))))
 
 (dotest
   (let [abnf-tokens "
@@ -112,7 +111,8 @@ token  =  <ows> ( identifier / string ) "
 tokens =  <ows> token *( <ws> token) <ows>   ; can have trailing <ows> ***** ONLY AT THE TOP LEVEL! *****
 token  =  identifier / string ")
 (dotest
-  (let [abnf-src    (str abnf-tokens abnf-string abnf-identifier abnf-base)
+  (let [            ; abnf-src    (str abnf-tokens abnf-string abnf-identifier abnf-base)
+        abnf-src    (io/resource "yang3.abnf")
         yp          (create-abnf-parser abnf-src)
         s1          (ts/quotes->double "  ident1 ")
         s1-tree     (yp s1)
