@@ -111,16 +111,14 @@ token  =  <ows> ( identifier / string ) "
 tokens =  <ows> token *( <ws> token) <ows>   ; can have trailing <ows> ***** ONLY AT THE TOP LEVEL! *****
 token  =  identifier / string ")
 (dotest
-  (let [            ; abnf-src    (str abnf-tokens abnf-string abnf-identifier abnf-base)
-        abnf-src    (io/resource "yang3.abnf")
+  (let [abnf-src    (io/resource "yang3.abnf")
         yp          (create-abnf-parser abnf-src)
         s1          (ts/quotes->double "  ident1 ")
         s1-tree     (yp s1)
         s1-ast      (yang-transform s1-tree)
         s2          (ts/quotes->double "  ident1 'str1' ident2 'str2' ")
         s2-tree     (yp s2)
-        s2-ast      (yang-transform s2-tree)
-        ]
+        s2-ast      (yang-transform s2-tree) ]
     (is= s1-ast [:tokens [:token [:identifier "ident1"]]])
     (is= s2-ast
       [:tokens
@@ -129,30 +127,27 @@ token  =  identifier / string ")
        [:token [:identifier "ident2"]]
        [:token [:string     "str2"]]] ))
 
-  (let [abnf-src (str abnf-tokens abnf-string abnf-identifier abnf-base)
+  (let [abnf-src (io/resource "yang3.abnf")
         yp       (create-abnf-parser abnf-src)]
-
     (let [s1 (ts/quotes->double "ident1")]
       (check 22 (prop/for-all [s1 (tgen/txt-join (gen/tuple tgen/whitespace (tgen/constantly s1) tgen/whitespace))]
                   (let [s1-tree (yp s1)
                         s1-ast  (yang-transform s1-tree)]
                     (is= s1-ast [:tokens [:token [:identifier "ident1"]]])))))
-
     (let [s1 (ts/quotes->double "'str1'")]
       (check 22 (prop/for-all [samp (tgen/txt-join (gen/tuple tgen/whitespace (tgen/constantly s1) tgen/whitespace))]
                   (let [samp-tree (yp samp)
                         samp-ast  (yang-transform samp-tree)]
                     (is= samp-ast [:tokens [:token [:string "str1"]]])))))
-
     (let [s1 (ts/quotes->double "  ident1 'str1' ident2 'str2' ")]
       (check 22 (prop/for-all [samp (tgen/txt-join (gen/tuple tgen/whitespace (tgen/constantly s1) tgen/whitespace))]
                   (let [samp-tree (yp samp)
                         samp-ast  (yang-transform samp-tree)]
                     (is= samp-ast
-                          [:tokens
-                             [:token [:identifier "ident1"]]
-                             [:token [:string     "str1"]]
-                             [:token [:identifier "ident2"]]
-                             [:token [:string     "str2"]]] )))))
-  )
+                      [:tokens
+                       [:token [:identifier "ident1"]]
+                       [:token [:string "str1"]]
+                       [:token [:identifier "ident2"]]
+                       [:token [:string "str2"]]])))))
+    )
 )
