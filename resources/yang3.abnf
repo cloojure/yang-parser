@@ -1,5 +1,12 @@
 
-tokens =  <ows> token *( <ws> token) <ows>   ; can have trailing <ows> ***** ONLY AT THE TOP LEVEL! *****
+module = <ows> <"module"> <ws> identifier <blk-open>
+         *( namespace
+          / prefix )
+         <blk-close> <ows>
+
+namespace           = <ows> <"namespace">         <ws> string-quoted    <term>
+prefix              = <ows> <"prefix">            <ws> identifier       <term>
+
 token  =  identifier / string 
 
 string = <quote-double> *(text-char-no-dquote) <quote-double> 

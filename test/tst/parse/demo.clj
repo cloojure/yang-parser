@@ -111,7 +111,7 @@ token  =  <ows> ( identifier / string ) "
 tokens =  <ows> token *( <ws> token) <ows>   ; can have trailing <ows> ***** ONLY AT THE TOP LEVEL! *****
 token  =  identifier / string ")
 (dotest
-  (let [abnf-src    (io/resource "yang3.abnf")
+  (let [abnf-src (str abnf-tokens abnf-string abnf-identifier abnf-base)
         yp          (create-abnf-parser abnf-src)
         s1          (ts/quotes->double "  ident1 ")
         s1-tree     (yp s1)
@@ -127,7 +127,7 @@ token  =  identifier / string ")
        [:token [:identifier "ident2"]]
        [:token [:string     "str2"]]] ))
 
-  (let [abnf-src (io/resource "yang3.abnf")
+  (let [abnf-src (str abnf-tokens abnf-string abnf-identifier abnf-base)
         yp       (create-abnf-parser abnf-src)]
     (let [s1 (ts/quotes->double "ident1")]
       (check 22 (prop/for-all [s1 (tgen/txt-join (gen/tuple tgen/whitespace (tgen/constantly s1) tgen/whitespace))]
@@ -144,10 +144,10 @@ token  =  identifier / string ")
                   (let [samp-tree (yp samp)
                         samp-ast  (yang-transform samp-tree)]
                     (is= samp-ast
-                      [:tokens
-                       [:token [:identifier "ident1"]]
-                       [:token [:string "str1"]]
-                       [:token [:identifier "ident2"]]
-                       [:token [:string "str2"]]])))))
-    )
+                          [:tokens
+                             [:token [:identifier "ident1"]]
+                             [:token [:string     "str1"]]
+                             [:token [:identifier "ident2"]]
+                             [:token [:string     "str2"]]] )))))
+  )
 )
