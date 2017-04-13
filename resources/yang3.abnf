@@ -4,8 +4,8 @@ module = <ows> <"module"> <ws> identifier <blk-open>
           / prefix )
          <blk-close> <ows>
 
-namespace           = <ows> <"namespace">         <ws> string-quoted    <term>
-prefix              = <ows> <"prefix">            <ws> identifier       <term>
+namespace           = <ows> <"namespace">         <ws> string      <term>
+prefix              = <ows> <"prefix">            <ws> identifier  <term>
 
 token  =  identifier / string 
 

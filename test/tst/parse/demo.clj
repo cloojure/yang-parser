@@ -148,6 +148,23 @@ token  =  identifier / string ")
                              [:token [:identifier "ident1"]]
                              [:token [:string     "str1"]]
                              [:token [:identifier "ident2"]]
-                             [:token [:string     "str2"]]] )))))
-  )
+                             [:token [:string     "str2"]]] )))))))
+
+(dotest
+  (let [abnf-src (io/resource "yang3.abnf")
+        yp       (create-abnf-parser abnf-src)]
+    (let [yang-src (ts/quotes->double "
+module toaster {
+  namespace 'http://netconfcentral.org/ns/toaster' ;
+  prefix toast;
+} ") ]
+      (check 22 (prop/for-all [samp (tgen/txt-join (gen/tuple tgen/whitespace (tgen/constantly yang-src) tgen/whitespace))]
+                  (let [samp-tree (yp samp)
+                        samp-ast  (yang-transform samp-tree)]
+                    (is= samp-ast
+                        [:module [:identifier "toaster"]
+                         [:namespace  [:string "http://netconfcentral.org/ns/toaster"]]
+                         [:prefix     [:identifier "toast"]]] )
+                  )))))
+
 )
