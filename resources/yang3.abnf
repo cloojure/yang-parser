@@ -1,11 +1,7 @@
 
-;-----------------------------------------------------------------------------
-
-file   = tokens
-tokens = *( <ws> / non-token / token )
-token  =  ( identifier / string )
-non-token = <';'>
-
+; Can have trailing <ows> ***** ONLY AT THE TOP LEVEL! *****
+tokens =  <ows> token *( <ws> token) <ows>
+token  =  identifier / string
 
 ; An identifier MUST NOT start with (('X'|'x') ('M'|'m') ('L'|'l')) (i.e. 'xml' in any case)
 identifier                      = identifier-start-char *identifier-body-char

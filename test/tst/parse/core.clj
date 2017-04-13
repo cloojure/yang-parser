@@ -57,7 +57,6 @@
 
   (let [cr-abc   (str \return \a \b \c)
         lf-abc   (str \newline \a \b \c)
-        ff-abc   (str \formfeed \a \b \c)
         crlf-abc (str \return \newline \a \b \c)]
     (is= 4 (count cr-abc))
     (is= "abc" (str/trim cr-abc))
@@ -69,11 +68,6 @@
     (is (starts-with-eol lf-abc))
     (is (starts-with-eol (vec lf-abc)))
 
-    (is= 4 (count ff-abc))
-    (is= "abc" (str/trim ff-abc))
-    (is (starts-with-eol ff-abc))
-    (is (starts-with-eol (vec ff-abc)))
-
     (is= 5 (count crlf-abc))
     (is= "abc" (str/trim crlf-abc))
     (is (starts-with-eol crlf-abc))
@@ -83,13 +77,11 @@
   (isnt (starts-with-eol "abc"))
   (isnt (starts-with-eol "abc \newline"))
   (isnt (starts-with-eol "abc \return"))
-  (isnt (starts-with-eol "abc \formfeed"))
 
   (isnt (starts-with-eol (vec "")))
   (isnt (starts-with-eol (vec "abc")))
   (isnt (starts-with-eol (vec "abc \newline")))
   (isnt (starts-with-eol (vec "abc \return")))
-  (isnt (starts-with-eol (vec "abc \formfeed")))
   )
 
 (def starts-with-cpp-comment
@@ -145,11 +137,10 @@
   (is= [\return \newline \a \b \c] (consume-comment-cpp (str "//" \return \newline "abc")))
   (is= [\newline \a \b \c] (consume-comment-cpp (str "//" \newline "abc")))
   (is= [\newline \return \a \b \c] (consume-comment-cpp (str "//" \newline \return "abc")))
-  (is= [\formfeed \a \b \c] (consume-comment-cpp (str "//" \formfeed "abc")))
+
 
   (is= [\return \a \b \c] (consume-comment-cpp (str "// some comment" \return "abc")))
   (is= [\newline \a \b \c] (consume-comment-cpp (str "// some comment" \newline "abc")))
-  (is= [\formfeed \a \b \c] (consume-comment-cpp (str "// some comment" \formfeed "abc")))
 
   (is= [] (consume-comment-cpp "//"))
   (is= [] (consume-comment-cpp "// "))

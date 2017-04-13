@@ -9,14 +9,14 @@
     [tupelo.misc :as tm]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
-  ))
+    ))
 (t/refer-tupelo)
 
 
 ; An identifier MUST NOT start with (('X'|'x') ('M'|'m') ('L'|'l')) (i.e. 'xml' in any case)
-(defn fn-identifier [& args] (spy :identifier-fn args)
+(defn fn-identifier [& args]
   (let [result  (str/join args)
-        first-3 (str/lower-case (subs result 0 3)) ]
+        first-3 (str/lower-case (strcat (take 3 result))) ]
     (when (= "xml" first-3)
       (throw (IllegalArgumentException. (format "Identifier cannot begin with 'xml': %s " result))))
     [:identifier result] ))
