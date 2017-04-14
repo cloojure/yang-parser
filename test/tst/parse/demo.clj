@@ -168,6 +168,7 @@ module toaster {
   identity toast-type {
       description 'Base for all bread types supported by the toaster.';
   }
+  identity white-bread { base toast:toast-type; description 'White bread.'; }
 
 } ") ]
       (spy-let [yang-tree (yp yang-src)
@@ -188,6 +189,11 @@ module toaster {
             [:identifier "toast-type"]
             [:description
              [:string "Base for all bread types supported by the toaster."]]]
+           [:identity
+            [:identifier "white-bread"]
+            [:base [:identifier "toast:toast-type"]]
+            [:description
+             [:string "White bread."]]]
           ]
         ))))
 
