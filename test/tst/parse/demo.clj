@@ -169,6 +169,17 @@ module toaster {
       description 'Base for all bread types supported by the toaster.';
   }
   identity white-bread { base toast:toast-type; description 'White bread.'; }
+  typedef DisplayString {
+      type string {
+          length '0 .. 255';
+      }
+      description 'YANG version of the SMIv2 DisplayString TEXTUAL-CONVENTION.';
+      reference 'RFC 2579, section 2.';
+  }
+  container toaster{presence 'Indicates the toaster service is available' ;
+      description 'Top-level container for all toaster database objects.';
+  }
+
 
 } ") ]
       (spy-let [yang-tree (yp yang-src)
@@ -194,6 +205,17 @@ module toaster {
             [:base [:identifier "toast:toast-type"]]
             [:description
              [:string "White bread."]]]
+           [:typedef
+            [:identifier "DisplayString"]
+            [:type [:identifier "string"] [:length [:string "0 .. 255"]]]
+            [:description
+             [:string "YANG version of the SMIv2 DisplayString TEXTUAL-CONVENTION."]]
+            [:reference [:string "RFC 2579, section 2."]]]
+           [:container
+            [:identifier "toaster"]
+            [:presence [:string "Indicates the toaster service is available"]]
+            [:description [:string "Top-level container for all toaster database objects."]]]
+
           ]
         ))))
 

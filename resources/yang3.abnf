@@ -7,6 +7,8 @@ module = <ows> <"module"> <ws> identifier <blk-open>
           / description 
           / revision
           / identity
+          / typedef
+          / container
           )
          <blk-close> <ows>
 
@@ -20,13 +22,53 @@ identity = <ows> <"identity"> <ws> identifier <blk-open>
             / base )
            <blk-close>
 
-namespace           = <ows> <"namespace">         <ws> string      <term>
-prefix              = <ows> <"prefix">            <ws> identifier  <term>
-organization        = <ows> <"organization">      <ws> string      <term>
-contact             = <ows> <"contact">           <ws> string      <term>
-description         = <ows> <"description">       <ws> string      <term>
-reference           = <ows> <"reference">         <ws> identifier  <term>
-base                = <ows> <"base">              <ws> identifier <term>
+typedef = <ows> <"typedef"> <ws> identifier <blk-open>
+          *( description  
+           / reference
+           / type
+           / default )
+          <blk-close>
+
+<type>              = type-simple / type-composite
+type-simple         = <ows> <"type"> <ws> identifier <term>
+type-composite      = <ows> <"type"> <ws> identifier <blk-open> 
+                      *( length
+                       ; / fraction-digits
+                       ; / range
+                       ; / pattern
+                       ; / enum 
+                       ; / type 
+                       ; / base 
+                       ; / bit 
+                       )
+                      <blk-close> 
+
+container = container-simple / container-composite
+<container-simple>    = <ows> <"container"> <ws> identifier <term>
+<container-composite> = <ows> <"container"> <ws> identifier <blk-open>
+          ; [container-extension-stmt]
+            *(
+           ;   uses     ; #todo if missing sends instaparse -> infinite loop!
+           ; / config   ; #todo    (same) for turing-machine.yang
+           ; / leaf
+           ; / leaf-list 
+           ; / list 
+           ; / container 
+               presence 
+             / description )
+           <blk-close>
+
+namespace           = <ows> <"namespace">           <ws> string         <term>
+prefix              = <ows> <"prefix">              <ws> identifier     <term>
+organization        = <ows> <"organization">        <ws> string         <term>
+contact             = <ows> <"contact">             <ws> string         <term>
+description         = <ows> <"description">         <ws> string         <term>
+reference           = <ows> <"reference">           <ws> string         <term>
+base                = <ows> <"base">                <ws> identifier     <term>
+length              = <ows> <"length">              <ws> string         <term>
+pattern             = <ows> <"pattern">             <ws> string         <term>
+presence            = <ows> <"presence">            <ws> string         <term>
+default             = <ows> <"default">             <ws> (identifier / string) <term>
 
 token  =  identifier / string 
 

@@ -40,14 +40,20 @@
      :organization    (fn fn-organization [arg] [:organization arg])
      :contact         (fn fn-contact [arg] [:contact arg])
      :description     (fn fn-description [arg] [:description arg])
+     :presence        (fn fn-presence [arg] [:presence arg])
      :revision        (fn fn-revision [& args]
                         (prepend :revision args))
      :iso-date        (fn fn-iso-date [& args]
                         [:iso-date (str/join args)])
      :reference       (fn fn-reference [arg] [:reference arg])
      :identity        (fn fn-identity [& args]
-                        (spy :104 args)
                         (prepend :identity args))
+     :typedef         (fn fn-typedef [& args]
+                        (prepend :typedef args))
+     :container       (fn fn-container [& args]
+                        (spy :100 args)
+                        (prepend :container args))
+
 
      :base            (fn fn-base [arg] [:base arg])
 
@@ -61,10 +67,10 @@
                           (t/prepend :enum [:name name] content)))
 
      :type-simple     (fn fn-type-simple [& args]
-                        [:type [:name (first args)]])
+                        (spy :fn-type-simple args)
+                        (t/prepend :type args))
      :type-composite  (fn fn-type-composite [& args]
-                        (let [name    (first args)
-                              content (rest args)]
-                          (t/prepend :type [:name name] content)))
+                        (spy :fn-type-composite args)
+                        (t/prepend :type args))
      } parse-tree))
 

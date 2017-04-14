@@ -1,0 +1,11 @@
+general: get rid of repetition xxx-arg & xxx
+identifier:  non-quoted
+module: identifier
+prefix: identifier (error if have colon)
+revision: should be just an iso-date. Ex:  2009-10-23
+string: plain double-quotes, no collapsing
+typedef: name -> identifier;
+  type:  name -> identifier;
+  length:  string
+  reference:  string
+
