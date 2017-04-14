@@ -9,6 +9,8 @@ module = <ows> <"module"> <ws> identifier <blk-open>
           / identity
           / typedef
           / container
+          / rpc
+          / notification
           )
          <blk-close> <ows>
 
@@ -29,20 +31,6 @@ typedef = <ows> <"typedef"> <ws> identifier <blk-open>
            / default )
           <blk-close>
 
-<type>              = type-simple / type-composite
-type-simple         = <ows> <"type"> <ws> identifier <term>
-type-composite      = <ows> <"type"> <ws> identifier <blk-open> 
-                      *( length
-                       ; / fraction-digits
-                       ; / range
-                       ; / pattern
-                         / enum 
-                       ; / type 
-                       ; / base 
-                       ; / bit 
-                       )
-                      <blk-close> 
-
 container = container-simple / container-composite
 <container-simple>    = <ows> <"container"> <ws> identifier <term>
 <container-composite> = <ows> <"container"> <ws> identifier <blk-open>
@@ -58,6 +46,21 @@ container = container-simple / container-composite
              )
            <blk-close>
 
+rpc = <ows> <"rpc"> <ws> identifier <blk-open>
+      *( rpc-input 
+       / description )
+      <blk-close>
+
+rpc-input = <ows> <"input"> <blk-open>
+            *( leaf 
+             / description )
+            <blk-close>
+
+notification =  <ows> <"notification"> <ws> identifier <blk-open>
+                *( leaf 
+                 / description )
+                <blk-close>
+
 leaf = <ows> <"leaf"> <ws> identifier <blk-open>
        *( type
         / config
@@ -66,6 +69,27 @@ leaf = <ows> <"leaf"> <ws> identifier <blk-open>
         / description  )
        <blk-close>
 
+<type>              = type-simple / type-composite
+type-simple         = <ows> <"type"> <ws> identifier <term>
+type-composite      = <ows> <"type"> <ws> identifier <blk-open> 
+                      *( length
+                       ; / fraction-digits
+                         / range
+                       ; / pattern
+                         / enum 
+                         / base 
+                       ; / type 
+                       ; / bit 
+                       )
+                      <blk-close> 
+
+range               = range-simple / range-composite
+range-simple        = <ows> <"range"> <ws> string <term>
+range-composite     = <ows> <"range"> <ws> string <blk-open> 
+                      *( description
+                       / error-message )
+                      <blk-close> 
+
 <enum>              = enum-simple / enum-composite
 enum-simple         = <ows> <"enum"> <ws> identifier  <term>
 enum-composite      = <ows> <"enum"> <ws> identifier  <blk-open> 
@@ -73,21 +97,21 @@ enum-composite      = <ows> <"enum"> <ws> identifier  <blk-open>
                        / value )
                       <blk-close> 
 
-
-namespace           = <ows> <"namespace">           <ws> string         <term>
-prefix              = <ows> <"prefix">              <ws> identifier     <term>
-organization        = <ows> <"organization">        <ws> string         <term>
-contact             = <ows> <"contact">             <ws> string         <term>
-description         = <ows> <"description">         <ws> string         <term>
-reference           = <ows> <"reference">           <ws> string         <term>
 base                = <ows> <"base">                <ws> identifier     <term>
-length              = <ows> <"length">              <ws> string         <term>
-pattern             = <ows> <"pattern">             <ws> string         <term>
-presence            = <ows> <"presence">            <ws> string         <term>
 config              = <ows> <"config">              <ws> boolean        <term>
-mandatory           = <ows> <"mandatory">           <ws> boolean        <term>
-value               = <ows> <"value">               <ws> (integer / string) <term>
+contact             = <ows> <"contact">             <ws> string         <term>
 default             = <ows> <"default">             <ws> (identifier / string) <term>
+description         = <ows> <"description">         <ws> string         <term>
+error-message       = <ows> <"error-message">       <ws> string         <term>
+length              = <ows> <"length">              <ws> string         <term>
+mandatory           = <ows> <"mandatory">           <ws> boolean        <term>
+namespace           = <ows> <"namespace">           <ws> string         <term>
+organization        = <ows> <"organization">        <ws> string         <term>
+pattern             = <ows> <"pattern">             <ws> string         <term>
+prefix              = <ows> <"prefix">              <ws> identifier     <term>
+presence            = <ows> <"presence">            <ws> string         <term>
+reference           = <ows> <"reference">           <ws> string         <term>
+value               = <ows> <"value">               <ws> (integer / string) <term>
 
 token  =  identifier / string 
 

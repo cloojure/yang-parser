@@ -49,8 +49,11 @@
      :typedef        (fn fn-typedef [& args]
                        (prepend :typedef args))
      :container      (fn fn-container [& args]
-                       (spy :100 args)
                        (prepend :container args))
+     :rpc             (fn fn-rpc [& args]
+                        (prepend :rpc args))
+     :input           (fn fn-input [& args]
+                       (prepend :input args))
 
 
      :base           (fn fn-base [arg] [:base arg])
@@ -65,12 +68,10 @@
                          (t/prepend :enum [:name name] content)))
 
      :type-simple    (fn fn-type-simple [& args]
-                       (spy :fn-type-simple args)
                        (t/prepend :type args))
      :type-composite (fn fn-type-composite [& args]
                        (t/prepend :type args))
      :leaf           (fn fn-leaf [& args]
-                       (spy :fn-leaf args)
                        (t/prepend :leaf args))
      } parse-tree))
 

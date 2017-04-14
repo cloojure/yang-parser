@@ -234,71 +234,167 @@ module toaster {
         yang-src  (ts/quotes->double "
 module toaster {
   container toaster{presence 'Indicates the toaster service is available' ;
-      description 'Top-level container for all toaster database objects.';
-      leaf toasterManufacturer {
-          type DisplayString;
-          config false;
-          mandatory true;
-          description 'The name of the manufacturer, for instance:
-                   Microsoft Toaster.';
-      }
-      leaf toasterStatus {
-        type enumeration {
-          enum up {
-            value 1;
-            description
-              'The toaster knob position is up.
-              No toast is being made now.';
-          }
-          enum down {
-            value 2;
-            description
-              'The toaster knob position is down.
-              Toast is being made now.';
-
-          }
-        }
+    description 'Top-level container for all toaster database objects.';
+    leaf toasterManufacturer {
+        type DisplayString;
         config false;
         mandatory true;
-        description
-          'This variable indicates the current state of
-                the toaster.';
+        description 'The name of the manufacturer, for instance:
+                 Microsoft Toaster.';
+    }
+    leaf toasterStatus {
+      type enumeration {
+        enum up {
+          value 1;
+          description
+            'The toaster knob position is up.
+            No toast is being made now.';
+        }
+        enum down {
+          value 2;
+          description
+            'The toaster knob position is down.
+            Toast is being made now.';
+
+        }
       }
+      config false;
+      mandatory true;
+      description
+        'This variable indicates the current state of
+              the toaster.';
+    }
   }
+} ")
+        yang-tree (yp yang-src)
+        yang-ast  (yang-transform yang-tree)]
+    (is= yang-ast
+      [:module
+       [:identifier "toaster"]
+       [:container
+        [:identifier "toaster"]
+        [:presence [:string "Indicates the toaster service is available"]]
+        [:description [:string "Top-level container for all toaster database objects."]]
+        [:leaf
+         [:identifier "toasterManufacturer"]
+         [:type [:identifier "DisplayString"]]
+         [:config [:boolean false]]
+         [:mandatory [:boolean true]]
+         [:description [:string "The name of the manufacturer, for instance: Microsoft Toaster."]]]
+        [:leaf
+         [:identifier "toasterStatus"]
+         [:type
+          [:identifier "enumeration"]
+          [:enum
+           [:name [:identifier "up"]]
+           [:value [:integer 1]]
+           [:description [:string "The toaster knob position is up. No toast is being made now."]]]
+          [:enum
+           [:name [:identifier "down"]]
+           [:value [:integer 2]]
+           [:description [:string "The toaster knob position is down. Toast is being made now."]]]]
+         [:config [:boolean false]]
+         [:mandatory [:boolean true]]
+         [:description [:string "This variable indicates the current state of the toaster."]]]
+        ]] )))
+
+(dotest
+  (let [abnf-src  (io/resource "yang3.abnf")
+        yp        (create-abnf-parser abnf-src)
+        yang-src  (ts/quotes->double "
+module toaster {
+  rpc make-toast {
+    description 'Make some toast. ';
+    input {
+      leaf toasterDoneness {
+        type uint32 { range '1 .. 10' ; }
+        default '5';
+        description 'This variable controls how well-done is the ensuing toast. ';
+      }
+      leaf toasterToastType {
+          type identityref {
+              base toast:toast-type;
+          }
+          default 'toast:wheat-bread';
+          description
+            'This variable informs the toaster of the type of the required doneness.';
+      }
+    }
+  }
+
+  rpc cancel-toast {
+    description 'Stop making toast, if any is being made. '; }
 
 
 } ")
         yang-tree (yp yang-src)
         yang-ast  (yang-transform yang-tree)]
+    (is= yang-ast
+      [:module
+       [:identifier "toaster"]
+       [:rpc
+        [:identifier "make-toast"]
+        [:description [:string "Make some toast."]]
+        [:rpc-input
+         [:leaf
+          [:identifier "toasterDoneness"]
+          [:type
+           [:identifier "uint32"]
+           [:range [:range-simple [:string "1 .. 10"]]]]
+          [:default [:string "5"]]
+          [:description
+           [:string
+            "This variable controls how well-done is the ensuing toast."]]]
+         [:leaf
+          [:identifier "toasterToastType"]
+          [:type
+           [:identifier "identityref"]
+           [:base [:identifier "toast:toast-type"]]]
+          [:default [:string "toast:wheat-bread"]]
+          [:description [:string "This variable informs the toaster of the type of the required doneness."]]]]]
+       [:rpc
+        [:identifier "cancel-toast"]
+        [:description [:string "Stop making toast, if any is being made."]]]] )))
+
+(dotest
+  (let [abnf-src  (io/resource "yang3.abnf")
+        yp        (create-abnf-parser abnf-src)
+        yang-src  (ts/quotes->double "
+module toaster {
+  notification toastDone {
+    description 'Indicates that the toast in progress has completed.';
+    leaf toastStatus {
+      type enumeration {
+        enum done         { description 'The toast is done.'; }
+        enum cancelled    { description 'The toast was cancelled.'; }
+        enum error        { description 'The toaster service was disabled or the toaster is broken.'; }
+      }
+      description 'Indicates the final toast status';
+    }
+  }
+} ")
+        yang-tree (yp yang-src)
+        yang-ast  (yang-transform yang-tree)]
     (println (pretty-str yang-ast))
-    (nl)
-    ;    (is= yang-ast
-    (pretty (cd/diff yang-ast
-              [:module
-               [:identifier "toaster"]
-               [:container
-                [:identifier "toaster"]
-                [:presence [:string "Indicates the toaster service is available"]]
-                [:description [:string "Top-level container for all toaster database objects."]]
-                [:leaf
-                 [:identifier "toasterManufacturer"]
-                 [:type [:identifier "DisplayString"]]
-                 [:config [:boolean false]]
-                 [:mandatory [:boolean true]]
-                 [:description [:string "The name of the manufacturer, for instance: Microsoft Toaster."]]]
-                [:leaf
-                 [:identifier "toasterStatus"]
-                 [:type
-                  [:identifier "enumeration"]
-                  [:enum
-                   [:name [:identifier "up"]]
-                   [:value [:integer 1]]
-                   [:description [:string "The toaster knob position is up. No toast is being made now."]]]
-                  [:enum
-                   [:name [:identifier "down"]]
-                   [:value [:integer 2]]
-                   [:description [:string "The toaster knob position is down. Toast is being made now."]]]]
-                 [:config [:boolean false]]
-                 [:mandatory [:boolean true]]
-                 [:description [:string "This variable indicates the current state of the toaster."]]]
-                ]]))))
+    (is= yang-ast
+      [:module
+       [:identifier "toaster"]
+       [:notification
+        [:identifier "toastDone"]
+        [:description
+         [:string "Indicates that the toast in progress has completed."]]
+        [:leaf
+         [:identifier "toastStatus"]
+         [:type
+          [:identifier "enumeration"]
+          [:enum
+           [:name [:identifier "done"]]
+           [:description [:string "The toast is done."]]]
+          [:enum
+           [:name [:identifier "cancelled"]]
+           [:description [:string "The toast was cancelled."]]]
+          [:enum
+           [:name [:identifier "error"]]
+           [:description [:string "The toaster service was disabled or the toaster is broken."]]]]
+         [:description [:string "Indicates the final toast status"]]]]
+      ] )))
