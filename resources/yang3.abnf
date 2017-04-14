@@ -47,16 +47,25 @@ container = container-simple / container-composite
 <container-simple>    = <ows> <"container"> <ws> identifier <term>
 <container-composite> = <ows> <"container"> <ws> identifier <blk-open>
           ; [container-extension-stmt]
-            *(
+            *( presence 
+             / description 
            ;   uses     ; #todo if missing sends instaparse -> infinite loop!
            ; / config   ; #todo    (same) for turing-machine.yang
-           ; / leaf
+             / leaf
            ; / leaf-list 
            ; / list 
            ; / container 
-               presence 
-             / description )
+             )
            <blk-close>
+
+leaf = <ows> <"leaf"> <ws> identifier <blk-open>
+       *( type
+        / config
+        / mandatory
+        / default
+        / description  )
+       <blk-close>
+
 
 namespace           = <ows> <"namespace">           <ws> string         <term>
 prefix              = <ows> <"prefix">              <ws> identifier     <term>
@@ -68,6 +77,8 @@ base                = <ows> <"base">                <ws> identifier     <term>
 length              = <ows> <"length">              <ws> string         <term>
 pattern             = <ows> <"pattern">             <ws> string         <term>
 presence            = <ows> <"presence">            <ws> string         <term>
+config              = <ows> <"config">              <ws> boolean        <term>
+mandatory           = <ows> <"mandatory">           <ws> boolean        <term>
 default             = <ows> <"default">             <ws> (identifier / string) <term>
 
 token  =  identifier / string 

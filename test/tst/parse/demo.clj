@@ -4,6 +4,7 @@
         tupelo.test
         clojure.test)
   (:require
+    [clojure.data :as cd]
     [clojure.java.io :as io]
     [clojure.set :as set]
     [clojure.string :as str]
@@ -178,6 +179,13 @@ module toaster {
   }
   container toaster{presence 'Indicates the toaster service is available' ;
       description 'Top-level container for all toaster database objects.';
+      leaf toasterManufacturer {
+          type DisplayString;
+          config false;
+          mandatory true;
+          description 'The name of the manufacturer, for instance:
+                   Microsoft Toaster.';
+      }
   }
 
 
@@ -198,25 +206,27 @@ module toaster {
             [:description [:string "Toaster module in progress."]]]
            [:identity
             [:identifier "toast-type"]
-            [:description
-             [:string "Base for all bread types supported by the toaster."]]]
+            [:description [:string "Base for all bread types supported by the toaster."]]]
            [:identity
             [:identifier "white-bread"]
             [:base [:identifier "toast:toast-type"]]
-            [:description
-             [:string "White bread."]]]
+            [:description [:string "White bread."]]]
            [:typedef
             [:identifier "DisplayString"]
             [:type [:identifier "string"] [:length [:string "0 .. 255"]]]
-            [:description
-             [:string "YANG version of the SMIv2 DisplayString TEXTUAL-CONVENTION."]]
+            [:description [:string "YANG version of the SMIv2 DisplayString TEXTUAL-CONVENTION."]]
             [:reference [:string "RFC 2579, section 2."]]]
            [:container
             [:identifier "toaster"]
             [:presence [:string "Indicates the toaster service is available"]]
-            [:description [:string "Top-level container for all toaster database objects."]]]
-
-          ]
-        ))))
+            [:description [:string "Top-level container for all toaster database objects."]]
+            [:leaf
+             [:identifier "toasterManufacturer"]
+             [:type [:identifier "DisplayString"]]
+             [:config false]
+             [:mandatory true]
+             [:description [:string "The name of the manufacturer, for instance: Microsoft Toaster."]]]]
+           ]
+          ))))
 
 )

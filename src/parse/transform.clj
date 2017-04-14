@@ -22,7 +22,7 @@
     [:identifier result] ))
 
 
-(defn fn-string [& args] [:string (str/join args) ] )
+(defn fn-string [& args] [:string (tm/collapse-whitespace (str/join args))] )
 (defn fn-boolean [arg] (java.lang.Boolean. arg))
 
 
@@ -70,7 +70,9 @@
                         (spy :fn-type-simple args)
                         (t/prepend :type args))
      :type-composite  (fn fn-type-composite [& args]
-                        (spy :fn-type-composite args)
                         (t/prepend :type args))
+     :leaf            (fn fn-leaf [& args]
+                        (spy :fn-leaf args)
+                        (t/prepend :leaf args))
      } parse-tree))
 
