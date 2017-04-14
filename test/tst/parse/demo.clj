@@ -157,14 +157,33 @@ token  =  identifier / string ")
 module toaster {
   namespace 'http://netconfcentral.org/ns/toaster' ;
   prefix toast;
+  organization 'Netconf Central';
+
+  contact
+      'Andy Bierman <andy@netconfcentral.org>'  ;
+
+  description 'YANG version of the TOASTER-MIB.';
+  revision 2009-11-20 {
+      description 'Toaster module in progress.';
+  }
+
 } ") ]
-      (check 22 (prop/for-all [samp (tgen/txt-join (gen/tuple tgen/whitespace (tgen/constantly yang-src) tgen/whitespace))]
-                  (let [samp-tree (yp samp)
-                        samp-ast  (yang-transform samp-tree)]
-                    (is= samp-ast
-                        [:module [:identifier "toaster"]
-                         [:namespace  [:string "http://netconfcentral.org/ns/toaster"]]
-                         [:prefix     [:identifier "toast"]]] )
-                  )))))
+      (spy-let [yang-tree (yp yang-src)
+            yang-ast  (yang-transform yang-tree)]
+        (println (pretty-str yang-ast))
+        (is= yang-ast
+          [:module
+           [:identifier "toaster"]
+           [:namespace [:string "http://netconfcentral.org/ns/toaster"]]
+           [:prefix [:identifier "toast"]]
+           [:organization [:string "Netconf Central"]]
+           [:contact [:string "Andy Bierman <andy@netconfcentral.org>"]]
+           [:description [:string "YANG version of the TOASTER-MIB."]]
+           [:revision
+            [:iso-date "2009-11-20"]
+            [:description [:string "Toaster module in progress."]]]
+
+
+           ]))))
 
 )

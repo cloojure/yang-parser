@@ -1,11 +1,25 @@
 
 module = <ows> <"module"> <ws> identifier <blk-open>
          *( namespace
-          / prefix )
+          / prefix 
+          / organization
+          / contact     
+          / description 
+          / revision
+          )
          <blk-close> <ows>
+
+revision = <ows> <"revision"> <ws> iso-date <blk-open>
+           *( description
+            / reference )
+           <blk-close>
 
 namespace           = <ows> <"namespace">         <ws> string      <term>
 prefix              = <ows> <"prefix">            <ws> identifier  <term>
+organization        = <ows> <"organization">      <ws> string      <term>
+contact             = <ows> <"contact">           <ws> string      <term>
+description         = <ows> <"description">       <ws> string      <term>
+reference           = <ows> <"reference">         <ws> identifier  <term>
 
 token  =  identifier / string 
 
@@ -22,9 +36,8 @@ identifier                      = identifier-start-char *identifier-body-char
 blk-open                        = <ows> <'{'>
 blk-close                       = <ows> <'}'>
 term                            = <ows> <';'>
-date-arg                        = iso-year
 ; Note that 4digit is the same as 4*4(digit); both mean exactly 4 digits
-iso-year                        = 4digit '-' 2digit '-' 2digit
+iso-date                        = 4digit '-' 2digit '-' 2digit
 boolean                         = 'true' / 'false'
 
 ws                              = 1*(<char-whitespace>)   ; whitespace           (1 or more chars)
