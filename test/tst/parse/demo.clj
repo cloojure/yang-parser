@@ -152,9 +152,9 @@ token  =  identifier / string ")
                              [:token [:string     "str2"]]] )))))))
 
 (dotest
-  (let [abnf-src (io/resource "yang3.abnf")
-        yp       (create-abnf-parser abnf-src)]
-    (let [yang-src (ts/quotes->double "
+  (let [abnf-src  (io/resource "yang3.abnf")
+        yp        (create-abnf-parser abnf-src)
+        yang-src  (ts/quotes->double "
 module toaster {
   namespace 'http://netconfcentral.org/ns/toaster' ;
   prefix toast;
@@ -189,44 +189,116 @@ module toaster {
   }
 
 
-} ") ]
-      (spy-let [yang-tree (yp yang-src)
-            yang-ast  (yang-transform yang-tree)]
-        (println (pretty-str yang-ast))
-        (is= yang-ast
-          [:module
-           [:identifier "toaster"]
-           [:namespace [:string "http://netconfcentral.org/ns/toaster"]]
-           [:prefix [:identifier "toast"]]
-           [:organization [:string "Netconf Central"]]
-           [:contact [:string "Andy Bierman <andy@netconfcentral.org>"]]
-           [:description [:string "YANG version of the TOASTER-MIB."]]
-           [:revision
-            [:iso-date "2009-11-20"]
-            [:description [:string "Toaster module in progress."]]]
-           [:identity
-            [:identifier "toast-type"]
-            [:description [:string "Base for all bread types supported by the toaster."]]]
-           [:identity
-            [:identifier "white-bread"]
-            [:base [:identifier "toast:toast-type"]]
-            [:description [:string "White bread."]]]
-           [:typedef
-            [:identifier "DisplayString"]
-            [:type [:identifier "string"] [:length [:string "0 .. 255"]]]
-            [:description [:string "YANG version of the SMIv2 DisplayString TEXTUAL-CONVENTION."]]
-            [:reference [:string "RFC 2579, section 2."]]]
-           [:container
-            [:identifier "toaster"]
-            [:presence [:string "Indicates the toaster service is available"]]
-            [:description [:string "Top-level container for all toaster database objects."]]
-            [:leaf
-             [:identifier "toasterManufacturer"]
-             [:type [:identifier "DisplayString"]]
-             [:config false]
-             [:mandatory true]
-             [:description [:string "The name of the manufacturer, for instance: Microsoft Toaster."]]]]
-           ]
-          ))))
+} ")
+        yang-tree (yp yang-src)
+        yang-ast  (yang-transform yang-tree)]
+    (is= yang-ast
+      [:module
+       [:identifier "toaster"]
+       [:namespace [:string "http://netconfcentral.org/ns/toaster"]]
+       [:prefix [:identifier "toast"]]
+       [:organization [:string "Netconf Central"]]
+       [:contact [:string "Andy Bierman <andy@netconfcentral.org>"]]
+       [:description [:string "YANG version of the TOASTER-MIB."]]
+       [:revision
+        [:iso-date "2009-11-20"]
+        [:description [:string "Toaster module in progress."]]]
+       [:identity
+        [:identifier "toast-type"]
+        [:description [:string "Base for all bread types supported by the toaster."]]]
+       [:identity
+        [:identifier "white-bread"]
+        [:base [:identifier "toast:toast-type"]]
+        [:description [:string "White bread."]]]
+       [:typedef
+        [:identifier "DisplayString"]
+        [:type [:identifier "string"] [:length [:string "0 .. 255"]]]
+        [:description [:string "YANG version of the SMIv2 DisplayString TEXTUAL-CONVENTION."]]
+        [:reference [:string "RFC 2579, section 2."]]]
+       [:container
+        [:identifier "toaster"]
+        [:presence [:string "Indicates the toaster service is available"]]
+        [:description [:string "Top-level container for all toaster database objects."]]
+        [:leaf
+         [:identifier "toasterManufacturer"]
+         [:type [:identifier "DisplayString"]]
+         [:config [:boolean false]]
+         [:mandatory [:boolean true]]
+         [:description [:string "The name of the manufacturer, for instance: Microsoft Toaster."]]]]
+       ]
+      )))
 
-)
+(dotest
+  (let [abnf-src  (io/resource "yang3.abnf")
+        yp        (create-abnf-parser abnf-src)
+        yang-src  (ts/quotes->double "
+module toaster {
+  container toaster{presence 'Indicates the toaster service is available' ;
+      description 'Top-level container for all toaster database objects.';
+      leaf toasterManufacturer {
+          type DisplayString;
+          config false;
+          mandatory true;
+          description 'The name of the manufacturer, for instance:
+                   Microsoft Toaster.';
+      }
+      leaf toasterStatus {
+        type enumeration {
+          enum up {
+            value 1;
+            description
+              'The toaster knob position is up.
+              No toast is being made now.';
+          }
+          enum down {
+            value 2;
+            description
+              'The toaster knob position is down.
+              Toast is being made now.';
+
+          }
+        }
+        config false;
+        mandatory true;
+        description
+          'This variable indicates the current state of
+                the toaster.';
+      }
+  }
+
+
+} ")
+        yang-tree (yp yang-src)
+        yang-ast  (yang-transform yang-tree)]
+    (println (pretty-str yang-ast))
+    (nl)
+    ;    (is= yang-ast
+    (pretty (cd/diff yang-ast
+              [:module
+               [:identifier "toaster"]
+               [:container
+                [:identifier "toaster"]
+                [:presence [:string "Indicates the toaster service is available"]]
+                [:description [:string "Top-level container for all toaster database objects."]]
+                [:leaf
+                 [:identifier "toasterManufacturer"]
+                 [:type [:identifier "DisplayString"]]
+                 [:config [:boolean false]]
+                 [:mandatory [:boolean true]]
+                 [:description [:string "The name of the manufacturer, for instance: Microsoft Toaster."]]]
+                [:leaf
+                 [:identifier "toasterStatus"]
+                 [:type
+                  [:identifier "enumeration"]
+                  [:enum
+                   [:name [:identifier "up"]]
+                   [:value [:integer 1]]
+                   [:description [:string "The toaster knob position is up. No toast is being made now."]]]
+                  [:enum
+                   [:name [:identifier "down"]]
+                   [:value [:integer 2]]
+                   [:description [:string "The toaster knob position is down. Toast is being made now."]]]]
+                 [:config [:boolean false]]
+                 [:mandatory [:boolean true]]
+                 [:description [:string "This variable indicates the current state of the toaster."]]]
+                ]]))))

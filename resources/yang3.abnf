@@ -36,7 +36,7 @@ type-composite      = <ows> <"type"> <ws> identifier <blk-open>
                        ; / fraction-digits
                        ; / range
                        ; / pattern
-                       ; / enum 
+                         / enum 
                        ; / type 
                        ; / base 
                        ; / bit 
@@ -66,6 +66,13 @@ leaf = <ows> <"leaf"> <ws> identifier <blk-open>
         / description  )
        <blk-close>
 
+<enum>              = enum-simple / enum-composite
+enum-simple         = <ows> <"enum"> <ws> identifier  <term>
+enum-composite      = <ows> <"enum"> <ws> identifier  <blk-open> 
+                      *( description
+                       / value )
+                      <blk-close> 
+
 
 namespace           = <ows> <"namespace">           <ws> string         <term>
 prefix              = <ows> <"prefix">              <ws> identifier     <term>
@@ -79,6 +86,7 @@ pattern             = <ows> <"pattern">             <ws> string         <term>
 presence            = <ows> <"presence">            <ws> string         <term>
 config              = <ows> <"config">              <ws> boolean        <term>
 mandatory           = <ows> <"mandatory">           <ws> boolean        <term>
+value               = <ows> <"value">               <ws> (integer / string) <term>
 default             = <ows> <"default">             <ws> (identifier / string) <term>
 
 token  =  identifier / string 
@@ -121,7 +129,7 @@ ows                             =  *(<char-whitespace>)   ; optional whitespace:
 <alpha>                         = %x41-5A / %x61-7A     ; A-Z / a-z
 <digit>                         = %x30-39   ; 0-9
 <digits>                        = 1*digit   ; 1 or more digits
-<integer>                       = [ '+' / '-' ] digits  ; digits with optional sign
+integer                         = [ '+' / '-' ] digits  ; digits with optional sign
 <hex-digit>                     = digit / %x61 / %x62 / %x63 / %x64 / %x65 / %x66 ; only lower-case a..f
 <vis-char>                      = %x21-7E ; visible (printing) characters
 <vis-char-no-dquote>            = %x21    / %x23-7E ; all visible chars without quote-double
