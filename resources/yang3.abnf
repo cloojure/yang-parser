@@ -6,6 +6,7 @@ module = <ows> <"module"> <ws> identifier <blk-open>
           / contact     
           / description 
           / revision
+          / identity
           )
          <blk-close> <ows>
 
@@ -14,12 +15,18 @@ revision = <ows> <"revision"> <ws> iso-date <blk-open>
             / reference )
            <blk-close>
 
+identity = <ows> <"identity"> <ws> identifier <blk-open>
+           *( description
+            / base )
+           <blk-close>
+
 namespace           = <ows> <"namespace">         <ws> string      <term>
 prefix              = <ows> <"prefix">            <ws> identifier  <term>
 organization        = <ows> <"organization">      <ws> string      <term>
 contact             = <ows> <"contact">           <ws> string      <term>
 description         = <ows> <"description">       <ws> string      <term>
 reference           = <ows> <"reference">         <ws> identifier  <term>
+base                = <ows> <"base">              <ws> identifier <term>
 
 token  =  identifier / string 
 
@@ -28,7 +35,7 @@ string = <quote-double> *(text-char-no-dquote) <quote-double>
 ; An identifier MUST NOT start with (('X'|'x') ('M'|'m') ('L'|'l')) (i.e. 'xml' in any case)
 identifier                      = identifier-start-char *identifier-body-char
 <identifier-start-char>         = alpha / underscore
-<identifier-body-char>          = alpha / underscore / digit / hyphen 
+<identifier-body-char>          = alpha / underscore / digit / hyphen / colon
 
 <text-char>                     = vis-char / char-whitespace
 <text-char-no-dquote>           = vis-char-no-dquote / char-whitespace

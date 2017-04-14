@@ -24,7 +24,6 @@
 
 (defn fn-string [& args] [:string (str/join args) ] )
 (defn fn-boolean [arg] (java.lang.Boolean. arg))
-(defn fn-base [[_ name]] [:base name])
 
 
 (defn yang-transform
@@ -36,23 +35,22 @@
      :string          fn-string
      :identifier      fn-identifier
      :boolean         fn-boolean
-     :base            fn-base
      :namespace       (fn fn-namespace [arg] [:namespace arg])
      :prefix          (fn fn-prefix [arg] [:prefix arg])
      :organization    (fn fn-organization [arg] [:organization arg])
      :contact         (fn fn-contact [arg] [:contact arg])
      :description     (fn fn-description [arg] [:description arg])
      :revision        (fn fn-revision [& args]
-                        (spy :100 args)
                         (prepend :revision args))
      :iso-date        (fn fn-iso-date [& args]
-                        (spy :101 args)
                         [:iso-date (str/join args)])
-     :reference       (fn fn-reference [& args]
-                        (spy :102 args)
-                        [:reference (vec args)])
+     :reference       (fn fn-reference [arg] [:reference arg])
+     :identity        (fn fn-identity [& args]
+                        (spy :104 args)
+                        (prepend :identity args))
 
-     :date-arg        (fn fn-name-arg [arg] [:name arg])
+     :base            (fn fn-base [arg] [:base arg])
+
      :error-message   (fn fn-description [arg] [:error-message (tm/collapse-whitespace arg)])
      :length          (fn fn-length [arg] [:length arg])
 

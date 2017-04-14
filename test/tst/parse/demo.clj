@@ -163,8 +163,10 @@ module toaster {
       'Andy Bierman <andy@netconfcentral.org>'  ;
 
   description 'YANG version of the TOASTER-MIB.';
-  revision 2009-11-20 {
-      description 'Toaster module in progress.';
+  revision 2009-11-20{
+      description 'Toaster module in progress.'; }
+  identity toast-type {
+      description 'Base for all bread types supported by the toaster.';
   }
 
 } ") ]
@@ -182,8 +184,11 @@ module toaster {
            [:revision
             [:iso-date "2009-11-20"]
             [:description [:string "Toaster module in progress."]]]
-
-
-           ]))))
+           [:identity
+            [:identifier "toast-type"]
+            [:description
+             [:string "Base for all bread types supported by the toaster."]]]
+          ]
+        ))))
 
 )
