@@ -398,3 +398,32 @@ module toaster {
            [:description [:string "The toaster service was disabled or the toaster is broken."]]]]
          [:description [:string "Indicates the final toast status"]]]]
       ] )))
+
+
+(dotest
+  (let [abnf-src            "
+size-val      = int / int-px
+int           = digits          ; ex '123'
+int-px        = digits <'px'>   ; ex '123px'
+<digits>      = 1*digit         ; 1 or more digits
+<digit>       = %x30-39         ; 0-9
+"
+        tx-map              {:int      (fn fn-int [& args]
+                                         [:int (Integer/parseInt (str/join args))])
+                             :int-px   (fn fn-int-px [& args]
+                                         [:int-px (Integer/parseInt (str/join args))])
+                             :size-val identity
+                             }
+
+        parser              (insta/parser abnf-src :input-format :abnf)
+        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
+        parse-and-transform (fn [text]
+                              (let [result (insta/transform tx-map
+                                             (parser text))]
+                                (if (instaparse-failure? result)
+                                  (throw (IllegalArgumentException. (str result)))
+                                  result)))
+        ]
+    (is= [:int 123] (parse-and-transform "123"))
+    (is= [:int-px 123] (parse-and-transform "123px"))
+    (throws? (parse-and-transform "123xyz"))))
