@@ -555,10 +555,10 @@ ws            = 1*' '           ; space: 1 or more
         tx-map              {
                              :digits  (fn fn-digits [& args] (join-children-no-labels args))
                              :sign    no-label
-                             :integer (fn fn-integer [& args]
-                                        (let [str-val (str/join args)
-                                              result (Integer/parseInt str-val)]
-                                          result ))
+                             :integer    (fn fn-integer [& args]
+                                           (let [str-val (str/join args)
+                                                 result  (Integer/parseInt str-val)]
+                                             [:integer result]))
                              }
         parser              (insta/parser abnf-src :input-format :abnf)
         instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
@@ -572,10 +572,121 @@ ws            = 1*' '           ; space: 1 or more
                                     ]
                                 ast-tx))
         ]
-    (is= (parse-and-transform "+123") +123)
-    (is= (parse-and-transform "-123") -123)
-    (is= (parse-and-transform  "123")  123)
+    (is= (parse-and-transform "+123") [:integer +123])
+    (is= (parse-and-transform "-123") [:integer -123])
+    (is= (parse-and-transform  "123") [:integer  123])
     ))
+
+;-----------------------------------------------------------------------------
+; An identifier is like an integer, except it must start with a letter or underscore. Following chars may
+; be also include digits or hyphens.
+(dotest
+  (let [abnf-src            "
+identifier              = ws identifier-start-char *identifier-body-char ws
+identifier-start-char   = alpha / underscore
+identifier-body-char    = alpha / underscore / digit / hyphen
+
+integer                 = ws [ sign ] digits  ws  ; digits with optional sign
+
+alpha                   = %x41-5A / %x61-7A     ; A-Z / a-z
+hyphen                  = %x2D  ; - char
+underscore              = %x5F  ; _ char
+sign                    = '+' / '-'       ; ignore + or - functions for now
+digits                  = 1*digit
+digit                   = %x30-39         ; 0-9
+ws                      = 1*' '           ; space: 1 or more
+"
+        tx-map              {
+                             :digits     (fn fn-digits [& args] (join-children-no-labels args))
+                             :sign       no-label
+                             :integer    (fn fn-integer [& args]
+                                           (let [str-val (str/join args)
+                                                 result  (Integer/parseInt str-val)]
+                                             [:integer result]))
+                             :identifier (fn fn-identifier [& args]
+                                           (let [v1 (mapv second args)
+                                                     v2 (mapv second v1)
+                                                     v3 (str/join v2)]
+                                             [:identifier v3]))
+                             }
+        parser              (insta/parser abnf-src :input-format :abnf)
+        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
+        parse-and-transform (fn [src-text]
+                              (let [ast-parse (parser (space-pad src-text))
+                                    ast-prune (prune-whitespace-nodes ast-parse)
+                                    ast-tx    (insta/transform tx-map ast-prune)
+                                    _         (if (instaparse-failure? ast-tx)
+                                                (throw (IllegalArgumentException. (str ast-tx)))
+                                                ast-tx)
+                                    ]
+                                ast-tx))
+        ]
+    (is= (parse-and-transform "abc") [:identifier "abc"])
+    ))
+
+;-----------------------------------------------------------------------------
+; Mix integers & identifiers together as "tokens". Note how we need to change the placement of whitespace
+; to only the token/tokens rules (i.e. identifier & integer rules no longer have whitespace pieces)
+(dotest
+  (let [abnf-src            "
+tokens                  = *token ws
+token                   = ws (integer / identifier)
+identifier              = identifier-start-char *identifier-body-char
+identifier-start-char   = alpha / underscore
+identifier-body-char    = alpha / underscore / digit / hyphen
+integer                 = [ sign ] digits  ; digits with optional sign
+alpha                   = %x41-5A / %x61-7A     ; A-Z / a-z
+hyphen                  = %x2D  ; - char
+underscore              = %x5F  ; _ char
+sign                    = '+' / '-'       ; ignore + or - functions for now
+digits                  = 1*digit
+digit                   = %x30-39         ; 0-9
+ws                      = 1*' '           ; space: 1 or more
+"
+        tx-map              {
+                             :digits     (fn fn-digits [& args] (join-children-no-labels args))
+                             :sign       no-label
+                             :integer    (fn fn-integer [& args]
+                                           (let [str-val (str/join args)
+                                                 result  (Integer/parseInt str-val)]
+                                             [:integer result]))
+                             :identifier (fn fn-identifier [& args]
+                                           (let [v1 (mapv second args) ; remove :identifier-start/body-char labels
+                                                 v2 (mapv second v1) ; remove :alpha labels
+                                                 v3 (str/join v2)] ; convert [ "a" "b" "c" ] -> "abc"
+                                             [:identifier v3]))
+                             }
+        parser              (insta/parser abnf-src :input-format :abnf)
+        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
+        parse-and-transform (fn [src-text]
+                              (let [ast-parse (parser (space-pad src-text))
+                                    ast-prune (prune-whitespace-nodes ast-parse)
+                                    ast-tx    (insta/transform tx-map ast-prune)
+                                    _         (if (instaparse-failure? ast-tx)
+                                                (throw (IllegalArgumentException. (str ast-tx)))
+                                                ast-tx)
+                                    ]
+                                ast-tx))
+        ]
+    (is= (parse-and-transform "abc")  [:tokens [:token [:identifier "abc"]]])
+    (is= (parse-and-transform "+123") [:tokens [:token [:integer +123]]] )
+    (is= (parse-and-transform "do-re-mi abc +123")
+      [:tokens
+       [:token [:identifier  "do-re-mi"]]
+       [:token [:identifier "abc"]]
+       [:token [:integer  +123]] ] )
+    (is= (parse-and-transform "do-re-mi abc 1 2 3 baby you-and-me-girl")
+      [:tokens
+       [:token [:identifier  "do-re-mi"]]
+       [:token [:identifier "abc"]]
+       [:token [:integer  1]]
+       [:token [:integer  2]]
+       [:token [:integer  3]]
+       [:token [:identifier  "baby"]]
+       [:token [:identifier  "you-and-me-girl"]]
+      ] )
+
+  ))
 
 
 
