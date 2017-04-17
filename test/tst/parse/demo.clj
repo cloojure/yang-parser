@@ -383,7 +383,6 @@ module toaster {
 } ")
         yang-tree (yp yang-src)
         yang-ast  (yang-transform yang-tree)]
-    (println (pretty-str yang-ast))
     (is= yang-ast
       [:module
        [:identifier "toaster"]
@@ -436,7 +435,7 @@ int-px        = digits <'px'>   ; ex '123px'
 
 ;-----------------------------------------------------------------------------
 ; Q: how do we know "123" is not a sequence of 3 values [1 2 3]?
-; A: we use delimiters to break up a value; iff not delims all digits go into one value
+; A: we use delimiters to break up a value; iff delims not present then all digits go into one value
 ; Problem: In ABNF, there are no ^ or $ values (beginning- and end-of-line).
 ; Solution: Since space is always a valid delimiter, add a single space go beginning
 ; and end of supplied source text, then parse
@@ -482,9 +481,7 @@ digits        = ws 1*digit ws
 digit         = %x30-39         ; 0-9
 ws            = 1*' '           ; space: 1 or more
 "
-        tx-map              {
-                             :delim (fn fn-delim [& args] nil)
-                             }
+        tx-map              {}
         parser              (insta/parser abnf-src :input-format :abnf)
         instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
         parse-and-transform (fn [src-text]
@@ -501,7 +498,7 @@ ws            = 1*' '           ; space: 1 or more
   ))
 
 ;-----------------------------------------------------------------------------
-; An integer is composed of multiple digits. Join the chile :digit elements, then convert from a string to an integer
+; A sequence of digits is composed of multiple child :digit elementss. Join the child :digit elements.
 (defn join-children-no-labels [children]
   (str/join
     (mapv second children)))
@@ -512,10 +509,8 @@ digit         = %x30-39         ; 0-9
 ws            = 1*' '           ; space: 1 or more
 "
         tx-map              {
-                             :delim  (fn fn-delim [& args] nil)
                              :digits (fn fn-digits [& args]
-                                       (spy :digits args)
-                                       (Integer/parseInt (join-children-no-labels args)))
+                                       [:digits (join-children-no-labels args)])
                              }
         parser              (insta/parser abnf-src :input-format :abnf)
         instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
@@ -529,10 +524,64 @@ ws            = 1*' '           ; space: 1 or more
                                     ]
                                 ast-tx))
         ]
-    (is= (parse-and-transform "123") 123)
+    (is= (parse-and-transform "123") [:digits "123"])
     ))
 
 ;-----------------------------------------------------------------------------
+; Define an integer as an optional +/- sign followed by a :digits element.
+; After parsing, convert from a string to a integer value
+(defn sign? [item]
+  (and (sequential? item)
+    (= :sign (first item))))
+(defn signed? [item]
+  (and (sequential? item)
+    (= (sign? (first item)))))
+(dotest
+  (is (sign? [:sign "+"]))
+  (is (sign? [:sign "-"]))
+  (is (sign? [:sign "xyz"]))
+  (isnt (sign? [:foo "+"]))
+  (isnt (sign? [:foo "xyz"]))
+
+  (is (signed? [:xyz [:sign "+"] [:foo "xyz"]]))
+
+  (let [abnf-src            "
+integer       = ws [ sign ] digits  ws  ; digits with optional sign
+sign          = '+' / '-'       ; ignore + or - functions for now
+digits        = 1*digit
+digit         = %x30-39         ; 0-9
+ws            = 1*' '           ; space: 1 or more
+"
+        tx-map              {
+                             :digits  (fn fn-digits [& args] (join-children-no-labels args))
+                             :sign    no-label
+                             :integer (fn fn-integer [& args]
+                                        (let [str-val (str/join args)
+                                              result (Integer/parseInt str-val)]
+                                          result ))
+                             }
+        parser              (insta/parser abnf-src :input-format :abnf)
+        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
+        parse-and-transform (fn [src-text]
+                              (let [ast-parse (parser (space-pad src-text))
+                                    ast-prune (prune-whitespace-nodes ast-parse)
+                                    ast-tx    (insta/transform tx-map ast-prune)
+                                    _         (if (instaparse-failure? ast-tx)
+                                                (throw (IllegalArgumentException. (str ast-tx)))
+                                                ast-tx)
+                                    ]
+                                ast-tx))
+        ]
+    (is= (parse-and-transform "+123") +123)
+    (is= (parse-and-transform "-123") -123)
+    (is= (parse-and-transform  "123")  123)
+    ))
+
+
+
+
+;*****************************************************************************
+;*****************************************************************************
 (dotest
   (let [abnf-src            "
 int           = digits          ; ex '123'
