@@ -24,6 +24,7 @@
 
 (defn fn-string [& args] [:string (tm/collapse-whitespace (str/join args))] )
 
+(defn no-label [arg] arg) ; aka identity
 
 (defn yang-transform
   [parse-tree]
@@ -39,21 +40,14 @@
      :contact        (fn fn-contact [arg] [:contact arg])
      :description    (fn fn-description [arg] [:description arg])
      :presence       (fn fn-presence [arg] [:presence arg])
-     :revision       (fn fn-revision [& args]
-                       (prepend :revision args))
-     :iso-date       (fn fn-iso-date [& args]
-                       [:iso-date (str/join args)])
+     :revision       (fn fn-revision [& args] (prepend :revision args))
+     :iso-date       (fn fn-iso-date [& args] [:iso-date (str/join args)])
      :reference      (fn fn-reference [arg] [:reference arg])
-     :identity       (fn fn-identity [& args]
-                       (prepend :identity args))
-     :typedef        (fn fn-typedef [& args]
-                       (prepend :typedef args))
-     :container      (fn fn-container [& args]
-                       (prepend :container args))
-     :rpc             (fn fn-rpc [& args]
-                        (prepend :rpc args))
-     :input           (fn fn-input [& args]
-                       (prepend :input args))
+     :identity       (fn fn-identity [& args] (prepend :identity args))
+     :typedef        (fn fn-typedef [& args] (prepend :typedef args))
+     :container      (fn fn-container [& args] (prepend :container args))
+     :rpc            (fn fn-rpc [& args] (prepend :rpc args))
+     :input          (fn fn-input [& args] (prepend :input args))
 
 
      :base           (fn fn-base [arg] [:base arg])
@@ -67,11 +61,8 @@
                              content (rest args)]
                          (t/prepend :enum [:name name] content)))
 
-     :type-simple    (fn fn-type-simple [& args]
-                       (t/prepend :type args))
-     :type-composite (fn fn-type-composite [& args]
-                       (t/prepend :type args))
-     :leaf           (fn fn-leaf [& args]
-                       (t/prepend :leaf args))
+     :type-simple    (fn fn-type-simple [& args] (t/prepend :type args))
+     :type-composite (fn fn-type-composite [& args] (t/prepend :type args))
+     :leaf           (fn fn-leaf [& args] (t/prepend :leaf args))
      } parse-tree))
 

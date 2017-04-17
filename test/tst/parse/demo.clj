@@ -8,6 +8,7 @@
     [clojure.java.io :as io]
     [clojure.set :as set]
     [clojure.string :as str]
+    [clojure.walk :as walk]
     [clojure.test.check :as tc]
     [clojure.test.check.clojure-test :as tst]
     [clojure.test.check.generators :as gen]
@@ -22,6 +23,7 @@
   ))
 (t/refer-tupelo)
 (t/print-versions)
+
 
 (def abnf-base "
 <text-char>                     = vis-char / char-whitespace
@@ -107,6 +109,12 @@ token  =  <ows> ( identifier / string ) "
        [:token [:identifier "e"]]
        [:token [:identifier "n"]]
        [:token [:identifier "t1"]]])))
+
+; identifier  = DQUOTE *ALPHA DQUOTE
+; ALPHA       = %x41-5A / %x61-7A     ; A-Z / a-z
+;
+; "cat" =>  [:IDENTIFIER [:DQUOTE "\""] [:ALPHA "c"] [:ALPHA "a"] [:ALPHA "t"] [:DQUOTE "\""] ]
+
 
 (def abnf-tokens "
 tokens =  <ows> token *( <ws> token) <ows>   ; can have trailing <ows> ***** ONLY AT THE TOP LEVEL! *****
@@ -408,10 +416,8 @@ int-px        = digits <'px'>   ; ex '123px'
 <digits>      = 1*digit         ; 1 or more digits
 <digit>       = %x30-39         ; 0-9
 "
-        tx-map              {:int      (fn fn-int [& args]
-                                         [:int (Integer/parseInt (str/join args))])
-                             :int-px   (fn fn-int-px [& args]
-                                         [:int-px (Integer/parseInt (str/join args))])
+        tx-map              {:int      (fn fn-int [& args]      [:int     (Integer/parseInt (str/join args))])
+                             :int-px   (fn fn-int-px [& args]   [:int-px  (Integer/parseInt (str/join args))])
                              :size-val identity
                              }
 
@@ -424,6 +430,131 @@ int-px        = digits <'px'>   ; ex '123px'
                                   (throw (IllegalArgumentException. (str result)))
                                   result)))
         ]
-    (is= [:int 123] (parse-and-transform "123"))
+    (is= [:int    123] (parse-and-transform "123"  ))
     (is= [:int-px 123] (parse-and-transform "123px"))
     (throws? (parse-and-transform "123xyz"))))
+
+;-----------------------------------------------------------------------------
+; Q: how do we know "123" is not a sequence of 3 values [1 2 3]?
+; A: we use delimiters to break up a value; iff not delims all digits go into one value
+; Problem: In ABNF, there are no ^ or $ values (beginning- and end-of-line).
+; Solution: Since space is always a valid delimiter, add a single space go beginning
+; and end of supplied source text, then parse
+(defn space-pad [text] (str \space text \space ))
+(dotest
+  (let [abnf-src            "
+digits        = ws 1*digit ws
+digit         = %x30-39         ; 0-9
+ws            = 1*' '           ; space: 1 or more
+"
+        tx-map              {}
+        parser              (insta/parser abnf-src :input-format :abnf)
+        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
+        parse-and-transform (fn [src-text]
+                              (let [parse-tree (parser (space-pad src-text))
+                                    final-ast (insta/transform tx-map parse-tree)]
+                                (if (instaparse-failure? final-ast)
+                                  (throw (IllegalArgumentException. (str final-ast)))
+                                  final-ast)))
+        ]
+    (is= (parse-and-transform "123")
+      [:digits [:ws " "] [:digit "1"] [:digit "2"] [:digit "3"] [:ws " "]] )
+    (is= (parse-and-transform " 123  ")
+      [:digits [:ws " " " "] [:digit "1"] [:digit "2"] [:digit "3"] [:ws " " " " " "]] )
+    ))
+
+;-----------------------------------------------------------------------------
+; Any token type (number, string, identifier, operator, etc) will wish to suppress leading/trailing
+; whitespace. Write a convenience function to do that globally
+(defn prune-whitespace-nodes [ast-in]
+  (let [is-ws-child?  (fn [child] ; i.e. (is-ws-child? [:ws " " " "]) => true
+                        (when (sequential? child)
+                          (= :ws (first child))))
+        prune-ws-children (fn [item]
+                            (if (sequential? item)
+                              (vec (remove is-ws-child? item))
+                              item))
+        ast-out (walk/postwalk prune-ws-children ast-in) ]
+    ast-out))
+(dotest
+  (let [abnf-src            "
+digits        = ws 1*digit ws
+digit         = %x30-39         ; 0-9
+ws            = 1*' '           ; space: 1 or more
+"
+        tx-map              {
+                             :delim (fn fn-delim [& args] nil)
+                             }
+        parser              (insta/parser abnf-src :input-format :abnf)
+        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
+        parse-and-transform (fn [src-text]
+                              (let [parse-tree (parser (space-pad src-text))
+                                    ast-tx     (insta/transform tx-map parse-tree)
+                                    _          (if (instaparse-failure? ast-tx)
+                                                 (throw (IllegalArgumentException. (str ast-tx)))
+                                                 ast-tx)
+                                    ast-prune   (prune-whitespace-nodes ast-tx) ]
+                                ast-prune ))
+        ]
+    (is= (parse-and-transform "123")
+      [:digits [:digit "1"] [:digit "2"] [:digit "3"]] )
+  ))
+
+;-----------------------------------------------------------------------------
+; An integer is composed of multiple digits. Join the chile :digit elements, then convert from a string to an integer
+(defn join-children-no-labels [children]
+  (str/join
+    (mapv second children)))
+(dotest
+  (let [abnf-src            "
+digits        = ws 1*digit ws
+digit         = %x30-39         ; 0-9
+ws            = 1*' '           ; space: 1 or more
+"
+        tx-map              {
+                             :delim  (fn fn-delim [& args] nil)
+                             :digits (fn fn-digits [& args]
+                                       (spy :digits args)
+                                       (Integer/parseInt (join-children-no-labels args)))
+                             }
+        parser              (insta/parser abnf-src :input-format :abnf)
+        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
+        parse-and-transform (fn [src-text]
+                              (let [ast-parse (parser (space-pad src-text))
+                                    ast-prune (prune-whitespace-nodes ast-parse)
+                                    ast-tx    (insta/transform tx-map ast-prune)
+                                    _         (if (instaparse-failure? ast-tx)
+                                                (throw (IllegalArgumentException. (str ast-tx)))
+                                                ast-tx)
+                                    ]
+                                ast-tx))
+        ]
+    (is= (parse-and-transform "123") 123)
+    ))
+
+;-----------------------------------------------------------------------------
+(dotest
+  (let [abnf-src            "
+int           = digits          ; ex '123'
+digits        = 1*digit         ; 1 or more digits
+digit         = %x30-39         ; 0-9
+delim         = %x20            ; space or semicolon
+"
+        tx-map              {:int      (fn fn-int [arg] [:int (Integer/parseInt arg)])
+                             :digit    no-label
+                             :digits   str
+                             }
+
+        parser              (insta/parser abnf-src :input-format :abnf)
+        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
+        parse-and-transform (fn [text]
+                              (let [result (insta/transform tx-map
+                                             (parser text))]
+                                (if (instaparse-failure? result)
+                                  (throw (IllegalArgumentException. (str result)))
+                                  result)))
+        ]
+    (is= [:int    123] (parse-and-transform "123"  ))
+    (throws? (parse-and-transform "123xyz"))
+    (throws? (parse-and-transform " 123  "))
+  ))
