@@ -20,7 +20,7 @@
     [tupelo.misc :as tm]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
-  ))
+    ))
 (t/refer-tupelo)
 (t/print-versions)
 
@@ -64,14 +64,14 @@ ows                             =  *(<char-whitespace>)   ; optional whitespace:
 <vis-char-no-dquote>            = %x21    / %x23-7E ; all visible chars without quote-double
 <vis-char-no-squote>            = %x21-26 / %x28-7E ; all visible chars without quote-single
 <vis-char-no-quotes>            = %x21    / %x23-26 / %x28-7E ; all visible chars except both quotes
-" )
+")
 
-(def abnf-string "string = <quote-double> *(text-char-no-dquote) <quote-double> " )
+(def abnf-string "string = <quote-double> *(text-char-no-dquote) <quote-double> ")
 (def abnf-identifier "
 ; An identifier MUST NOT start with (('X'|'x') ('M'|'m') ('L'|'l')) (i.e. 'xml' in any case)
 identifier                      = identifier-start-char *identifier-body-char
 <identifier-start-char>         = alpha / underscore
-<identifier-body-char>          = alpha / underscore / digit / hyphen " )
+<identifier-body-char>          = alpha / underscore / digit / hyphen ")
 (dotest
   (let [abnf-src (str abnf-string abnf-base)
         yp       (create-abnf-parser abnf-src)
@@ -96,12 +96,12 @@ identifier                      = identifier-start-char *identifier-body-char
   (let [abnf-tokens "
 tokens = *token <ows>   ; can have trailing <ows> ***** ONLY AT THE TOP LEVEL! *****
 token  =  <ows> ( identifier / string ) "
-        abnf-src (str abnf-tokens abnf-string abnf-identifier abnf-base)
-       ; _ (println :abnf-src \newline abnf-src)
-        yp       (create-abnf-parser abnf-src)
-        s1       (ts/quotes->double "  ident1 ")
-        s1-tree  (yp s1)
-        s1-ast   (yang-transform s1-tree) ]
+        abnf-src    (str abnf-tokens abnf-string abnf-identifier abnf-base)
+        ; _ (println :abnf-src \newline abnf-src)
+        yp          (create-abnf-parser abnf-src)
+        s1          (ts/quotes->double "  ident1 ")
+        s1-tree     (yp s1)
+        s1-ast      (yang-transform s1-tree)]
     (is= s1-ast
       [:tokens
        [:token [:identifier "i"]]
@@ -121,20 +121,20 @@ tokens =  <ows> token *( <ws> token) <ows>   ; can have trailing <ows> ***** ONL
 token  =  identifier / string ")
 (dotest
   (let [abnf-src (str abnf-tokens abnf-string abnf-identifier abnf-base)
-        yp          (create-abnf-parser abnf-src)
-        s1          (ts/quotes->double "  ident1 ")
-        s1-tree     (yp s1)
-        s1-ast      (yang-transform s1-tree)
-        s2          (ts/quotes->double "  ident1 'str1' ident2 'str2' ")
-        s2-tree     (yp s2)
-        s2-ast      (yang-transform s2-tree) ]
+        yp       (create-abnf-parser abnf-src)
+        s1       (ts/quotes->double "  ident1 ")
+        s1-tree  (yp s1)
+        s1-ast   (yang-transform s1-tree)
+        s2       (ts/quotes->double "  ident1 'str1' ident2 'str2' ")
+        s2-tree  (yp s2)
+        s2-ast   (yang-transform s2-tree)]
     (is= s1-ast [:tokens [:token [:identifier "ident1"]]])
     (is= s2-ast
       [:tokens
        [:token [:identifier "ident1"]]
-       [:token [:string     "str1"]]
+       [:token [:string "str1"]]
        [:token [:identifier "ident2"]]
-       [:token [:string     "str2"]]] ))
+       [:token [:string "str2"]]]))
 
   (let [abnf-src (str abnf-tokens abnf-string abnf-identifier abnf-base)
         yp       (create-abnf-parser abnf-src)]
@@ -153,11 +153,11 @@ token  =  identifier / string ")
                   (let [samp-tree (yp samp)
                         samp-ast  (yang-transform samp-tree)]
                     (is= samp-ast
-                          [:tokens
-                             [:token [:identifier "ident1"]]
-                             [:token [:string     "str1"]]
-                             [:token [:identifier "ident2"]]
-                             [:token [:string     "str2"]]] )))))))
+                      [:tokens
+                       [:token [:identifier "ident1"]]
+                       [:token [:string "str1"]]
+                       [:token [:identifier "ident2"]]
+                       [:token [:string "str2"]]])))))))
 
 (dotest
   (let [abnf-src  (io/resource "yang3.abnf")
@@ -304,7 +304,7 @@ module toaster {
          [:config [:boolean false]]
          [:mandatory [:boolean true]]
          [:description [:string "This variable indicates the current state of the toaster."]]]
-        ]] )))
+        ]])))
 
 (dotest
   (let [abnf-src  (io/resource "yang3.abnf")
@@ -362,7 +362,7 @@ module toaster {
           [:description [:string "This variable informs the toaster of the type of the required doneness."]]]]]
        [:rpc
         [:identifier "cancel-toast"]
-        [:description [:string "Stop making toast, if any is being made."]]]] )))
+        [:description [:string "Stop making toast, if any is being made."]]]])))
 
 (dotest
   (let [abnf-src  (io/resource "yang3.abnf")
@@ -404,7 +404,7 @@ module toaster {
            [:name [:identifier "error"]]
            [:description [:string "The toaster service was disabled or the toaster is broken."]]]]
          [:description [:string "Indicates the final toast status"]]]]
-      ] )))
+       ])))
 
 
 (dotest
@@ -415,8 +415,8 @@ int-px        = digits <'px'>   ; ex '123px'
 <digits>      = 1*digit         ; 1 or more digits
 <digit>       = %x30-39         ; 0-9
 "
-        tx-map              {:int      (fn fn-int [& args]      [:int     (Integer/parseInt (str/join args))])
-                             :int-px   (fn fn-int-px [& args]   [:int-px  (Integer/parseInt (str/join args))])
+        tx-map              {:int      (fn fn-int [& args] [:int (Integer/parseInt (str/join args))])
+                             :int-px   (fn fn-int-px [& args] [:int-px (Integer/parseInt (str/join args))])
                              :size-val identity
                              }
 
@@ -429,7 +429,7 @@ int-px        = digits <'px'>   ; ex '123px'
                                   (throw (IllegalArgumentException. (str result)))
                                   result)))
         ]
-    (is= [:int    123] (parse-and-transform "123"  ))
+    (is= [:int 123] (parse-and-transform "123"))
     (is= [:int-px 123] (parse-and-transform "123px"))
     (throws? (parse-and-transform "123xyz"))))
 
@@ -439,7 +439,7 @@ int-px        = digits <'px'>   ; ex '123px'
 ; Problem: In ABNF, there are no ^ or $ values (beginning- and end-of-line).
 ; Solution: Since space is always a valid delimiter, add a single space go beginning
 ; and end of supplied source text, then parse
-(defn space-pad [text] (str \space text \space ))
+(defn space-pad [text] (str \space text \space))
 (dotest
   (let [abnf-src            "
 digits        = ws 1*digit ws
@@ -451,29 +451,29 @@ ws            = 1*' '           ; space: 1 or more
         instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
         parse-and-transform (fn [src-text]
                               (let [parse-tree (parser (space-pad src-text))
-                                    final-ast (insta/transform tx-map parse-tree)]
+                                    final-ast  (insta/transform tx-map parse-tree)]
                                 (if (instaparse-failure? final-ast)
                                   (throw (IllegalArgumentException. (str final-ast)))
                                   final-ast)))
         ]
     (is= (parse-and-transform "123")
-      [:digits [:ws " "] [:digit "1"] [:digit "2"] [:digit "3"] [:ws " "]] )
+      [:digits [:ws " "] [:digit "1"] [:digit "2"] [:digit "3"] [:ws " "]])
     (is= (parse-and-transform " 123  ")
-      [:digits [:ws " " " "] [:digit "1"] [:digit "2"] [:digit "3"] [:ws " " " " " "]] )
+      [:digits [:ws " " " "] [:digit "1"] [:digit "2"] [:digit "3"] [:ws " " " " " "]])
     ))
 
 ;-----------------------------------------------------------------------------
 ; Any token type (number, string, identifier, operator, etc) will wish to suppress leading/trailing
 ; whitespace. Write a convenience function to do that globally
 (defn prune-whitespace-nodes [ast-in]
-  (let [is-ws-child?  (fn [child] ; i.e. (is-ws-child? [:ws " " " "]) => true
-                        (when (sequential? child)
-                          (= :ws (first child))))
+  (let [is-ws-child?      (fn [child] ; i.e. (is-ws-child? [:ws " " " "]) => true
+                            (when (sequential? child)
+                              (= :ws (first child))))
         prune-ws-children (fn [item]
                             (if (sequential? item)
                               (vec (remove is-ws-child? item))
                               item))
-        ast-out (walk/postwalk prune-ws-children ast-in) ]
+        ast-out           (walk/postwalk prune-ws-children ast-in)]
     ast-out))
 (dotest
   (let [abnf-src            "
@@ -490,12 +490,12 @@ ws            = 1*' '           ; space: 1 or more
                                     _          (if (instaparse-failure? ast-tx)
                                                  (throw (IllegalArgumentException. (str ast-tx)))
                                                  ast-tx)
-                                    ast-prune   (prune-whitespace-nodes ast-tx) ]
-                                ast-prune ))
+                                    ast-prune  (prune-whitespace-nodes ast-tx)]
+                                ast-prune))
         ]
     (is= (parse-and-transform "123")
-      [:digits [:digit "1"] [:digit "2"] [:digit "3"]] )
-  ))
+      [:digits [:digit "1"] [:digit "2"] [:digit "3"]])
+    ))
 
 ;-----------------------------------------------------------------------------
 ; A sequence of digits is composed of multiple child :digit elementss. Join the child :digit elements.
@@ -555,10 +555,10 @@ ws            = 1*' '           ; space: 1 or more
         tx-map              {
                              :digits  (fn fn-digits [& args] (join-children-no-labels args))
                              :sign    no-label
-                             :integer    (fn fn-integer [& args]
-                                           (let [str-val (str/join args)
-                                                 result  (Integer/parseInt str-val)]
-                                             [:integer result]))
+                             :integer (fn fn-integer [& args]
+                                        (let [str-val (str/join args)
+                                              result  (Integer/parseInt str-val)]
+                                          [:integer result]))
                              }
         parser              (insta/parser abnf-src :input-format :abnf)
         instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
@@ -574,7 +574,7 @@ ws            = 1*' '           ; space: 1 or more
         ]
     (is= (parse-and-transform "+123") [:integer +123])
     (is= (parse-and-transform "-123") [:integer -123])
-    (is= (parse-and-transform  "123") [:integer  123])
+    (is= (parse-and-transform "123") [:integer 123])
     ))
 
 ;-----------------------------------------------------------------------------
@@ -605,8 +605,8 @@ ws                      = 1*' '           ; space: 1 or more
                                              [:integer result]))
                              :identifier (fn fn-identifier [& args]
                                            (let [v1 (mapv second args)
-                                                     v2 (mapv second v1)
-                                                     v3 (str/join v2)]
+                                                 v2 (mapv second v1)
+                                                 v3 (str/join v2)]
                                              [:identifier v3]))
                              }
         parser              (insta/parser abnf-src :input-format :abnf)
@@ -626,7 +626,8 @@ ws                      = 1*' '           ; space: 1 or more
 
 ;-----------------------------------------------------------------------------
 ; Mix integers & identifiers together as "tokens". Note how we need to change the placement of whitespace
-; to only the token/tokens rules (i.e. identifier & integer rules no longer have whitespace pieces)
+; to only the token/tokens rules (i.e. identifier & integer rules no longer have whitespace pieces). We
+; have also moved (prune-whitespace-nodes ...) to the end of processing only.
 (dotest
   (let [abnf-src            "
 tokens                  = *token ws
@@ -660,61 +661,189 @@ ws                      = 1*' '           ; space: 1 or more
         instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser (space-pad src-text))
-                                    ast-prune (prune-whitespace-nodes ast-parse)
-                                    ast-tx    (insta/transform tx-map ast-prune)
+                                    ast-tx    (insta/transform tx-map ast-parse)
                                     _         (if (instaparse-failure? ast-tx)
                                                 (throw (IllegalArgumentException. (str ast-tx)))
                                                 ast-tx)
                                     ]
                                 ast-tx))
         ]
-    (is= (parse-and-transform "abc")  [:tokens [:token [:identifier "abc"]]])
-    (is= (parse-and-transform "+123") [:tokens [:token [:integer +123]]] )
-    (is= (parse-and-transform "do-re-mi abc +123")
+    (is= (prune-whitespace-nodes
+           (parse-and-transform "abc")) [:tokens [:token [:identifier "abc"]]])
+    (is= (prune-whitespace-nodes
+           (parse-and-transform "+123")) [:tokens [:token [:integer +123]]])
+    (is= (prune-whitespace-nodes
+           (parse-and-transform "do-re-mi abc +123"))
       [:tokens
-       [:token [:identifier  "do-re-mi"]]
+       [:token [:identifier "do-re-mi"]]
        [:token [:identifier "abc"]]
-       [:token [:integer  +123]] ] )
-    (is= (parse-and-transform "do-re-mi abc 1 2 3 baby you-and-me-girl")
-      [:tokens
-       [:token [:identifier  "do-re-mi"]]
-       [:token [:identifier "abc"]]
-       [:token [:integer  1]]
-       [:token [:integer  2]]
-       [:token [:integer  3]]
-       [:token [:identifier  "baby"]]
-       [:token [:identifier  "you-and-me-girl"]]
-      ] )
+       [:token [:integer +123]]])
+    ))
 
+;-----------------------------------------------------------------------------
+; Mix integers & identifiers together as "tokens". Note how we need to change the placement of whitespace
+; to only the token/tokens rules (i.e. identifier & integer rules no longer have whitespace pieces)
+(defn quote-double? [item]
+  (and (sequential? item)
+    (= :quote-double (first item))))
+(dotest
+  (let [abnf-src            "
+tokens                  = *token ws
+token                   = ws (integer / identifier / string)
+identifier              = identifier-start-char *identifier-body-char
+integer                 = [ sign ] digits  ; digits with optional sign
+string                  = quote-double *(ws / vis-char-no-dquote) quote-double   ; no escaping quotes yet
+
+identifier-start-char   = alpha / underscore
+identifier-body-char    = alpha / underscore / digit / hyphen
+alpha                   = %x41-5A / %x61-7A     ; A-Z / a-z
+hyphen                  = %x2D  ; - char
+underscore              = %x5F  ; _ char
+sign                    = '+' / '-'       ; ignore + or - functions for now
+digits                  = 1*digit
+digit                   = %x30-39         ; 0-9
+ws                      = 1*' '           ; space: 1 or more
+quote-double            = %x22
+quote-single            = %x27
+vis-char                = %x21-7E ; visible (printing) characters
+vis-char-no-dquote      = %x21    / %x23-7E ; all visible chars without quote-double
+"
+        tx-map              {
+                             :digits     (fn fn-digits [& args] (join-children-no-labels args))
+                             :sign       no-label
+                             :integer    (fn fn-integer [& args]
+                                           (let [pruned  args
+                                                 str-val (str/join pruned)
+                                                 result  (Integer/parseInt str-val)]
+                                             [:integer result]))
+                             :identifier (fn fn-identifier [& args]
+                                           (let [v1 (mapv second args) ; remove :identifier-start/body-char labels
+                                                 v2 (mapv second v1) ; remove :alpha labels
+                                                 v3 (str/join v2)] ; convert [ "a" "b" "c" ] -> "abc"
+                                             [:identifier v3]))
+                             :string     (fn fn-string [& args]
+                                           (assert quote-double? (first args))
+                                           (assert quote-double? (last args))
+                                           (let [chars-keep (-> args rest butlast)
+                                                 result     (join-children-no-labels chars-keep)]
+                                             [:string result]))
+                             }
+        parser              (insta/parser abnf-src :input-format :abnf)
+        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
+        parse-and-transform (fn [src-text]
+                              (let [ast-parse (parser (space-pad src-text))
+                                    ast-tx    (insta/transform tx-map ast-parse)
+                                    _         (if (instaparse-failure? ast-tx)
+                                                (throw (IllegalArgumentException. (str ast-tx)))
+                                                ast-tx)
+                                    ]
+                                ast-tx))
+        ]
+    (is= (prune-whitespace-nodes (parse-and-transform (ts/quotes->double "'abc'")))
+      [:tokens [:token [:string "abc"]]])
+
+    ; All together now!
+    (is= (prune-whitespace-nodes
+           (parse-and-transform
+             (ts/quotes->double "do-re-mi abc 1 2 3 baby 'you and me girl'")))
+      [:tokens
+       [:token [:identifier "do-re-mi"]]
+       [:token [:identifier "abc"]]
+       [:token [:integer 1]]
+       [:token [:integer 2]]
+       [:token [:integer 3]]
+       [:token [:identifier "baby"]]
+       [:token [:string "you and me girl"]]])
+    ))
+
+; If we use the InstaParse built-in ability to perform simple "pre-transforms" on the AST, we can greatly
+; simplify out manual transformations.  Compare how simple tx-map is below with the previous example. Also,
+; notice that we don't need the (prune-whitespace-nodes ...) function anyplace either.
+(dotest
+  (let [abnf-src            "
+tokens                  = *token <ws>
+token                   = <ws> (integer / identifier / string)
+identifier              = identifier-start-char *identifier-body-char
+integer                 = [ sign ] digits  ; digits with optional sign
+string                  = <quote-double> *(ws / vis-char-no-dquote) <quote-double>   ; no escaping quotes yet
+
+<identifier-start-char> = alpha / underscore
+<identifier-body-char>  = alpha / underscore / digit / hyphen
+<alpha>                 = %x41-5A / %x61-7A     ; A-Z / a-z
+<hyphen>                = %x2D  ; - char
+<underscore>            = %x5F  ; _ char
+<sign>                  = '+' / '-'       ; ignore + or - functions for now
+digits                  = 1*digit
+<digit>                 = %x30-39         ; 0-9
+<ws>                    = 1*' '           ; space: 1 or more
+quote-double            = %x22
+quote-single            = %x27
+vis-char                = %x21-7E ; visible (printing) characters
+<vis-char-no-dquote>    = %x21    / %x23-7E ; all visible chars without quote-double
+"
+        tx-map              {
+                             :digits     (fn fn-digits [& args] (str/join args))
+                             :sign       no-label
+                             :integer    (fn fn-integer [& args] [:integer (Integer/parseInt (str/join args))])
+                             :identifier (fn fn-identifier [& args] [:identifier (str/join args)])
+                             :string     (fn fn-string [& args] [:string (str/join args)])
+                            }
+        parser              (insta/parser abnf-src :input-format :abnf)
+        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
+        parse-and-transform (fn [src-text]
+                              (let [ast-parse (parser (space-pad src-text))
+                                    ast-tx    (insta/transform tx-map ast-parse)
+                                    _         (if (instaparse-failure? ast-tx)
+                                                (throw (IllegalArgumentException. (str ast-tx)))
+                                                ast-tx)
+                                    ]
+                                ast-tx))
+        ]
+    (is= (parse-and-transform "girl")
+      [:tokens [:token [:identifier "girl"]]])
+    (is= (parse-and-transform (ts/quotes->double "'abc'"))
+      [:tokens [:token [:string "abc"]]])
+    (is= (parse-and-transform -123)
+      [:tokens [:token [:integer -123]]])
+
+    ; All together now!
+    (is= (parse-and-transform
+           (ts/quotes->double "do-re-mi abc 1 23 baby 'you and me girl'"))
+      [:tokens
+       [:token [:identifier "do-re-mi"]]
+       [:token [:identifier "abc"]]
+       [:token [:integer 1]]
+       [:token [:integer 23]]
+       [:token [:identifier "baby"]]
+       [:token [:string "you and me girl"]]])
   ))
 
 
 
-
-;*****************************************************************************
-;*****************************************************************************
-(dotest
-  (let [abnf-src            "
+  ;*****************************************************************************
+  ;*****************************************************************************
+  (dotest
+    (let [abnf-src            "
 int           = digits          ; ex '123'
 digits        = 1*digit         ; 1 or more digits
 digit         = %x30-39         ; 0-9
 delim         = %x20            ; space or semicolon
 "
-        tx-map              {:int      (fn fn-int [arg] [:int (Integer/parseInt arg)])
-                             :digit    no-label
-                             :digits   str
-                             }
+          tx-map              {:int    (fn fn-int [arg] [:int (Integer/parseInt arg)])
+                               :digit  no-label
+                               :digits str
+                               }
 
-        parser              (insta/parser abnf-src :input-format :abnf)
-        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
-        parse-and-transform (fn [text]
-                              (let [result (insta/transform tx-map
-                                             (parser text))]
-                                (if (instaparse-failure? result)
-                                  (throw (IllegalArgumentException. (str result)))
-                                  result)))
-        ]
-    (is= [:int    123] (parse-and-transform "123"  ))
-    (throws? (parse-and-transform "123xyz"))
-    (throws? (parse-and-transform " 123  "))
-  ))
+          parser              (insta/parser abnf-src :input-format :abnf)
+          instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
+          parse-and-transform (fn [text]
+                                (let [result (insta/transform tx-map
+                                               (parser text))]
+                                  (if (instaparse-failure? result)
+                                    (throw (IllegalArgumentException. (str result)))
+                                    result)))
+          ]
+      (is= [:int 123] (parse-and-transform "123"))
+      (throws? (parse-and-transform "123xyz"))
+      (throws? (parse-and-transform " 123  "))
+      ))
