@@ -880,51 +880,98 @@ delim         = %x20            ; space or semicolon
     )))
 
 
-(def tree-1 [:a
-             [:b 1]
-             [:b 2]
-             [:b
-              [:c 1]
-              [:c 2] ] ] )
-(defn- ^:no-doc find-paths* [result path tree tgt-path]
+(defn- ^:no-doc find-tag* [result path tree tgt-path]
   (when (empty? tgt-path)
     (throw (IllegalStateException. "find*: tgt-path is empty")))
   (when (sequential? tree)
     (let [tgt          (first tgt-path)
           tgt-path-new (rest tgt-path)
           [tag & contents] tree]
-      (if (= tag tgt)
+      (when (or (= tag :*) (= tag :**))
+        (throw (IllegalArgumentException. (str "fing-tag*: found reserved tag " tag " in tree"))))
+      (if (or (= tgt tag) (= tgt :*))
         (if (empty? tgt-path-new)
           (do
             (let [soln {:path  path
                         :found tree}]
-              (swap! result t/append soln)))
+              (swap! result t/glue #{soln})))
           (do
             (let [path-new (t/append path tag)]
               (doseq [child-tree contents]
-                (do
-                  (find-paths* result path-new child-tree tgt-path-new))))))))))
-(defn find-paths [tree tgt-path]
-  (let [result (atom [])]
-    (find-paths* result [] tree tgt-path)
+                (find-tag* result path-new child-tree tgt-path-new))))))
+      (when (= tgt :**)
+        (let [path-new (t/append path tag)] ; non-consuming recursion
+          (doseq [child-tree contents]
+            (find-tag* result path-new child-tree tgt-path)))
+        (if (empty? tgt-path-new)
+          (let [soln {:path  path
+                      :found tree}]
+            (swap! result t/glue #{soln}))
+          (let [path-new (t/append path tag)]
+            (doseq [child-tree contents]
+              (find-tag* result path-new child-tree tgt-path-new))))))))
+(defn find-tag [tree tgt-path]
+  (let [result (atom #{})]
+    (find-tag* result [] tree tgt-path)
     @result))
 
+(def tree-1 [:a
+             [:b 1]
+             [:b 2]
+             [:b
+              [:c 1]
+              [:c 2] ] ] )
+
 (dotest
-  (is= (find-paths tree-1 [:z]) [])
-  (is= (find-paths tree-1 [:z :b]) [])
-  (is= (find-paths tree-1 [:z :b :c]) [])
-  (is= (find-paths tree-1 [:a :z]) [])
-  (is= (find-paths tree-1 [:a :z :c]) [])
-  (is= (find-paths tree-1 [:a :b :z]) [])
+  (is (empty? (find-tag tree-1 [:z])))
+  (is (empty? (find-tag tree-1 [:z :b])))
+  (is (empty? (find-tag tree-1 [:z :b :c])))
+  (is (empty? (find-tag tree-1 [:a :z])))
+  (is (empty? (find-tag tree-1 [:a :z :c])))
+  (is (empty? (find-tag tree-1 [:a :b :z])))
 
-  (is= (find-paths tree-1 [:a])
-    [{:path [] :found [:a [:b 1] [:b 2] [:b [:c 1] [:c 2]]]}])
-  (is= (find-paths tree-1 [:a :b])
-    [{:path [:a] :found [:b 1]}
-     {:path [:a] :found [:b 2]}
-     {:path [:a] :found [:b [:c 1] [:c 2]]} ])
+  (is= (find-tag tree-1 [:a])
+    #{{:path [] :found [:a [:b 1] [:b 2] [:b [:c 1] [:c 2]]]}})
+  (is= (find-tag tree-1 [:a :b])
+    #{{:path [:a] :found [:b 1]}
+      {:path [:a] :found [:b 2]}
+      {:path [:a] :found [:b [:c 1] [:c 2]]}})
 
-  (is= (find-paths tree-1 [:a :b :c])
-    [{:path [:a :b] :found [:c 1]}
-     {:path [:a :b] :found [:c 2]} ])
+  (is= (find-tag tree-1 [:a :b :c])
+    #{ {:path [:a :b] :found [:c 1]}
+       {:path [:a :b] :found [:c 2]} })
+
+  (is= (find-tag tree-1 [:* :b])
+    #{{:path [:a], :found [:b 1]}
+      {:path [:a], :found [:b 2]}
+      {:path [:a], :found [:b [:c 1] [:c 2]]}})
+  (is= (find-tag tree-1 [:a :*])
+    #{{:path [:a], :found [:b 1]}
+      {:path [:a], :found [:b 2]}
+      {:path [:a], :found [:b [:c 1] [:c 2]]} })
+  (is= (find-tag tree-1 [:a :* :c])
+    #{{:path [:a :b], :found [:c 1]}
+      {:path [:a :b], :found [:c 2]}})
+
+  (is= (find-tag tree-1 [:a :**])
+    #{{:path [:a], :found [:b 1]}
+      {:path [:a], :found [:b 2]}
+      {:path [:a], :found [:b [:c 1] [:c 2]]}
+      {:path [:a :b], :found [:c 1]}
+      {:path [:a :b], :found [:c 2]}})
+  (is= (find-tag tree-1 [:a :** :c])
+    #{{:path [:a :b], :found [:c 1]}
+      {:path [:a :b], :found [:c 2]}})
+  (is= (find-tag tree-1 [:** :c])
+    #{{:path [:a :b], :found [:c 1]}
+      {:path [:a :b], :found [:c 2]}})
+
+  (let [bad-tree [:a
+                  [:* 1]
+                  [:b 2]]]
+    (throws? (find-tag bad-tree [:a :b])))
+  (let [bad-tree [:a
+                  [:** 1]
+                  [:b 2]]]
+    (throws? (find-tag bad-tree [:a :b])))
 )
