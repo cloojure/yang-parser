@@ -7,12 +7,12 @@ module calculator {
     }
 
     rpc add {
-      description "Add 2 numbers"
+      description "Add 2 numbers";
       input {
         leaf x { 
-          type decimal64 }
+          type decimal64; }
         leaf y { 
-          type decimal64 } }
+          type decimal64; } }
       output {
         leaf result { 
-          type decimal64 } } } }
+          type decimal64; } } } }

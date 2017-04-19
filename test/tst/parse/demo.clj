@@ -820,30 +820,62 @@ vis-char                = %x21-7E ; visible (printing) characters
 
 
 
-  ;*****************************************************************************
-  ;*****************************************************************************
-  (dotest
-    (let [abnf-src            "
+;*****************************************************************************
+;*****************************************************************************
+(dotest
+  (let [abnf-src            "
 int           = digits          ; ex '123'
 digits        = 1*digit         ; 1 or more digits
 digit         = %x30-39         ; 0-9
 delim         = %x20            ; space or semicolon
 "
-          tx-map              {:int    (fn fn-int [arg] [:int (Integer/parseInt arg)])
-                               :digit  no-label
-                               :digits str
-                               }
+        tx-map              {:int    (fn fn-int [arg] [:int (Integer/parseInt arg)])
+                             :digit  no-label
+                             :digits str
+                             }
 
-          parser              (insta/parser abnf-src :input-format :abnf)
-          instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
-          parse-and-transform (fn [text]
-                                (let [result (insta/transform tx-map
-                                               (parser text))]
-                                  (if (instaparse-failure? result)
-                                    (throw (IllegalArgumentException. (str result)))
-                                    result)))
-          ]
-      (is= [:int 123] (parse-and-transform "123"))
-      (throws? (parse-and-transform "123xyz"))
-      (throws? (parse-and-transform " 123  "))
-      ))
+        parser              (insta/parser abnf-src :input-format :abnf)
+        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
+        parse-and-transform (fn [text]
+                              (let [result (insta/transform tx-map
+                                             (parser text))]
+                                (if (instaparse-failure? result)
+                                  (throw (IllegalArgumentException. (str result)))
+                                  result)))
+        ]
+    (is= [:int 123] (parse-and-transform "123"))
+    (throws? (parse-and-transform "123xyz"))
+    (throws? (parse-and-transform " 123  "))
+    ))
+
+;*****************************************************************************
+;*****************************************************************************
+
+(dotest
+  (let [abnf-src  (io/resource "yang3.abnf")
+        yp        (create-abnf-parser abnf-src)
+        yang-src  (slurp (io/resource "calc.yang"))
+
+        yang-tree (yp yang-src)
+        yang-ast  (yang-transform yang-tree)
+       ]
+    (pretty yang-ast)
+    (is= yang-ast
+      [:module
+       [:identifier "calculator"]
+       [:namespace [:string "http://brocade.com/ns/calculator"]]
+       [:contact [:string "Alan Thompson <athomps@brocade.com>"]]
+       [:description [:string "YANG spec for a simple RPN calculator"]]
+       [:revision
+        [:iso-date "2017-04-01"]
+        [:description [:string "Prototype 1.0"]]]
+       [:rpc
+        [:identifier "add"]
+        [:description [:string "Add 2 numbers"]]
+        [:rpc-input
+         [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+         [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
+        [:rpc-output
+         [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]]
+    )))
+

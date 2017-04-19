@@ -48,10 +48,16 @@ container = container-simple / container-composite
 
 rpc = <ows> <"rpc"> <ws> identifier <blk-open>
       *( rpc-input 
+       / rpc-output 
        / description )
       <blk-close>
 
 rpc-input = <ows> <"input"> <blk-open>
+            *( leaf 
+             / description )
+            <blk-close>
+
+rpc-output = <ows> <"output"> <blk-open>
             *( leaf 
              / description )
             <blk-close>
@@ -111,7 +117,7 @@ pattern             = <ows> <"pattern">             <ws> string         <term>
 prefix              = <ows> <"prefix">              <ws> identifier     <term>
 presence            = <ows> <"presence">            <ws> string         <term>
 reference           = <ows> <"reference">           <ws> string         <term>
-value               = <ows> <"value">               <ws> (integer / string) <term>
+value               = <ows> <"value">               <ws> (integer / string / decimal64) <term>
 
 token  =  identifier / string 
 
@@ -131,6 +137,10 @@ term                            = <ows> <';'>
 ; Note that 4digit is the same as 4*4(digit); both mean exactly 4 digits
 iso-date                        = 4digit '-' 2digit '-' 2digit
 boolean                         = 'true' / 'false'
+number                          = (integer / decimal64)
+decimal64                       = [ '+' / '-' ] digits '.' [ digits ]   ; digits with optional sign
+integer                         = [ '+' / '-' ] digits  ; digits with optional sign
+<digits>                        = 1*digit   ; 1 or more digits
 
 ws                              = 1*(<char-whitespace>)   ; whitespace           (1 or more chars)
 ows                             =  *(<char-whitespace>)   ; optional whitespace: (0 or more chars)
@@ -152,8 +162,6 @@ ows                             =  *(<char-whitespace>)   ; optional whitespace:
 <slash>                         = %x2F  ; / char
 <alpha>                         = %x41-5A / %x61-7A     ; A-Z / a-z
 <digit>                         = %x30-39   ; 0-9
-<digits>                        = 1*digit   ; 1 or more digits
-integer                         = [ '+' / '-' ] digits  ; digits with optional sign
 <hex-digit>                     = digit / %x61 / %x62 / %x63 / %x64 / %x65 / %x66 ; only lower-case a..f
 <vis-char>                      = %x21-7E ; visible (printing) characters
 <vis-char-no-dquote>            = %x21    / %x23-7E ; all visible chars without quote-double

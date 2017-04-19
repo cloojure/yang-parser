@@ -22,6 +22,8 @@ saying "Alan cannot jump higher than 10 feet".  This does not
 -----------------------------------------------------------------------------
 Examples from RFC 6020:
 
+p18, Defining "decimal64" as "64-bit decimal" is stupid. Either make it float/double, float32/float64, or BigDecimal.
+
 p142, "This grammar assumes that the scanner replaces YANG comments with a single space character."
 
 p162, string = < an unquoted string as returned by the scanner >
