@@ -859,7 +859,6 @@ delim         = %x20            ; space or semicolon
         yang-tree (yp yang-src)
         yang-ast  (yang-transform yang-tree)
        ]
-    (pretty yang-ast)
     (is= yang-ast
       [:module
        [:identifier "calculator"]
@@ -877,101 +876,30 @@ delim         = %x20            ; space or semicolon
          [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
         [:rpc-output
          [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]]
-    )))
+    )
+    (is= (find-tag yang-ast [:module :rpc :identifier])
+      #{ {:parent-path [:module :rpc], :subtree [:identifier "add"]} } )
+    (is= (find-tag yang-ast [:module :revision])
+      #{{:parent-path [:module]
+         :subtree     [:revision
+                       [:iso-date "2017-04-01"]
+                       [:description [:string "Prototype 1.0"]]]}})
+    (is= (find-tag yang-ast [:module :rpc :rpc-input])
+      #{ {:parent-path [:module :rpc],
+          :subtree     [:rpc-input
+                        [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+                        [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]}})
+    (is= (find-tag yang-ast [:module :rpc :rpc-output])
+      #{{:parent-path [:module :rpc],
+         :subtree     [:rpc-output
+                       [:leaf
+                        [:identifier "result"]
+                        [:type [:identifier "decimal64"]]]]}} )
+    (is= (find-tag yang-ast [:module :rpc :rpc-input :leaf])
+      #{{:parent-path [:module :rpc :rpc-input],
+         :subtree [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]}
+        {:parent-path [:module :rpc :rpc-input],
+         :subtree [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]} } )
+  ))
 
 
-(defn- ^:no-doc find-tag* [result path tree tgt-path]
-  (when (empty? tgt-path)
-    (throw (IllegalStateException. "find*: tgt-path is empty")))
-  (when (sequential? tree)
-    (let [tgt          (first tgt-path)
-          tgt-path-new (rest tgt-path)
-          [tag & contents] tree]
-      (when (or (= tag :*) (= tag :**))
-        (throw (IllegalArgumentException. (str "fing-tag*: found reserved tag " tag " in tree"))))
-      (if (or (= tgt tag) (= tgt :*))
-        (if (empty? tgt-path-new)
-          (do
-            (let [soln {:path  path
-                        :found tree}]
-              (swap! result t/glue #{soln})))
-          (do
-            (let [path-new (t/append path tag)]
-              (doseq [child-tree contents]
-                (find-tag* result path-new child-tree tgt-path-new))))))
-      (when (= tgt :**)
-        (let [path-new (t/append path tag)] ; non-consuming recursion
-          (doseq [child-tree contents]
-            (find-tag* result path-new child-tree tgt-path)))
-        (if (empty? tgt-path-new)
-          (let [soln {:path  path
-                      :found tree}]
-            (swap! result t/glue #{soln}))
-          (let [path-new (t/append path tag)]
-            (doseq [child-tree contents]
-              (find-tag* result path-new child-tree tgt-path-new))))))))
-(defn find-tag [tree tgt-path]
-  (let [result (atom #{})]
-    (find-tag* result [] tree tgt-path)
-    @result))
-
-(def tree-1 [:a
-             [:b 1]
-             [:b 2]
-             [:b
-              [:c 1]
-              [:c 2] ] ] )
-
-(dotest
-  (is (empty? (find-tag tree-1 [:z])))
-  (is (empty? (find-tag tree-1 [:z :b])))
-  (is (empty? (find-tag tree-1 [:z :b :c])))
-  (is (empty? (find-tag tree-1 [:a :z])))
-  (is (empty? (find-tag tree-1 [:a :z :c])))
-  (is (empty? (find-tag tree-1 [:a :b :z])))
-
-  (is= (find-tag tree-1 [:a])
-    #{{:path [] :found [:a [:b 1] [:b 2] [:b [:c 1] [:c 2]]]}})
-  (is= (find-tag tree-1 [:a :b])
-    #{{:path [:a] :found [:b 1]}
-      {:path [:a] :found [:b 2]}
-      {:path [:a] :found [:b [:c 1] [:c 2]]}})
-
-  (is= (find-tag tree-1 [:a :b :c])
-    #{ {:path [:a :b] :found [:c 1]}
-       {:path [:a :b] :found [:c 2]} })
-
-  (is= (find-tag tree-1 [:* :b])
-    #{{:path [:a], :found [:b 1]}
-      {:path [:a], :found [:b 2]}
-      {:path [:a], :found [:b [:c 1] [:c 2]]}})
-  (is= (find-tag tree-1 [:a :*])
-    #{{:path [:a], :found [:b 1]}
-      {:path [:a], :found [:b 2]}
-      {:path [:a], :found [:b [:c 1] [:c 2]]} })
-  (is= (find-tag tree-1 [:a :* :c])
-    #{{:path [:a :b], :found [:c 1]}
-      {:path [:a :b], :found [:c 2]}})
-
-  (is= (find-tag tree-1 [:a :**])
-    #{{:path [:a], :found [:b 1]}
-      {:path [:a], :found [:b 2]}
-      {:path [:a], :found [:b [:c 1] [:c 2]]}
-      {:path [:a :b], :found [:c 1]}
-      {:path [:a :b], :found [:c 2]}})
-  (is= (find-tag tree-1 [:a :** :c])
-    #{{:path [:a :b], :found [:c 1]}
-      {:path [:a :b], :found [:c 2]}})
-  (is= (find-tag tree-1 [:** :c])
-    #{{:path [:a :b], :found [:c 1]}
-      {:path [:a :b], :found [:c 2]}})
-
-  (let [bad-tree [:a
-                  [:* 1]
-                  [:b 2]]]
-    (throws? (find-tag bad-tree [:a :b])))
-  (let [bad-tree [:a
-                  [:** 1]
-                  [:b 2]]]
-    (throws? (find-tag bad-tree [:a :b])))
-)
