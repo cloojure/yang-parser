@@ -879,3 +879,51 @@ delim         = %x20            ; space or semicolon
          [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]]
     )))
 
+(def tree-1 [:a
+             [:b 1]
+             [:b 2]
+             [:b
+              [:c 1]
+              [:c 2] ] ] )
+(defn find* [path tree tgt-path]
+  (nl)
+  (spy :path path)
+  (spy :tree tree)
+  (spy :tgt-path tgt-path)
+  (when (empty? tgt-path)
+    (throw (IllegalStateException. "find*: tgt-path is empty")))
+  (let [tgt-tag (first tgt-path)
+        _ (spyx tgt-tag)
+            tgt-path-rest (rest tgt-path)
+        _ (spyx tgt-path-rest)
+            [tag & contents] tree
+        _ (spyx tag)
+        _ (spyx contents)
+            path-new (t/append path tag)]
+    (spyx path-new)
+    (println :200)
+    (when (= tag tgt-tag)
+      (println :210)
+      (if (empty? tgt-path-rest)
+        (do
+          (println :220)
+          (spy :901 (t/append path tree)))
+        (do
+          (println :230 tgt-path-rest)
+          (spy :902 (forv [child-tree contents]
+                      (do
+                        (spyx child-tree)
+                        (spy :909 (find* path-new child-tree tgt-path-rest)))))))) ) )
+
+(defn find [tree tgt-path]
+  (find* [] tree tgt-path))
+
+(dotest
+  (is= (find tree-1 [:a])
+    [[:a [:b 1] [:b 2] [:b [:c 1] [:c 2]]]] )
+  (is= (find tree-1 [:a :b])
+    [ [:a [:b 1]]
+      [:a [:b 2]]
+      [:a [:b [:c 1] [:c 2]]] ] )
+
+)
