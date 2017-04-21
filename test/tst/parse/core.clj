@@ -37,17 +37,24 @@
 (def word-quoted-single (gen/fmap #(str \' % \') word))
 (def spaced-words (gen/fmap #(str/join \space %)
                     (gen/vector (gen/one-of [word word-quoted-double word-quoted-single]))))
-(spyx (gen/sample spaced-words))
-(spyx (gen/sample gen/string-alphanumeric))
-
-(spyx (gen/sample tgen/word-alpha))
-(spyx (gen/sample tgen/word-alpha+))
-(spyx (gen/sample tgen/words-alpha))
-(spyx (gen/sample tgen/words-alpha+))
 (def eol-then-words (gen/fmap strcat (gen/tuple tgen/chars-eol+ tgen/words-alpha)))
 (def words-then-eol (gen/fmap strcat (gen/tuple tgen/words-alpha+ tgen/chars-eol+)))
-(spyx (gen/sample eol-then-words))
-(spyx (gen/sample words-then-eol))
+(def starts-with-cpp-comment
+  (gen/let [words tgen/words-alphanumeric]
+    (strcat "// " words)))
+(def not-starts-with-cpp-comment
+  (gen/let [words tgen/words-alphanumeric+]
+    (strcat words " //")))
+
+;(spyx (gen/sample spaced-words))
+;(spyx (gen/sample gen/string-alphanumeric))
+;(spyx (gen/sample tgen/word-alpha))
+;(spyx (gen/sample tgen/word-alpha+))
+;(spyx (gen/sample tgen/words-alpha))
+;(spyx (gen/sample tgen/words-alpha+))
+;(spyx (gen/sample eol-then-words))
+;(spyx (gen/sample words-then-eol))
+;(spyx (gen/sample not-starts-with-cpp-comment))
 
 (dotest
   (check 99 (prop/for-all [str-val (tgen/maybe-vec eol-then-words)]
@@ -84,13 +91,6 @@
   (isnt (starts-with-eol (vec "abc \return")))
   )
 
-(def starts-with-cpp-comment
-  (gen/let [words tgen/words-alphanumeric]
-    (strcat "// " words)))
-(def not-starts-with-cpp-comment
-  (gen/let [words tgen/words-alphanumeric+]
-    (strcat words " //")))
-(spyx (gen/sample not-starts-with-cpp-comment))
 (dotest
   (check 99 (prop/for-all [str-val (tgen/maybe-vec starts-with-cpp-comment)]
               (found-comment-cpp-start str-val)))

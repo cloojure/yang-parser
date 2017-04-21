@@ -12,6 +12,7 @@
     ))
 (t/refer-tupelo)
 
+(defn no-label [arg] arg) ; aka identity
 
 ; An identifier MUST NOT start with (('X'|'x') ('M'|'m') ('L'|'l')) (i.e. 'xml' in any case)
 (defn fn-identifier [& args]
@@ -21,10 +22,9 @@
       (throw (IllegalArgumentException. (format "Identifier cannot begin with 'xml': %s " result))))
     [:identifier result] ))
 
-
 (defn fn-string [& args] [:string (tm/collapse-whitespace (str/join args))] )
 
-(defn no-label [arg] arg) ; aka identity
+(defn fn-rpc [& args] (prepend :rpc args))
 
 (defn yang-transform
   [parse-tree]
@@ -46,8 +46,9 @@
      :identity       (fn fn-identity [& args] (prepend :identity args))
      :typedef        (fn fn-typedef [& args] (prepend :typedef args))
      :container      (fn fn-container [& args] (prepend :container args))
-     :rpc            (fn fn-rpc [& args] (prepend :rpc args))
-     :input          (fn fn-input [& args] (prepend :input args))
+     :rpc            fn-rpc
+     :rpc-input      (fn fn-input [& args] (prepend :input args))
+     :rpc-output     (fn fn-input [& args] (prepend :output args))
 
 
      :base           (fn fn-base [arg] [:base arg])

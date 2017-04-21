@@ -8,21 +8,50 @@
     [clojure.java.io :as io]
     [clojure.set :as set]
     [clojure.string :as str]
-    [clojure.walk :as walk]
     [clojure.test.check :as tc]
     [clojure.test.check.clojure-test :as tst]
     [clojure.test.check.generators :as gen]
     [clojure.test.check.properties :as prop]
+    [clojure.walk :as walk]
     [instaparse.core :as insta]
     [schema.core :as s]
     [tupelo.core :as t]
     [tupelo.gen :as tgen]
     [tupelo.misc :as tm]
+    [tupelo.parse :as tp]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
-    ))
+  ))
 (t/refer-tupelo)
 (t/print-versions)
+
+;*****************************************************************************
+;*****************************************************************************
+(dotest
+  (let [abnf-src            "
+int           = digits          ; ex '123'
+digits        = 1*digit         ; 1 or more digits
+digit         = %x30-39         ; 0-9
+delim         = %x20            ; space or semicolon
+"
+        tx-map              {:int    (fn fn-int [arg] [:int (Integer/parseInt arg)])
+                             :digit  no-label
+                             :digits str
+                             }
+
+        parser              (insta/parser abnf-src :input-format :abnf)
+        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
+        parse-and-transform (fn [text]
+                              (let [result (insta/transform tx-map
+                                             (parser text))]
+                                (if (instaparse-failure? result)
+                                  (throw (IllegalArgumentException. (str result)))
+                                  result)))
+        ]
+    (is= [:int 123] (parse-and-transform "123"))
+    (throws? (parse-and-transform "123xyz"))
+    (throws? (parse-and-transform " 123  "))
+    ))
 
 
 (def abnf-base "
@@ -343,7 +372,7 @@ module toaster {
        [:rpc
         [:identifier "make-toast"]
         [:description [:string "Make some toast."]]
-        [:rpc-input
+        [:input
          [:leaf
           [:identifier "toasterDoneness"]
           [:type
@@ -822,34 +851,6 @@ vis-char                = %x21-7E ; visible (printing) characters
 
 ;*****************************************************************************
 ;*****************************************************************************
-(dotest
-  (let [abnf-src            "
-int           = digits          ; ex '123'
-digits        = 1*digit         ; 1 or more digits
-digit         = %x30-39         ; 0-9
-delim         = %x20            ; space or semicolon
-"
-        tx-map              {:int    (fn fn-int [arg] [:int (Integer/parseInt arg)])
-                             :digit  no-label
-                             :digits str
-                             }
-
-        parser              (insta/parser abnf-src :input-format :abnf)
-        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
-        parse-and-transform (fn [text]
-                              (let [result (insta/transform tx-map
-                                             (parser text))]
-                                (if (instaparse-failure? result)
-                                  (throw (IllegalArgumentException. (str result)))
-                                  result)))
-        ]
-    (is= [:int 123] (parse-and-transform "123"))
-    (throws? (parse-and-transform "123xyz"))
-    (throws? (parse-and-transform " 123  "))
-    ))
-
-;*****************************************************************************
-;*****************************************************************************
 
 (dotest
   (let [abnf-src  (io/resource "yang3.abnf")
@@ -857,8 +858,7 @@ delim         = %x20            ; space or semicolon
         yang-src  (slurp (io/resource "calc.yang"))
 
         yang-tree (yp yang-src)
-        yang-ast  (yang-transform yang-tree)
-       ]
+        yang-ast  (yang-transform yang-tree) ]
     (is= yang-ast
       [:module
        [:identifier "calculator"]
@@ -871,35 +871,105 @@ delim         = %x20            ; space or semicolon
        [:rpc
         [:identifier "add"]
         [:description [:string "Add 2 numbers"]]
-        [:rpc-input
+        [:input
          [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
          [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
-        [:rpc-output
-         [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]]
-    )
-    (is= (find-tag yang-ast [:module :rpc :identifier])
+        [:output
+         [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]] )
+
+    (is= (find-tree yang-ast [:module :rpc :identifier])
       #{ {:parent-path [:module :rpc], :subtree [:identifier "add"]} } )
-    (is= (find-tag yang-ast [:module :revision])
+    (is= (find-tree yang-ast [:module :revision])
       #{{:parent-path [:module]
          :subtree     [:revision
                        [:iso-date "2017-04-01"]
                        [:description [:string "Prototype 1.0"]]]}})
-    (is= (find-tag yang-ast [:module :rpc :rpc-input])
+    (is= (find-tree yang-ast [:module :rpc :input])
       #{ {:parent-path [:module :rpc],
-          :subtree     [:rpc-input
+          :subtree     [:input
                         [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
                         [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]}})
-    (is= (find-tag yang-ast [:module :rpc :rpc-output])
+    (is= (find-tree yang-ast [:module :rpc :output])
       #{{:parent-path [:module :rpc],
-         :subtree     [:rpc-output
+         :subtree     [:output
                        [:leaf
                         [:identifier "result"]
                         [:type [:identifier "decimal64"]]]]}} )
-    (is= (find-tag yang-ast [:module :rpc :rpc-input :leaf])
-      #{{:parent-path [:module :rpc :rpc-input],
+    (is= (find-tree yang-ast [:module :rpc :input :leaf])
+      #{{:parent-path [:module :rpc :input],
          :subtree [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]}
-        {:parent-path [:module :rpc :rpc-input],
+        {:parent-path [:module :rpc :input],
          :subtree [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]} } )
   ))
+
+(def rpc-call
+  [:rpc {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+   [:add {:xmlns "my-own-ns/v1"}
+    [:x 2]
+    [:y 3]]])
+(def rpc-reply
+  [:rpc-reply {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+   [:result 5]] )
+
+(def rpc-call-enlive
+  {:tag   :rpc,
+   :attrs {:message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+   :content
+      [{:tag   :add,
+        :attrs {:xmlns "my-own-ns/v1"},
+        :content
+           [{:tag :x, :attrs {}, :content [2]}
+            {:tag :y, :attrs {}, :content [3]}]}]})
+
+(def rpc-reply-enlive
+  {:tag :rpc-reply, :attrs {:message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+   :content
+        [{:tag :result, :attrs {}, :content [5]}]})
+
+
+(spyx (get-in rpc-call [1 1]))
+
+(def rpc [:rpc
+          [:identifier "add"]
+          [:description [:string "Add 2 numbers"]]
+          [:input
+           [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+           [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
+          [:output
+           [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]])
+
+;                               ---------type-------------------   -------pattern------- (or reverse)
+; #todo need function (conforms [:type [:identifier "decimal64"]] [:type [:identifier :*]]
+; #todo need function (conforms [:type [:identifier "decimal64"]] [:type [:identifier <string>]]
+
+(spyx (str "hello there"))
+(def parser-map {"decimal64"  tp/parse-double
+                 "int64"      tp/parse-long
+                 "string"     str })
+(defn type->parser
+  [type]
+ ;(assert (conforms type [type [:identifier]]))
+  (let [tag-trees (grab :subtree (find-tree type [:type :identifier]))
+        _ (assert (= 1 (count tag-trees)))
+        parser    (parser-map (first (grab :subtree (first tag-trees))))
+       ]
+  )
+)
+
+(def leaf1 [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]] )
+(def val1  [:type [:identifier "decimal64"]] )
+
+[:rpc
+ :input
+ [:x 2]
+ [:y 3]
+ ]
+
+(defn conform-value [schema value]
+  )
+
+(def rpc-in [:input
+             [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+             [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]])
 
 
