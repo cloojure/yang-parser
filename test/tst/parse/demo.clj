@@ -956,25 +956,49 @@ vis-char                = %x21-7E ; visible (printing) characters
 (def parser-map {"decimal64"  tp/parse-double
                  "int64"      tp/parse-long
                  "string"     str })
+
+(defn get-tree      ; #todo need test & README
+  [tree tgt-path]
+  (-> (find-tree tree tgt-path)
+    only
+    :subtree ))
+(defn get-leaf      ; #todo need test & README
+  [tree tgt-path]
+  (-> (get-tree tree tgt-path)
+    :content
+    only))
+
 (defn leaf-schema->parser
   [schema]
   ; #todo catch & rethrow any exception?
-  (let [type (-> (find-tree schema [:leaf :type :identifier])
-               only
-               :subtree
-               :content
-               only) ; eg "decimal64"
-        parser-fn (grab type parser-map) ]
-    parser-fn ))
+  (try
+    (let [type      (get-leaf schema [:leaf :type :identifier]) ; eg "decimal64"
+          parser-fn (grab type parser-map)]
+      parser-fn)
+    (catch Exception e
+      (throw (RuntimeException. (str "leaf-schema->parser: failed for schema=" schema \newline
+                                  "  caused by=" (.getMessage e)))))))
 
 (defn validate-parse-leaf
   "Validate & parse a leaf msg value given a leaf schema."
   [schema leaf]
   (assert (= (grab :tag schema) :leaf))
-  (let [arser-fn     (leaf-schema->parser schema)
-        parsed-value (only (grab :content leaf)) ] ; #todo catch & rethrow any exception?
-    parsed-value))
+  (try
+    (let [leaf-name-schema (keyword (get-leaf schema [:leaf :identifier]))
+          leaf-name-leaf   (grab :tag leaf)
+          xx               (assert (= leaf-name-schema leaf-name-leaf))
+          ; #todo does not yet verify any attrs;  what rules?
+          parser-fn        (leaf-schema->parser schema)
+          parsed-value     (parser-fn (only (grab :content leaf)))] ; #todo catch & rethrow any exception?
+      parsed-value)
+    (catch Exception e
+      (throw (RuntimeException. (str "validate-parse-leaf: failed for schema=" schema \newline
+                                  "  leaf=" leaf \newline
+                                  "  caused by=" (.getMessage e)))))))
 
 (def leaf-schema-1 (hiccup->enlive [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]))
-(def leaf-val-1 {:tag :x, :attrs {}, :content [2]})
+(def leaf-schema-2 (hiccup->enlive [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]))
+(def leaf-val-1 {:tag :x, :attrs {}, :content ["2"]})
+(def leaf-val-2 {:tag :y, :attrs {}, :content ["3"]})
 (spyx (validate-parse-leaf leaf-schema-1 leaf-val-1))
+(spyx (validate-parse-leaf leaf-schema-2 leaf-val-2))
