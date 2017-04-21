@@ -877,57 +877,67 @@ vis-char                = %x21-7E ; visible (printing) characters
         [:output
          [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]] )
 
-    (is= (find-tree yang-ast [:module :rpc :identifier])
+    (is= (find-tree-hiccup yang-ast [:module :rpc :identifier])
       #{ {:parent-path [:module :rpc], :subtree [:identifier "add"]} } )
-    (is= (find-tree yang-ast [:module :revision])
+    (is= (find-tree-hiccup yang-ast [:module :revision])
       #{{:parent-path [:module]
          :subtree     [:revision
                        [:iso-date "2017-04-01"]
                        [:description [:string "Prototype 1.0"]]]}})
-    (is= (find-tree yang-ast [:module :rpc :input])
+    (is= (find-tree-hiccup yang-ast [:module :rpc :input])
       #{ {:parent-path [:module :rpc],
           :subtree     [:input
                         [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
                         [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]}})
-    (is= (find-tree yang-ast [:module :rpc :output])
+    (is= (find-tree-hiccup yang-ast [:module :rpc :output])
       #{{:parent-path [:module :rpc],
          :subtree     [:output
                        [:leaf
                         [:identifier "result"]
                         [:type [:identifier "decimal64"]]]]}} )
-    (is= (find-tree yang-ast [:module :rpc :input :leaf])
+    (is= (find-tree-hiccup yang-ast [:module :rpc :input :leaf])
       #{{:parent-path [:module :rpc :input],
          :subtree [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]}
         {:parent-path [:module :rpc :input],
          :subtree [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]} } )
   ))
 
-(def rpc-call
-  [:rpc {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
-   [:add {:xmlns "my-own-ns/v1"}
-    [:x 2]
-    [:y 3]]])
-(def rpc-reply
-  [:rpc-reply {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
-   [:result 5]] )
+(dotest
+  (let [rpc-call         [:rpc {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+                          [:add {:xmlns "my-own-ns/v1"}
+                           [:x 2]
+                           [:y 3]]]
+        rpc-reply        [:rpc-reply {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+                          [:result 5]]
+        rpc-call-enlive  (hiccup->enlive rpc-call)
+        rpc-reply-enlive (hiccup->enlive rpc-reply)
+        add-call         (grab :subtree (only (find-tree rpc-call-enlive [:rpc :add])))
+        add-params       (grab :content add-call) ]
+    (is= rpc-call-enlive
+      {:tag   :rpc,
+       :attrs {:message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+       :content
+              [{:tag   :add,
+                :attrs {:xmlns "my-own-ns/v1"},
+                :content
+                       [{:tag :x, :attrs {}, :content [2]}
+                        {:tag :y, :attrs {}, :content [3]}]}]})
 
-(def rpc-call-enlive
-  {:tag   :rpc,
-   :attrs {:message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
-   :content
-      [{:tag   :add,
-        :attrs {:xmlns "my-own-ns/v1"},
-        :content
-           [{:tag :x, :attrs {}, :content [2]}
-            {:tag :y, :attrs {}, :content [3]}]}]})
-
-(def rpc-reply-enlive
-  {:tag :rpc-reply, :attrs {:message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
-   :content
-        [{:tag :result, :attrs {}, :content [5]}]})
+    (is= rpc-reply-enlive
+      {:tag :rpc-reply, :attrs {:message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+       :content
+            [{:tag :result, :attrs {}, :content [5]}]})
 
 
-(spyx (get-in rpc-call [1 1]))
+
+    (is= add-call
+      {:tag     :add,
+       :attrs   {:xmlns "my-own-ns/v1"},
+       :content [{:tag :x, :attrs {}, :content [2]}
+                 {:tag :y, :attrs {}, :content [3]}]})
+    (is= add-params [{:tag :x, :attrs {}, :content [2]}
+                     {:tag :y, :attrs {}, :content [3]}])
+  ))
 
 (def rpc [:rpc
           [:identifier "add"]
@@ -937,39 +947,34 @@ vis-char                = %x21-7E ; visible (printing) characters
            [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
           [:output
            [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]])
+(def rpc-enline (hiccup->enlive rpc))
 
 ;                               ---------type-------------------   -------pattern------- (or reverse)
 ; #todo need function (conforms [:type [:identifier "decimal64"]] [:type [:identifier :*]]
 ; #todo need function (conforms [:type [:identifier "decimal64"]] [:type [:identifier <string>]]
 
-(spyx (str "hello there"))
 (def parser-map {"decimal64"  tp/parse-double
                  "int64"      tp/parse-long
                  "string"     str })
-(defn type->parser
-  [type]
- ;(assert (conforms type [type [:identifier]]))
-  (let [tag-trees (grab :subtree (find-tree type [:type :identifier]))
-        _ (assert (= 1 (count tag-trees)))
-        parser    (parser-map (first (grab :subtree (first tag-trees))))
-       ]
-  )
-)
+(defn leaf-schema->parser
+  [schema]
+  ; #todo catch & rethrow any exception?
+  (let [type (-> (find-tree schema [:leaf :type :identifier])
+               only
+               :subtree
+               :content
+               only) ; eg "decimal64"
+        parser-fn (grab type parser-map) ]
+    parser-fn ))
 
-(def leaf1 [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]] )
-(def val1  [:type [:identifier "decimal64"]] )
+(defn validate-parse-leaf
+  "Validate & parse a leaf msg value given a leaf schema."
+  [schema leaf]
+  (assert (= (grab :tag schema) :leaf))
+  (let [arser-fn     (leaf-schema->parser schema)
+        parsed-value (only (grab :content leaf)) ] ; #todo catch & rethrow any exception?
+    parsed-value))
 
-[:rpc
- :input
- [:x 2]
- [:y 3]
- ]
-
-(defn conform-value [schema value]
-  )
-
-(def rpc-in [:input
-             [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
-             [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]])
-
-
+(def leaf-schema-1 (hiccup->enlive [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]))
+(def leaf-val-1 {:tag :x, :attrs {}, :content [2]})
+(spyx (validate-parse-leaf leaf-schema-1 leaf-val-1))
