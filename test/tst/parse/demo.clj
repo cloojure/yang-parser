@@ -939,16 +939,6 @@ vis-char                = %x21-7E ; visible (printing) characters
                      {:tag :y, :attrs {}, :content [3]}])
   ))
 
-(def rpc [:rpc
-          [:identifier "add"]
-          [:description [:string "Add 2 numbers"]]
-          [:input
-           [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
-           [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
-          [:output
-           [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]])
-(def rpc-enline (hiccup->enlive rpc))
-
 ;                               ---------type-------------------   -------pattern------- (or reverse)
 ; #todo need function (conforms [:type [:identifier "decimal64"]] [:type [:identifier :*]]
 ; #todo need function (conforms [:type [:identifier "decimal64"]] [:type [:identifier <string>]]
@@ -957,20 +947,8 @@ vis-char                = %x21-7E ; visible (printing) characters
                  "int64"      tp/parse-long
                  "string"     str })
 
-(defn get-tree      ; #todo need test & README
-  [tree tgt-path]
-  (-> (find-tree tree tgt-path)
-    only
-    :subtree ))
-(defn get-leaf      ; #todo need test & README
-  [tree tgt-path]
-  (-> (get-tree tree tgt-path)
-    :content
-    only))
-
 (defn leaf-schema->parser
   [schema]
-  ; #todo catch & rethrow any exception?
   (try
     (let [type      (get-leaf schema [:leaf :type :identifier]) ; eg "decimal64"
           parser-fn (grab type parser-map)]
@@ -980,25 +958,88 @@ vis-char                = %x21-7E ; visible (printing) characters
                                   "  caused by=" (.getMessage e)))))))
 
 (defn validate-parse-leaf
-  "Validate & parse a leaf msg value given a leaf schema."
-  [schema leaf]
-  (assert (= (grab :tag schema) :leaf))
+  "Validate & parse a leaf msg value given a leaf schema (Enlive-format)."
+  [schema val]
   (try
+    (assert (= (grab :tag schema) :leaf))
     (let [leaf-name-schema (keyword (get-leaf schema [:leaf :identifier]))
-          leaf-name-leaf   (grab :tag leaf)
-          xx               (assert (= leaf-name-schema leaf-name-leaf))
+          leaf-name-val    (grab :tag val)
+          xx              (assert (= leaf-name-schema leaf-name-val))
           ; #todo does not yet verify any attrs;  what rules?
-          parser-fn        (leaf-schema->parser schema)
-          parsed-value     (parser-fn (only (grab :content leaf)))] ; #todo catch & rethrow any exception?
+          parser-fn       (leaf-schema->parser schema)
+          parsed-value    (parser-fn (only (grab :content val)))]
       parsed-value)
     (catch Exception e
+      (throw (RuntimeException. (str "validate-parse-val: failed for schema=" schema \newline
+                                  "  val=" val \newline
+                                  "  caused by=" (.getMessage e)))))))
+
+(def rpc-fn-map
+  {
+   :add  (fn fn-add [& args] (apply + args))
+   :mult (fn fn-mult [& args] (apply * args))
+   :pow  (fn fn-power [x y] (Math/pow x y)) })
+
+(defn leaf-schema->parser
+  [schema]
+  (try
+    (let [type      (get-leaf schema [:leaf :type :identifier]) ; eg "decimal64"
+          parser-fn (grab type parser-map)]
+      parser-fn)
+    (catch Exception e
+      (throw (RuntimeException. (str "leaf-schema->parser: failed for schema=" schema \newline
+                                  "  caused by=" (.getMessage e)))))))
+(defn validate-parse-rpc
+  "Validate & parse a rpc msg valueue given an rpc schema (Enlive-format)."
+  [schema value]
+  (try
+   ;(spyx-pretty schema)
+   ;(spyx-pretty value)
+    (assert (= :rpc (grab :tag schema) (grab :tag value)))
+    (let [rpc-tag-schema  (keyword (get-leaf schema [:rpc :identifier]))
+          rpc-tag-value   (grab :tag (get-leaf value [:rpc]))
+          xx              (assert (= rpc-tag-schema rpc-tag-value))
+          ; #todo does not yet verify any attrs ;  what rules?
+          fn-args-schema  (grab :content (get-tree schema [:rpc :input]))
+          fn-args-value   (grab :content (get-tree value [:rpc rpc-tag-value]))
+          parsed-args     (mapv validate-parse-leaf fn-args-schema fn-args-value)
+          rpc-fn          (grab rpc-tag-value rpc-fn-map)
+          rpc-fn-result   (apply rpc-fn parsed-args)
+          rpc-value-attrs (grab :attrs value)
+          rpc-result      {:tag     :rpc-reply
+                           :attrs   rpc-value-attrs
+                           :content [{:tag     :data
+                                      :attrs   {}
+                                      :content [rpc-fn-result]}]} ]
+      rpc-result)
+    (catch Exception e
       (throw (RuntimeException. (str "validate-parse-leaf: failed for schema=" schema \newline
-                                  "  leaf=" leaf \newline
+                                  "  value=" value \newline
                                   "  caused by=" (.getMessage e)))))))
 
 (def leaf-schema-1 (hiccup->enlive [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]))
 (def leaf-schema-2 (hiccup->enlive [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]))
 (def leaf-val-1 {:tag :x, :attrs {}, :content ["2"]})
 (def leaf-val-2 {:tag :y, :attrs {}, :content ["3"]})
-(spyx (validate-parse-leaf leaf-schema-1 leaf-val-1))
-(spyx (validate-parse-leaf leaf-schema-2 leaf-val-2))
+(def rpc-schema
+  (hiccup->enlive [:rpc
+                   [:identifier "add"]
+                   [:description [:string "Add 2 numbers"]]
+                   [:input
+                    [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+                    [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
+                   [:output
+                    [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]))
+(def rpc-input-val
+  (hiccup->enlive [:rpc {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+                   [:add {:xmlns "my-own-ns/v1"}
+                    [:x "2"]
+                    [:y "3"]]]))
+(dotest
+  (is= 2.0 (validate-parse-leaf leaf-schema-1 leaf-val-1))
+  (is= 3.0 (validate-parse-leaf leaf-schema-2 leaf-val-2))
+  (is= (enlive->hiccup (validate-parse-rpc rpc-schema rpc-input-val))
+    [:rpc-reply
+     {:message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+     [:data 5.0]])
+  )
