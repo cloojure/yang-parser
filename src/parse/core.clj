@@ -20,6 +20,10 @@
                  "int64"      tp/parse-long
                  "string"     str })
 
+(def rpc-fn-map {:add  (fn fn-add [& args] (apply + args))
+                 :mult (fn fn-mult [& args] (apply * args))
+                 :pow  (fn fn-power [x y] (Math/pow x y))})
+
 (defn leaf-schema->parser
   [schema]
   (try
@@ -47,17 +51,10 @@
                                   "  leaf-val=" leaf-val \newline
                                   "  caused by=" (.getMessage e)))))))
 
-(def rpc-fn-map
-  {:add  (fn fn-add [& args] (apply + args))
-   :mult (fn fn-mult [& args] (apply * args))
-   :pow  (fn fn-power [x y] (Math/pow x y))})
-
 (defn validate-parse-rpc
   "Validate & parse a rpc msg valueue given an rpc rpc-schema (Enlive-format)."
   [rpc-schema rpc-msg]
   (try
-    ; (spyx-pretty rpc-schema)
-    ; (spyx-pretty rpc-msg)
     (assert (= :rpc (grab :tag rpc-schema) (grab :tag rpc-msg)))
     (let [rpc-attrs       (grab :attrs rpc-msg)
           rpc-tag-schema  (keyword (get-leaf rpc-schema [:rpc :identifier]))
