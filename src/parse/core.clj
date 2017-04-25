@@ -8,11 +8,81 @@
     [schema.core :as s]
     [tupelo.core :as t]
     [tupelo.misc :as tm]
+    [tupelo.parse :as tp]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
   ))
 (t/refer-tupelo)
 
+(defn instaparse-failure? [arg] (instance? instaparse.gll.Failure arg))
+
+(def parser-map {"decimal64"  tp/parse-double
+                 "int64"      tp/parse-long
+                 "string"     str })
+
+(defn leaf-schema->parser
+  [schema]
+  (try
+    (let [type      (get-leaf schema [:leaf :type :identifier]) ; eg "decimal64"
+          parser-fn (grab type parser-map)]
+      parser-fn)
+    (catch Exception e
+      (throw (RuntimeException. (str "leaf-schema->parser: failed for schema=" schema \newline
+                                  "  caused by=" (.getMessage e)))))))
+
+(defn validate-parse-leaf
+  "Validate & parse a leaf msg value given a leaf leaf-schema (Enlive-format)."
+  [leaf-schema leaf-val]
+  (try
+    (assert (= (grab :tag leaf-schema) :leaf))
+    (let [leaf-name-schema (keyword (get-leaf leaf-schema [:leaf :identifier]))
+          leaf-name-val    (grab :tag leaf-val)
+          xx              (assert (= leaf-name-schema leaf-name-val))
+          ; #todo does not yet verify any attrs;  what rules?
+          parser-fn       (leaf-schema->parser leaf-schema)
+          parsed-value    (parser-fn (only (grab :content leaf-val)))]
+      parsed-value)
+    (catch Exception e
+      (throw (RuntimeException. (str "validate-parse-leaf-val: failed for leaf-schema=" leaf-schema \newline
+                                  "  leaf-val=" leaf-val \newline
+                                  "  caused by=" (.getMessage e)))))))
+
+(def rpc-fn-map
+  {:add  (fn fn-add [& args] (apply + args))
+   :mult (fn fn-mult [& args] (apply * args))
+   :pow  (fn fn-power [x y] (Math/pow x y))})
+
+(defn validate-parse-rpc
+  "Validate & parse a rpc msg valueue given an rpc rpc-schema (Enlive-format)."
+  [rpc-schema rpc-msg]
+  (try
+    ; (spyx-pretty rpc-schema)
+    ; (spyx-pretty rpc-msg)
+    (assert (= :rpc (grab :tag rpc-schema) (grab :tag rpc-msg)))
+    (let [rpc-attrs       (grab :attrs rpc-msg)
+          rpc-tag-schema  (keyword (get-leaf rpc-schema [:rpc :identifier]))
+          rpc-value       (get-leaf rpc-msg [:rpc])
+          rpc-value-tag   (grab :tag rpc-value)
+          rpc-value-attrs (grab :attrs rpc-value)
+          xx              (assert (= rpc-tag-schema rpc-value-tag))
+          ; #todo does not yet verify any attrs ;  what rules?
+          fn-args-schema  (grab :content (get-tree rpc-schema [:rpc :input]))
+          fn-args-value   (grab :content (get-tree rpc-msg [:rpc rpc-value-tag]))
+          parsed-args     (mapv validate-parse-leaf fn-args-schema fn-args-value)
+          rpc-fn          (grab rpc-value-tag rpc-fn-map)
+          rpc-fn-result   (apply rpc-fn parsed-args)
+          rpc-result      {:tag     :rpc-reply
+                           :attrs   rpc-attrs
+                           :content [{:tag     :data
+                                      :attrs   {}
+                                      :content [rpc-fn-result]}]}]
+      rpc-result)
+    (catch Exception e
+      (throw (RuntimeException. (str "validate-parse-leaf: failed for rpc-schema=" rpc-schema \newline
+                                  "  rpc-msg=" rpc-msg \newline
+                                  "  caused by=" (.getMessage e)))))))
+
+;---------------------------------------------------------------------------------------------------
 (s/def chars-visible-no-dquote :- tsk/Set
   "All visible (printing) ASCII chars except double-quote."
   (set/difference ts/chars-visible #{\"}))
