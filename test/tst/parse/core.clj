@@ -19,7 +19,6 @@
     [clojure.set :as set]
     ))
 (t/refer-tupelo)
-(t/print-versions)
 
 (dotest
   (is= ts/chars-visible (set/union chars-visible-no-dquote #{\"}))
