@@ -22,10 +22,12 @@
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
     )
-  (:import [java.util.concurrent TimeoutException]))
+  (:import [java.util.concurrent TimeoutException]
+           [java.util List]))
 (t/refer-tupelo)
 
-;*****************************************************************************
+(defn instaparse-failure? [arg] (instance? instaparse.gll.Failure arg))
+
 ;*****************************************************************************
 (dotest
   (let [abnf-src            "
@@ -40,7 +42,6 @@ delim         = %x20            ; space or semicolon
                              }
 
         parser              (insta/parser abnf-src :input-format :abnf)
-        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
         parse-and-transform (fn [text]
                               (let [result (insta/transform tx-map
                                              (parser text))]
@@ -53,7 +54,7 @@ delim         = %x20            ; space or semicolon
     (throws? (parse-and-transform " 123  "))
     ))
 
-
+;*****************************************************************************
 (def abnf-base "
 <text-char>                     = vis-char / char-whitespace
 <text-char-no-dquote>           = vis-char-no-dquote / char-whitespace
@@ -450,7 +451,6 @@ int-px        = digits <'px'>   ; ex '123px'
                              }
 
         parser              (insta/parser abnf-src :input-format :abnf)
-        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
         parse-and-transform (fn [text]
                               (let [result (insta/transform tx-map
                                              (parser text))]
@@ -477,7 +477,6 @@ ws            = 1*' '           ; space: 1 or more
 "
         tx-map              {}
         parser              (insta/parser abnf-src :input-format :abnf)
-        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
         parse-and-transform (fn [src-text]
                               (let [parse-tree (parser (space-pad src-text))
                                     final-ast  (insta/transform tx-map parse-tree)]
@@ -512,7 +511,6 @@ ws            = 1*' '           ; space: 1 or more
 "
         tx-map              {}
         parser              (insta/parser abnf-src :input-format :abnf)
-        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
         parse-and-transform (fn [src-text]
                               (let [parse-tree (parser (space-pad src-text))
                                     ast-tx     (insta/transform tx-map parse-tree)
@@ -542,7 +540,6 @@ ws            = 1*' '           ; space: 1 or more
                                        [:digits (join-children-no-labels args)])
                              }
         parser              (insta/parser abnf-src :input-format :abnf)
-        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser (space-pad src-text))
                                     ast-prune (prune-whitespace-nodes ast-parse)
@@ -590,7 +587,6 @@ ws            = 1*' '           ; space: 1 or more
                                           [:integer result]))
                              }
         parser              (insta/parser abnf-src :input-format :abnf)
-        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser (space-pad src-text))
                                     ast-prune (prune-whitespace-nodes ast-parse)
@@ -639,7 +635,6 @@ ws                      = 1*' '           ; space: 1 or more
                                              [:identifier v3]))
                              }
         parser              (insta/parser abnf-src :input-format :abnf)
-        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser (space-pad src-text))
                                     ast-prune (prune-whitespace-nodes ast-parse)
@@ -687,7 +682,6 @@ ws                      = 1*' '           ; space: 1 or more
                                              [:identifier v3]))
                              }
         parser              (insta/parser abnf-src :input-format :abnf)
-        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser (space-pad src-text))
                                     ast-tx    (insta/transform tx-map ast-parse)
@@ -758,7 +752,6 @@ vis-char-no-dquote      = %x21    / %x23-7E ; all visible chars without quote-do
                                              [:string result]))
                              }
         parser              (insta/parser abnf-src :input-format :abnf)
-        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser (space-pad src-text))
                                     ast-tx    (insta/transform tx-map ast-parse)
@@ -818,7 +811,6 @@ vis-char                = %x21-7E ; visible (printing) characters
                              :string     (fn fn-string [& args] [:string (str/join args)])
                             }
         parser              (insta/parser abnf-src :input-format :abnf)
-        instaparse-failure? (fn [arg] (= (class arg) instaparse.gll.Failure))
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser (space-pad src-text))
                                     ast-tx    (insta/transform tx-map ast-parse)
@@ -1081,7 +1073,9 @@ vis-char                = %x21-7E ; visible (printing) characters
 (def rpc-msg-id (atom 100))
 (def rpc-deliver-map (atom {}))
 
-(defn rpc-call-2 [msg]
+
+(s/defn rpc-call-2 :- s/Any
+  [msg :- tsk/KeyMap]
   (let [rpc-msg-id     (swap! rpc-msg-id inc)
         msg            (glue msg {:attrs {:message-id rpc-msg-id
                                           :xmlns      "urn:ietf:params:xml:ns:netconf:base:1.0"}})
@@ -1089,15 +1083,19 @@ vis-char                = %x21-7E ; visible (printing) characters
     (swap! rpc-deliver-map glue {rpc-msg-id result-promise}) ;  #todo temp!
 
     (future ; Simulate calling out to http server in another thread
-      (Thread/sleep *rpc-delay-simulated-ms*)
-      (let [rpc-result (validate-parse-rpc rpc-schema msg)
-            rpc-reply-msg-id (fetch-in rpc-result [:attrs :message-id])
-            ; #todo how to deliver exception to caller?
-            fpc-reply-promise (grab rpc-reply-msg-id @rpc-deliver-map)
-      ]
-        (deliver fpc-reply-promise rpc-result)))
+      (try
+        (Thread/sleep *rpc-delay-simulated-ms*) ; simulated network delay
+        (let [rpc-result        (validate-parse-rpc rpc-schema msg)
+              rpc-reply-msg-id  (fetch-in rpc-result [:attrs :message-id])
+              fpc-reply-promise (grab rpc-reply-msg-id @rpc-deliver-map)]
+          (deliver fpc-reply-promise rpc-result))
+       (catch Exception e
+         (deliver result-promise ; deliver any exception to caller
+           (RuntimeException. (str "rpc-call-2: failed  msg=" msg \newline
+                                "  caused by=" (.getMessage e)))))))
 
-    result-promise)) ; deliver promise to caller immediately
+    result-promise ; return promise to caller immediately
+  ))
 
 (defn add-2 [x y]
   (let [result-promise (rpc-call-2
@@ -1107,7 +1105,8 @@ vis-char                = %x21-7E ; visible (printing) characters
                              [:x (str x)]
                              [:y (str y)]]]))
         rpc-result     (deref result-promise *rpc-timeout-ms* :timeout-failure)
-        xx             (spyx-pretty rpc-result)
+        _ (when (spyx (instance? Throwable rpc-result))
+             (throw (RuntimeException. (.getMessage rpc-result))))
         result         (get-leaf rpc-result [:rpc-reply :data])]
     (assert (= rpc-result)
       [:rpc-reply {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
