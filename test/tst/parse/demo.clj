@@ -1081,30 +1081,31 @@ vis-char                = %x21-7E ; visible (printing) characters
 (def rpc-msg-id (atom 100))
 (def rpc-deliver-map (atom {}))
 
-(defn rpc-call-2
-  [rpc-msg-id msg]
-  (let [result-promise (promise)
-        ; msg (update-in msg : )
-        ]
+(defn rpc-call-2 [msg]
+  (let [rpc-msg-id     (swap! rpc-msg-id inc)
+        msg            (glue msg {:attrs {:message-id rpc-msg-id
+                                          :xmlns      "urn:ietf:params:xml:ns:netconf:base:1.0"}})
+        result-promise (promise) ]
     (swap! rpc-deliver-map glue {rpc-msg-id result-promise}) ;  #todo temp!
-    ; (spyx @rpc-deliver-map)
-    (future
+
+    (future ; Simulate calling out to http server
       (Thread/sleep *rpc-delay-simulated-ms*)
       (let [rpc-result (validate-parse-rpc rpc-schema msg)
-                ; msg-id
-                ]
-        (deliver result-promise rpc-result)))
-    result-promise))
+            rpc-reply-msg-id (fetch-in rpc-result [:attrs :message-id])
+            ; #todo how to deliver exception to caller?
+            fpc-reply-promise (grab rpc-reply-msg-id @rpc-deliver-map)
+      ]
+        (deliver fpc-reply-promise rpc-result)))
+
+    result-promise)) ; deliver promise to caller immediately
 
 (defn add-2 [x y]
   ; #todo temp!
   (reset! rpc-msg-id 100)
-  (let [rpc-msg-id     (swap! rpc-msg-id inc) ;  #todo temp!
+  (let [
         result-promise (rpc-call-2
-                         rpc-msg-id
                          (hiccup->enlive
-                           [:rpc {:message-id rpc-msg-id ;  #todo temp!
-                                  :xmlns      "urn:ietf:params:xml:ns:netconf:base:1.0"}
+                           [:rpc
                             [:add {:xmlns "my-own-ns/v1"}
                              [:x (str x)]
                              [:y (str y)]]]))
@@ -1115,8 +1116,10 @@ vis-char                = %x21-7E ; visible (printing) characters
 
 (dotest
   (nl)
-  (is= (spyx-pretty (enlive->hiccup (add-2 2 3)))
-    [:rpc-reply {:message-id 101  :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0" }
-     [:data 5.0]] )
+  (binding [*rpc-timeout-ms*         300
+            *rpc-delay-simulated-ms* 10]
+    (is= (spyx-pretty (enlive->hiccup (add-2 2 3)))
+      [:rpc-reply {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+       [:data 5.0]]))
 )
 
