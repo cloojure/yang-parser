@@ -996,22 +996,24 @@ vis-char                = %x21-7E ; visible (printing) characters
    ;(spyx-pretty schema)
    ;(spyx-pretty value)
     (assert (= :rpc (grab :tag schema) (grab :tag value)))
-    (let [rpc-tag-schema  (keyword (get-leaf schema [:rpc :identifier]))
-          rpc-tag-value   (grab :tag (get-leaf value [:rpc]))
-          xx              (assert (= rpc-tag-schema rpc-tag-value))
+    (let [rpc-attrs       (grab :attrs value)
+          rpc-tag-schema  (keyword (get-leaf schema [:rpc :identifier]))
+          rpc-value       (get-leaf value [:rpc])
+          rpc-value-tag   (grab :tag rpc-value)
+          rpc-value-attrs (grab :attrs rpc-value)
+          xx              (assert (= rpc-tag-schema rpc-value-tag))
           ; #todo does not yet verify any attrs ;  what rules?
           fn-args-schema  (grab :content (get-tree schema [:rpc :input]))
-          fn-args-value   (grab :content (get-tree value [:rpc rpc-tag-value]))
+          fn-args-value   (grab :content (get-tree value [:rpc rpc-value-tag]))
           parsed-args     (mapv validate-parse-leaf fn-args-schema fn-args-value)
-          rpc-fn          (grab rpc-tag-value rpc-fn-map)
+          rpc-fn          (grab rpc-value-tag rpc-fn-map)
           rpc-fn-result   (apply rpc-fn parsed-args)
-          rpc-value-attrs (grab :attrs value)
           rpc-result      {:tag     :rpc-reply
-                           :attrs   rpc-value-attrs
+                           :attrs   rpc-attrs
                            :content [{:tag     :data
                                       :attrs   {}
                                       :content [rpc-fn-result]}]} ]
-      rpc-result)
+       rpc-result)
     (catch Exception e
       (throw (RuntimeException. (str "validate-parse-leaf: failed for schema=" schema \newline
                                   "  value=" value \newline
@@ -1044,21 +1046,77 @@ vis-char                = %x21-7E ; visible (printing) characters
      [:data 5.0]])
 )
 
-(defn rpc-call
+(def ^:dynamic *rpc-timeout-ms* 200)
+(def ^:dynamic *rpc-delay-simulated-ms* 30)
+
+;-----------------------------------------------------------------------------
+(defn rpc-call-1
   [msg]
   (let [result-promise (promise)]
     (future
       (let [rpc-fn-tag (grab :tag msg)
             rpc-fn     (grab rpc-fn-tag rpc-fn-map)
             args       (grab :content msg)]
-        (Thread/sleep 30)
+        (Thread/sleep *rpc-delay-simulated-ms*)
         (deliver result-promise (apply rpc-fn args))))
     result-promise))
-(def ^:dynamic *rpc-timeout-ms* 200)
-(defn add [x y]
-  (let [result-promise (rpc-call (hiccup->enlive [:add x y]))
+
+(defn add-1 [x y]
+  (let [result-promise (rpc-call-1 (hiccup->enlive [:add x y]))
         rpc-result     (deref result-promise *rpc-timeout-ms* :timeout-failure)]
     (when (= :timeout-failure rpc-result)
       (throw (TimeoutException. (format "Timeout Exceed=%s  add: %s %s; " *rpc-timeout-ms* x y))))
     rpc-result))
-(dotest (is= 5 (spyx (add 2 3))))
+
+(dotest
+  (binding [*rpc-timeout-ms*         200
+            *rpc-delay-simulated-ms* 30]
+    (is= 5 (spyx (add-1 2 3))))
+  (binding [*rpc-timeout-ms*         20
+            *rpc-delay-simulated-ms* 30]
+    (throws? (add-1 2 3))))
+
+;-----------------------------------------------------------------------------
+
+(def rpc-msg-id (atom 100))
+(def rpc-deliver-map (atom {}))
+
+(defn rpc-call-2
+  [rpc-msg-id msg]
+  (let [result-promise (promise)
+        ; msg (update-in msg : )
+        ]
+    (swap! rpc-deliver-map glue {rpc-msg-id result-promise}) ;  #todo temp!
+    ; (spyx @rpc-deliver-map)
+    (future
+      (Thread/sleep *rpc-delay-simulated-ms*)
+      (let [rpc-result (validate-parse-rpc rpc-schema msg)
+                ; msg-id
+                ]
+        (deliver result-promise rpc-result)))
+    result-promise))
+
+(defn add-2 [x y]
+  ; #todo temp!
+  (reset! rpc-msg-id 100)
+  (let [rpc-msg-id     (swap! rpc-msg-id inc) ;  #todo temp!
+        result-promise (rpc-call-2
+                         rpc-msg-id
+                         (hiccup->enlive
+                           [:rpc {:message-id rpc-msg-id ;  #todo temp!
+                                  :xmlns      "urn:ietf:params:xml:ns:netconf:base:1.0"}
+                            [:add {:xmlns "my-own-ns/v1"}
+                             [:x (str x)]
+                             [:y (str y)]]]))
+        rpc-result     (deref result-promise *rpc-timeout-ms* :timeout-failure)]
+    (when (= :timeout-failure rpc-result)
+      (throw (TimeoutException. (format "Timeout Exceed=%s  add: %s %s; " *rpc-timeout-ms* x y))))
+    rpc-result))
+
+(dotest
+  (nl)
+  (is= (spyx-pretty (enlive->hiccup (add-2 2 3)))
+    [:rpc-reply {:message-id 101  :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0" }
+     [:data 5.0]] )
+)
+
