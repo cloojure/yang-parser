@@ -1088,7 +1088,7 @@ vis-char                = %x21-7E ; visible (printing) characters
         result-promise (promise) ]
     (swap! rpc-deliver-map glue {rpc-msg-id result-promise}) ;  #todo temp!
 
-    (future ; Simulate calling out to http server
+    (future ; Simulate calling out to http server in another thread
       (Thread/sleep *rpc-delay-simulated-ms*)
       (let [rpc-result (validate-parse-rpc rpc-schema msg)
             rpc-reply-msg-id (fetch-in rpc-result [:attrs :message-id])
@@ -1100,26 +1100,28 @@ vis-char                = %x21-7E ; visible (printing) characters
     result-promise)) ; deliver promise to caller immediately
 
 (defn add-2 [x y]
-  ; #todo temp!
-  (reset! rpc-msg-id 100)
-  (let [
-        result-promise (rpc-call-2
+  (let [result-promise (rpc-call-2
                          (hiccup->enlive
                            [:rpc
                             [:add {:xmlns "my-own-ns/v1"}
                              [:x (str x)]
                              [:y (str y)]]]))
-        rpc-result     (deref result-promise *rpc-timeout-ms* :timeout-failure)]
+        rpc-result     (deref result-promise *rpc-timeout-ms* :timeout-failure)
+        xx             (spyx-pretty rpc-result)
+        result         (get-leaf rpc-result [:rpc-reply :data])]
+    (assert (= rpc-result)
+      [:rpc-reply {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+       [:data 5.0]])
     (when (= :timeout-failure rpc-result)
       (throw (TimeoutException. (format "Timeout Exceed=%s  add: %s %s; " *rpc-timeout-ms* x y))))
-    rpc-result))
+    result))
 
 (dotest
   (nl)
   (binding [*rpc-timeout-ms*         300
             *rpc-delay-simulated-ms* 10]
-    (is= (spyx-pretty (enlive->hiccup (add-2 2 3)))
-      [:rpc-reply {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
-       [:data 5.0]]))
+    (reset! rpc-msg-id 100)
+    (is (rel= 5 (spyx (add-2 2 3)) :digits 9)
+      ))
 )
 
