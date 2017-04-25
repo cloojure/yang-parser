@@ -842,7 +842,6 @@ vis-char                = %x21-7E ; visible (printing) characters
 
 
 ;*****************************************************************************
-;*****************************************************************************
 
 (dotest
   (let [abnf-src  (io/resource "yang3.abnf")
@@ -914,22 +913,17 @@ vis-char                = %x21-7E ; visible (printing) characters
                 :content
                        [{:tag :x, :attrs {}, :content [2]}
                         {:tag :y, :attrs {}, :content [3]}]}]})
-
     (is= rpc-reply-enlive
       {:tag :rpc-reply, :attrs {:message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
        :content
             [{:tag :result, :attrs {}, :content [5]}]})
-
-
-
     (is= add-call
       {:tag     :add,
        :attrs   {:xmlns "my-own-ns/v1"},
        :content [{:tag :x, :attrs {}, :content [2]}
                  {:tag :y, :attrs {}, :content [3]}]})
     (is= add-params [{:tag :x, :attrs {}, :content [2]}
-                     {:tag :y, :attrs {}, :content [3]}])
-  ))
+                     {:tag :y, :attrs {}, :content [3]}]) ))
 
 ;                               ---------type-------------------   -------pattern------- (or reverse)
 ; #todo need function (conforms [:type [:identifier "decimal64"]] [:type [:identifier :*]]
@@ -950,53 +944,43 @@ vis-char                = %x21-7E ; visible (printing) characters
                                   "  caused by=" (.getMessage e)))))))
 
 (defn validate-parse-leaf
-  "Validate & parse a leaf msg value given a leaf schema (Enlive-format)."
-  [schema val]
+  "Validate & parse a leaf msg value given a leaf leaf-schema (Enlive-format)."
+  [leaf-schema leaf-val]
   (try
-    (assert (= (grab :tag schema) :leaf))
-    (let [leaf-name-schema (keyword (get-leaf schema [:leaf :identifier]))
-          leaf-name-val    (grab :tag val)
+    (assert (= (grab :tag leaf-schema) :leaf))
+    (let [leaf-name-schema (keyword (get-leaf leaf-schema [:leaf :identifier]))
+          leaf-name-val    (grab :tag leaf-val)
           xx              (assert (= leaf-name-schema leaf-name-val))
           ; #todo does not yet verify any attrs;  what rules?
-          parser-fn       (leaf-schema->parser schema)
-          parsed-value    (parser-fn (only (grab :content val)))]
+          parser-fn       (leaf-schema->parser leaf-schema)
+          parsed-value    (parser-fn (only (grab :content leaf-val)))]
       parsed-value)
     (catch Exception e
-      (throw (RuntimeException. (str "validate-parse-val: failed for schema=" schema \newline
-                                  "  val=" val \newline
+      (throw (RuntimeException. (str "validate-parse-leaf-val: failed for leaf-schema=" leaf-schema \newline
+                                  "  leaf-val=" leaf-val \newline
                                   "  caused by=" (.getMessage e)))))))
 
 (def rpc-fn-map
-  {
-   :add  (fn fn-add [& args] (apply + args))
+  {:add  (fn fn-add [& args] (apply + args))
    :mult (fn fn-mult [& args] (apply * args))
-   :pow  (fn fn-power [x y] (Math/pow x y)) })
+   :pow  (fn fn-power [x y] (Math/pow x y))})
 
-(defn leaf-schema->parser
-  [schema]
-  (try
-    (let [type      (get-leaf schema [:leaf :type :identifier]) ; eg "decimal64"
-          parser-fn (grab type parser-map)]
-      parser-fn)
-    (catch Exception e
-      (throw (RuntimeException. (str "leaf-schema->parser: failed for schema=" schema \newline
-                                  "  caused by=" (.getMessage e)))))))
 (defn validate-parse-rpc
-  "Validate & parse a rpc msg valueue given an rpc schema (Enlive-format)."
-  [schema value]
+  "Validate & parse a rpc msg valueue given an rpc rpc-schema (Enlive-format)."
+  [rpc-schema rpc-msg]
   (try
-   ;(spyx-pretty schema)
-   ;(spyx-pretty value)
-    (assert (= :rpc (grab :tag schema) (grab :tag value)))
-    (let [rpc-attrs       (grab :attrs value)
-          rpc-tag-schema  (keyword (get-leaf schema [:rpc :identifier]))
-          rpc-value       (get-leaf value [:rpc])
+    ; (spyx-pretty rpc-schema)
+    ; (spyx-pretty rpc-msg)
+    (assert (= :rpc (grab :tag rpc-schema) (grab :tag rpc-msg)))
+    (let [rpc-attrs       (grab :attrs rpc-msg)
+          rpc-tag-schema  (keyword (get-leaf rpc-schema [:rpc :identifier]))
+          rpc-value       (get-leaf rpc-msg [:rpc])
           rpc-value-tag   (grab :tag rpc-value)
           rpc-value-attrs (grab :attrs rpc-value)
           xx              (assert (= rpc-tag-schema rpc-value-tag))
           ; #todo does not yet verify any attrs ;  what rules?
-          fn-args-schema  (grab :content (get-tree schema [:rpc :input]))
-          fn-args-value   (grab :content (get-tree value [:rpc rpc-value-tag]))
+          fn-args-schema  (grab :content (get-tree rpc-schema [:rpc :input]))
+          fn-args-value   (grab :content (get-tree rpc-msg [:rpc rpc-value-tag]))
           parsed-args     (mapv validate-parse-leaf fn-args-schema fn-args-value)
           rpc-fn          (grab rpc-value-tag rpc-fn-map)
           rpc-fn-result   (apply rpc-fn parsed-args)
@@ -1004,11 +988,11 @@ vis-char                = %x21-7E ; visible (printing) characters
                            :attrs   rpc-attrs
                            :content [{:tag     :data
                                       :attrs   {}
-                                      :content [rpc-fn-result]}]} ]
-       rpc-result)
+                                      :content [rpc-fn-result]}]}]
+      rpc-result)
     (catch Exception e
-      (throw (RuntimeException. (str "validate-parse-leaf: failed for schema=" schema \newline
-                                  "  value=" value \newline
+      (throw (RuntimeException. (str "validate-parse-leaf: failed for rpc-schema=" rpc-schema \newline
+                                  "  rpc-msg=" rpc-msg \newline
                                   "  caused by=" (.getMessage e)))))))
 
 (def leaf-schema-1 (hiccup->enlive [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]))
@@ -1073,29 +1057,28 @@ vis-char                = %x21-7E ; visible (printing) characters
 (def rpc-msg-id (atom 100))
 (def rpc-deliver-map (atom {}))
 
-
 (s/defn rpc-call-2 :- s/Any
   [msg :- tsk/KeyMap]
   (let [rpc-msg-id     (swap! rpc-msg-id inc)
         msg            (glue msg {:attrs {:message-id rpc-msg-id
                                           :xmlns      "urn:ietf:params:xml:ns:netconf:base:1.0"}})
-        result-promise (promise) ]
+        result-promise (promise)]
     (swap! rpc-deliver-map glue {rpc-msg-id result-promise}) ;  #todo temp!
 
-    (future ; Simulate calling out to http server in another thread
+    (future         ; Simulate calling out to http server in another thread
       (try
         (Thread/sleep *rpc-delay-simulated-ms*) ; simulated network delay
         (let [rpc-result        (validate-parse-rpc rpc-schema msg)
               rpc-reply-msg-id  (fetch-in rpc-result [:attrs :message-id])
               fpc-reply-promise (grab rpc-reply-msg-id @rpc-deliver-map)]
           (deliver fpc-reply-promise rpc-result))
-       (catch Exception e
-         (deliver result-promise ; deliver any exception to caller
-           (RuntimeException. (str "rpc-call-2: failed  msg=" msg \newline
-                                "  caused by=" (.getMessage e)))))))
+        (catch Exception e
+          (deliver result-promise ; deliver any exception to caller
+            (RuntimeException. (str "rpc-call-2: failed  msg=" msg \newline
+                                 "  caused by=" (.getMessage e)))))))
 
-    result-promise ; return promise to caller immediately
-  ))
+    result-promise  ; return promise to caller immediately
+    ))
 
 (defn add-2 [x y]
   (let [result-promise (rpc-call-2
@@ -1105,22 +1088,17 @@ vis-char                = %x21-7E ; visible (printing) characters
                              [:x (str x)]
                              [:y (str y)]]]))
         rpc-result     (deref result-promise *rpc-timeout-ms* :timeout-failure)
-        _ (when (spyx (instance? Throwable rpc-result))
-             (throw (RuntimeException. (.getMessage rpc-result))))
+        _              (when (instance? Throwable rpc-result)
+                         (throw (RuntimeException. (.getMessage rpc-result))))
         result         (get-leaf rpc-result [:rpc-reply :data])]
-    (assert (= rpc-result)
-      [:rpc-reply {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
-       [:data 5.0]])
     (when (= :timeout-failure rpc-result)
       (throw (TimeoutException. (format "Timeout Exceed=%s  add: %s %s; " *rpc-timeout-ms* x y))))
     result))
 
 (dotest
-  (nl)
   (binding [*rpc-timeout-ms*         300
             *rpc-delay-simulated-ms* 10]
     (reset! rpc-msg-id 100)
-    (is (rel= 5 (spyx (add-2 2 3)) :digits 9)
-      ))
-)
+    (is (rel= 5 (spyx (add-2 2 3)) :digits 9))
+  ))
 
