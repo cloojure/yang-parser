@@ -21,7 +21,8 @@
     [tupelo.parse :as tp]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
-  ))
+    )
+  (:import [java.util.concurrent TimeoutException]))
 (t/refer-tupelo)
 (t/print-versions)
 
@@ -1042,4 +1043,23 @@ vis-char                = %x21-7E ; visible (printing) characters
     [:rpc-reply
      {:message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
      [:data 5.0]])
-  )
+)
+
+(defn rpc-call
+  [msg]
+  (let [result-promise (promise)]
+    (future
+      (let [rpc-fn-tag (grab :tag msg)
+            rpc-fn     (grab rpc-fn-tag rpc-fn-map)
+            args       (grab :content msg)]
+        (Thread/sleep 30)
+        (deliver result-promise (apply rpc-fn args))))
+    result-promise))
+(def ^:dynamic *rpc-timeout-ms* 200)
+(defn add [x y]
+  (let [result-promise (rpc-call (hiccup->enlive [:add x y]))
+        rpc-result     (deref result-promise *rpc-timeout-ms* :timeout-failure)]
+    (when (= :timeout-failure rpc-result)
+      (throw (TimeoutException. (format "Timeout Exceed=%s  add: %s %s; " *rpc-timeout-ms* x y))))
+    rpc-result))
+(dotest (is= 5 (spyx (add 2 3))))
