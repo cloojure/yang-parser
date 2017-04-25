@@ -807,7 +807,7 @@ vis-char                = %x21-7E ; visible (printing) characters
                              :integer    (fn fn-integer [& args] [:integer (Integer/parseInt (str/join args))])
                              :identifier (fn fn-identifier [& args] [:identifier (str/join args)])
                              :string     (fn fn-string [& args] [:string (str/join args)])
-                            }
+                             }
         parser              (insta/parser abnf-src :input-format :abnf)
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser (space-pad src-text))
@@ -835,4 +835,51 @@ vis-char                = %x21-7E ; visible (printing) characters
        [:token [:integer 23]]
        [:token [:identifier "baby"]]
        [:token [:string "you and me girl"]]])))
+
+;-----------------------------------------------------------------------------
+(dotest
+  (let [abnf-src            "
+tokens                  = *token <ws>
+token                   = <ws> (integer / identifier / string)
+identifier              = identifier-start-char *identifier-body-char
+integer                 = [ sign ] digits  ; digits with optional sign
+string                  = <quote-double> *(ws / vis-char-no-dquote) <quote-double>   ; no escaping quotes yet
+
+<identifier-start-char> = alpha / underscore
+<identifier-body-char>  = alpha / underscore / digit / hyphen / dot
+<alpha>                 = %x41-5A / %x61-7A     ; A-Z / a-z
+<hyphen>                = %x2D  ; - char
+<underscore>            = %x5F  ; _ char
+<dot>                   = %x2E  ; . char
+<sign>                  = '+' / '-'       ; ignore + or - functions for now
+digits                  = 1*digit
+<digit>                 = %x30-39         ; 0-9
+<ws>                    = 1*' '           ; space: 1 or more
+quote-double            = %x22
+quote-single            = %x27
+vis-char                = %x21-7E ; visible (printing) characters
+<vis-char-no-dquote>    = %x21    / %x23-7E ; all visible chars without quote-double
+"
+
+
+        tx-map              {
+                             :digits     (fn fn-digits [& args] (str/join args))
+                             :sign       no-label
+                             :integer    (fn fn-integer [& args] [:integer (Integer/parseInt (str/join args))])
+                             :identifier (fn fn-identifier [& args] [:identifier (str/join args)])
+                             :string     (fn fn-string [& args] [:string (str/join args)])
+                            }
+        parser              (insta/parser abnf-src :input-format :abnf)
+        parse-and-transform (fn [src-text]
+                              (let [ast-parse (parser (space-pad src-text))
+                                    ast-tx    (insta/transform tx-map ast-parse)
+                                    _         (if (instaparse-failure? ast-tx)
+                                                (throw (IllegalArgumentException. (str ast-tx)))
+                                                ast-tx)
+                                    ]
+                                ast-tx))
+        ]
+    (is= (parse-and-transform "girl.2")
+      [:tokens [:token [:identifier "girl.2"]]])
+    ))
 
