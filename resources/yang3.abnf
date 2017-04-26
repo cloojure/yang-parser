@@ -10,6 +10,7 @@ module = <ows> <"module"> <ws> identifier <blk-open>
           / typedef
           / container
           / rpc
+          / grouping
           / notification
           )
          <blk-close> <ows>
@@ -45,6 +46,11 @@ container = container-simple / container-composite
            ; / container 
              )
            <blk-close>
+
+grouping = <ows> <"grouping"> <ws> identifier <blk-open>
+      *( leaf 
+       / description )
+      <blk-close>
 
 rpc = <ows> <"rpc"> <ws> identifier <blk-open>
       *( rpc-input 

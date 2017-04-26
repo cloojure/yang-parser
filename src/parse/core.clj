@@ -219,7 +219,22 @@
 (defn create-abnf-parser
   "Given an ABNF syntax string, creates & returns a parser"
   [abnf-str]
-  (insta/parser abnf-str :input-format :abnf ))
+  (let [root-parser    (insta/parser abnf-str :input-format :abnf)
+        wrapped-parser (fn fn-wrapped-parser [yang-src]
+                         (let [parse-result (try
+                                              (root-parser yang-src)
+                                              (catch Throwable e ; unlikely
+                                                (throw (RuntimeException.
+                                                         (str "root-parser: InstaParse failed for \n"
+                                                           "yang-src=[[" (clip-str 99 yang-src) "]] \n"
+                                                           "caused by=" (.getMessage e))))))]
+                           (if (instaparse-failure? parse-result) ; This is the normal failure path
+                             (throw (RuntimeException.
+                                      (str  "root-parser: InstaParse failed for \n "
+                                            "yang-src=[[" (clip-str 99 yang-src) "]] \n"
+                                            "caused by=[[" (pr-str parse-result) "]]" )))
+                             parse-result)))]
+    wrapped-parser))
 
 (defn -main
   [& args]

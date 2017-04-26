@@ -139,6 +139,36 @@
     (is= (spyx rpc-result)
       [:rpc-reply
        {:message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
-       [:data 5.0]]))
-  )
+       [:data 5.0]])))
 
+;-----------------------------------------------------------------------------
+(dotest
+  (let [abnf-src  (io/resource "yang3.abnf")
+        yp        (create-abnf-parser abnf-src)
+        yang-src  (slurp (io/resource "calc3.yang"))
+        yang-tree (yp yang-src)
+        yang-ast  (yang-transform yang-tree) ]
+    (spyx-pretty yang-ast)
+    (is= yang-ast
+      [:module
+       [:identifier "calculator"]
+       [:namespace [:string "http://brocade.com/ns/calculator"]]
+       [:contact [:string "Alan Thompson <athomps@brocade.com>"]]
+       [:description [:string "YANG spec for a simple RPN calculator"]]
+       [:revision
+        [:iso-date "2017-04-01"]
+        [:description [:string "Prototype 1.0"]]]
+       [:grouping
+        [:identifier "complex"]
+        [:description [:string "A complex number"]]
+        [:leaf [:identifier "real"] [:type [:identifier "decimal64"]]]
+        [:leaf [:identifier "imag"] [:type [:identifier "decimal64"]]]]
+       [:rpc
+        [:identifier "add"]
+        [:description [:string "Add 2 numbers"]]
+        [:input
+         [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+         [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
+        [:output
+         [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]] )
+  ))
