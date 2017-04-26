@@ -32,13 +32,31 @@ typedef = <ows> <"typedef"> <ws> identifier <blk-open>
            / default )
           <blk-close>
 
+rpc = <ows> <"rpc"> <ws> identifier <blk-open>
+      *( rpc-input 
+       / rpc-output 
+       / description )
+      <blk-close>
+
+rpc-input = <ows> <"input"> <blk-open>
+            *( leaf 
+             / container
+             / description )
+            <blk-close>
+
+rpc-output = <ows> <"output"> <blk-open>
+            *( leaf 
+             / container
+             / description )
+            <blk-close>
+
 container = container-simple / container-composite
 <container-simple>    = <ows> <"container"> <ws> identifier <term>
 <container-composite> = <ows> <"container"> <ws> identifier <blk-open>
           ; [container-extension-stmt]
             *( presence 
              / description 
-           ;   uses     ; #todo if missing sends instaparse -> infinite loop!
+             / uses
            ; / config   ; #todo    (same) for turing-machine.yang
              / leaf
            ; / leaf-list 
@@ -52,21 +70,7 @@ grouping = <ows> <"grouping"> <ws> identifier <blk-open>
        / description )
       <blk-close>
 
-rpc = <ows> <"rpc"> <ws> identifier <blk-open>
-      *( rpc-input 
-       / rpc-output 
-       / description )
-      <blk-close>
-
-rpc-input = <ows> <"input"> <blk-open>
-            *( leaf 
-             / description )
-            <blk-close>
-
-rpc-output = <ows> <"output"> <blk-open>
-            *( leaf 
-             / description )
-            <blk-close>
+uses = <ows> <"uses"> <ws> identifier <term>
 
 notification =  <ows> <"notification"> <ws> identifier <blk-open>
                 *( leaf 

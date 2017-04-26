@@ -59,3 +59,22 @@ p162,
         name -> [:ident "name"]
         name -> [ [:ident "n"] [:ident "a"] [:ident "m"] [:ident "e"] ]
      
+-----------------------------------------------------------------------------
+Deficiencies
+
+Yang has nothing like a typedef form C/C++. I cannot define a type "complex" { float real; float imag;}
+  Grouping/Uses doesn't work
+  `list` could be forced to work but the required `key` value is stupid & it's still not a typedef.
+  BTW, `typedef` in yang can only narrow existing types and cannot define a record or struct (that
+    is what "list" is for! Stupid name!)
+  Example "brocade-rbridge.yang" shows this stupid/ambiguous example:
+
+    list rbridge-id {
+      key  rbridge-id;
+      leaf rbridge-id {
+        type uint32;
+      }
+      ... 
+    }
+  
+

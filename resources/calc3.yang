@@ -6,7 +6,7 @@ module calculator {
       description "Prototype 1.0";
   }
 
-  grouping complex {
+  grouping complex-grp {
     description "A complex number";
     leaf real {
       type decimal64; }
@@ -24,4 +24,14 @@ module calculator {
       leaf result { 
         type decimal64; } } } 
 
+  rpc addc {
+    description "Add 2 numbers";
+    input {
+      container x { 
+        uses complex-grp; }
+      container y { 
+        uses complex-grp; } }
+    output {
+      container result {
+        uses complex-grp; } } }
 }

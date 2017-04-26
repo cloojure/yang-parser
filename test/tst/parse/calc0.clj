@@ -143,13 +143,37 @@
 
 ;-----------------------------------------------------------------------------
 (dotest
-  (let [abnf-src  (io/resource "yang3.abnf")
-        yp        (create-abnf-parser abnf-src)
-        yang-src  (slurp (io/resource "calc3.yang"))
-        yang-tree (yp yang-src)
-        yang-ast  (yang-transform yang-tree) ]
-    (spyx-pretty yang-ast)
-    (is= yang-ast
+  (is= (container-with-uses? (hiccup->enlive
+                               [:container
+                                [:identifier "result"]
+                                [:uses [:identifier "complex-grp"]]] )))
+  (is= (container-with-uses? (hiccup->enlive
+                               [:container
+                                [:identifier "result"]
+                                [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]] )))
+
+  (is= (uses-replace
+         {"complex-grp" (hiccup->enlive [:stuff [:a 1] [:b 2]])}
+         (hiccup->enlive
+           [:container
+            [:identifier "result"]
+            [:uses [:identifier "complex-grp"]]]))
+    {:tag     :container,
+     :attrs   {},
+     :content [{:tag :identifier, :attrs {}, :content ["result"]}
+               {:tag :a, :attrs {}, :content [1]}
+               {:tag :b, :attrs {}, :content [2]}]})
+
+  (let [abnf-src   (io/resource "yang3.abnf")
+        yp         (create-abnf-parser abnf-src)
+        yang-src   (slurp (io/resource "calc3.yang"))
+        yang-tree  (yp yang-src)
+        yang-ast-1 (yang-transform yang-tree)
+        yang-ast-2 (tx-uses yang-ast-1)
+        yang-ast-2-hiccup (enlive->hiccup yang-ast-2)
+        ]
+    ;(spyx-pretty yang-ast-2-hiccup)
+    (is= yang-ast-2-hiccup
       [:module
        [:identifier "calculator"]
        [:namespace [:string "http://brocade.com/ns/calculator"]]
@@ -159,10 +183,11 @@
         [:iso-date "2017-04-01"]
         [:description [:string "Prototype 1.0"]]]
        [:grouping
-        [:identifier "complex"]
+        [:identifier "complex-grp"]
         [:description [:string "A complex number"]]
         [:leaf [:identifier "real"] [:type [:identifier "decimal64"]]]
         [:leaf [:identifier "imag"] [:type [:identifier "decimal64"]]]]
+
        [:rpc
         [:identifier "add"]
         [:description [:string "Add 2 numbers"]]
@@ -170,5 +195,22 @@
          [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
          [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
         [:output
-         [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]] )
-  ))
+         [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]
+
+       [:rpc
+        [:identifier "addc"]
+        [:description [:string "Add 2 numbers"]]
+        [:input
+         [:container [:identifier "x"]
+          [:leaf [:identifier "real"] [:type [:identifier "decimal64"]]]
+          [:leaf [:identifier "imag"] [:type [:identifier "decimal64"]]]]
+         [:container [:identifier "y"]
+          [:leaf [:identifier "real"] [:type [:identifier "decimal64"]]]
+          [:leaf [:identifier "imag"] [:type [:identifier "decimal64"]]]]]
+        [:output
+         [:container [:identifier "result"]
+          [:leaf [:identifier "real"] [:type [:identifier "decimal64"]]]
+          [:leaf [:identifier "imag"] [:type [:identifier "decimal64"]]]
+          ]]]] )
+  )
+)
