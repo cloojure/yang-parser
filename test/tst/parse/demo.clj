@@ -460,33 +460,52 @@ int-px        = digits <'px'>   ; ex '123px'
     (is= [:int-px 123] (parse-and-transform "123px"))
     (throws? (parse-and-transform "123xyz"))))
 
+(defn space-pad [text] (str \space text \space))
+
 ;-----------------------------------------------------------------------------
 ; Q: how do we know "123" is not a sequence of 3 values [1 2 3]?
 ; A: we use delimiters to break up a value; iff delims not present then all digits go into one value
 ; Problem: In ABNF, there are no ^ or $ values (beginning- and end-of-line).
 ; Solution: Since space is always a valid delimiter, add a single space go beginning
 ; and end of supplied source text, then parse
-(defn space-pad [text] (str \space text \space))
 (dotest
+  (let [abnf-src "
+digits = 1*(%x30-39)  ; 0-9 / 1 or more
+" ]
+    (is= ((create-abnf-parser abnf-src) "123")
+      [:digits "1" "2" "3"] ))
+  (let [abnf-src "
+number = 1*digit
+digit = %x30-39  ; 0-9
+" ]
+    (is= ((create-abnf-parser abnf-src) "123")
+      [:number
+       [:digit "1"]
+       [:digit "2"]
+       [:digit "3"]]))
+  (let [abnf-src "
+file = *number
+number = 1*digit
+digit = %x30-39  ; 0-9
+" ]
+    (is= ((create-abnf-parser abnf-src) "123")
+      [:file [:number [:digit "1"]]
+             [:number [:digit "2"]]
+             [:number [:digit "3"]]] ))
+
   (let [abnf-src            "
 digits        = ws 1*digit ws
 digit         = %x30-39         ; 0-9
 ws            = 1*' '           ; space: 1 or more
 "
-        tx-map              {}
-        parser              (insta/parser abnf-src :input-format :abnf)
-        parse-and-transform (fn [src-text]
-                              (let [parse-tree (parser (space-pad src-text))
-                                    final-ast  (insta/transform tx-map parse-tree)]
-                                (if (instaparse-failure? final-ast)
-                                  (throw (IllegalArgumentException. (str final-ast)))
-                                  final-ast)))
-        ]
-    (is= (parse-and-transform "123")
+        parser (create-abnf-parser abnf-src) ]
+    (throws? (parser "123"))
+
+    (is= (parser (space-pad "123"))
       [:digits [:ws " "] [:digit "1"] [:digit "2"] [:digit "3"] [:ws " "]])
-    (is= (parse-and-transform " 123  ")
-      [:digits [:ws " " " "] [:digit "1"] [:digit "2"] [:digit "3"] [:ws " " " " " "]])
-    ))
+    (is= (parser (space-pad " 123  "))
+      [:digits [:ws " " " "] [:digit "1"] [:digit "2"] [:digit "3"] [:ws " " " " " "]]))
+)
 
 ;-----------------------------------------------------------------------------
 ; Any token type (number, string, identifier, operator, etc) will wish to suppress leading/trailing
@@ -507,15 +526,10 @@ digits        = ws 1*digit ws
 digit         = %x30-39         ; 0-9
 ws            = 1*' '           ; space: 1 or more
 "
-        tx-map              {}
-        parser              (insta/parser abnf-src :input-format :abnf)
+        parser              (create-abnf-parser abnf-src)
         parse-and-transform (fn [src-text]
                               (let [parse-tree (parser (space-pad src-text))
-                                    ast-tx     (insta/transform tx-map parse-tree)
-                                    _          (if (instaparse-failure? ast-tx)
-                                                 (throw (IllegalArgumentException. (str ast-tx)))
-                                                 ast-tx)
-                                    ast-prune  (prune-whitespace-nodes ast-tx)]
+                                    ast-prune  (prune-whitespace-nodes parse-tree)]
                                 ast-prune))
         ]
     (is= (parse-and-transform "123")
@@ -537,38 +551,32 @@ ws            = 1*' '           ; space: 1 or more
                              :digits (fn fn-digits [& args]
                                        [:digits (join-children-no-labels args)])
                              }
-        parser              (insta/parser abnf-src :input-format :abnf)
+        parser              (create-abnf-parser abnf-src)
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser (space-pad src-text))
-                                    ast-prune (prune-whitespace-nodes ast-parse)
-                                    ast-tx    (insta/transform tx-map ast-prune)
-                                    _         (if (instaparse-failure? ast-tx)
-                                                (throw (IllegalArgumentException. (str ast-tx)))
-                                                ast-tx)
-                                    ]
-                                ast-tx))
-        ]
+                                    ast-prune  (prune-whitespace-nodes ast-parse)
+                                    ast-tx    (insta/transform tx-map ast-prune) ]
+                                ast-tx)) ]
     (is= (parse-and-transform "123") [:digits "123"])
     ))
+
+;(defn sign? [item]
+;  (and (sequential? item)
+;    (= :sign (first item))))
+;(defn signed? [item]
+;  (and (sequential? item)
+;    (= (sign? (first item)))))
+;(is (sign? [:sign "+"]))
+;(is (sign? [:sign "-"]))
+;(is (sign? [:sign "xyz"]))
+;(isnt (sign? [:foo "+"]))
+;(isnt (sign? [:foo "xyz"]))
+;(is (signed? [:xyz [:sign "+"] [:foo "xyz"]]))
 
 ;-----------------------------------------------------------------------------
 ; Define an integer as an optional +/- sign followed by a :digits element.
 ; After parsing, convert from a string to a integer value
-(defn sign? [item]
-  (and (sequential? item)
-    (= :sign (first item))))
-(defn signed? [item]
-  (and (sequential? item)
-    (= (sign? (first item)))))
 (dotest
-  (is (sign? [:sign "+"]))
-  (is (sign? [:sign "-"]))
-  (is (sign? [:sign "xyz"]))
-  (isnt (sign? [:foo "+"]))
-  (isnt (sign? [:foo "xyz"]))
-
-  (is (signed? [:xyz [:sign "+"] [:foo "xyz"]]))
-
   (let [abnf-src            "
 integer       = ws [ sign ] digits  ws  ; digits with optional sign
 sign          = '+' / '-'       ; ignore + or - functions for now
@@ -584,15 +592,11 @@ ws            = 1*' '           ; space: 1 or more
                                               result  (Integer/parseInt str-val)]
                                           [:integer result]))
                              }
-        parser              (insta/parser abnf-src :input-format :abnf)
+        parser              (create-abnf-parser abnf-src)
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser (space-pad src-text))
-                                    ast-prune (prune-whitespace-nodes ast-parse)
-                                    ast-tx    (insta/transform tx-map ast-prune)
-                                    _         (if (instaparse-failure? ast-tx)
-                                                (throw (IllegalArgumentException. (str ast-tx)))
-                                                ast-tx)
-                                    ]
+                                    ast-prune  (prune-whitespace-nodes ast-parse)
+                                    ast-tx    (insta/transform tx-map ast-prune) ]
                                 ast-tx))
         ]
     (is= (parse-and-transform "+123") [:integer +123])
@@ -632,15 +636,11 @@ ws                      = 1*' '           ; space: 1 or more
                                                  v3 (str/join v2)]
                                              [:identifier v3]))
                              }
-        parser              (insta/parser abnf-src :input-format :abnf)
+        parser              (create-abnf-parser abnf-src)
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser (space-pad src-text))
-                                    ast-prune (prune-whitespace-nodes ast-parse)
-                                    ast-tx    (insta/transform tx-map ast-prune)
-                                    _         (if (instaparse-failure? ast-tx)
-                                                (throw (IllegalArgumentException. (str ast-tx)))
-                                                ast-tx)
-                                    ]
+                                    ast-prune  (prune-whitespace-nodes ast-parse)
+                                    ast-tx    (insta/transform tx-map ast-prune) ]
                                 ast-tx))
         ]
     (is= (parse-and-transform "abc") [:identifier "abc"])
@@ -679,22 +679,16 @@ ws                      = 1*' '           ; space: 1 or more
                                                  v3 (str/join v2)] ; convert [ "a" "b" "c" ] -> "abc"
                                              [:identifier v3]))
                              }
-        parser              (insta/parser abnf-src :input-format :abnf)
+        parser              (create-abnf-parser abnf-src)
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser (space-pad src-text))
                                     ast-tx    (insta/transform tx-map ast-parse)
-                                    _         (if (instaparse-failure? ast-tx)
-                                                (throw (IllegalArgumentException. (str ast-tx)))
-                                                ast-tx)
-                                    ]
-                                ast-tx))
+                                    ast-prune  (prune-whitespace-nodes ast-tx) ]
+                                ast-prune))
         ]
-    (is= (prune-whitespace-nodes
-           (parse-and-transform "abc")) [:tokens [:token [:identifier "abc"]]])
-    (is= (prune-whitespace-nodes
-           (parse-and-transform "+123")) [:tokens [:token [:integer +123]]])
-    (is= (prune-whitespace-nodes
-           (parse-and-transform "do-re-mi abc +123"))
+    (is= (parse-and-transform "abc")  [:tokens [:token [:identifier "abc"]]])
+    (is= (parse-and-transform "+123") [:tokens [:token [:integer +123]]])
+    (is= (parse-and-transform "do-re-mi abc +123")
       [:tokens
        [:token [:identifier "do-re-mi"]]
        [:token [:identifier "abc"]]
@@ -749,23 +743,18 @@ vis-char-no-dquote      = %x21    / %x23-7E ; all visible chars without quote-do
                                                  result     (join-children-no-labels chars-keep)]
                                              [:string result]))
                              }
-        parser              (insta/parser abnf-src :input-format :abnf)
+        parser              (create-abnf-parser abnf-src)
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser (space-pad src-text))
                                     ast-tx    (insta/transform tx-map ast-parse)
-                                    _         (if (instaparse-failure? ast-tx)
-                                                (throw (IllegalArgumentException. (str ast-tx)))
-                                                ast-tx)
-                                    ]
-                                ast-tx))
+                                    ast-prune  (prune-whitespace-nodes ast-tx) ]
+                                ast-prune))
         ]
-    (is= (prune-whitespace-nodes (parse-and-transform (ts/quotes->double "'abc'")))
+    (is= (parse-and-transform (ts/quotes->double "'abc'"))
       [:tokens [:token [:string "abc"]]])
 
     ; All together now!
-    (is= (prune-whitespace-nodes
-           (parse-and-transform
-             (ts/quotes->double "do-re-mi abc 1 2 3 baby 'you and me girl'")))
+    (is=
       [:tokens
        [:token [:identifier "do-re-mi"]]
        [:token [:identifier "abc"]]
@@ -773,8 +762,10 @@ vis-char-no-dquote      = %x21    / %x23-7E ; all visible chars without quote-do
        [:token [:integer 2]]
        [:token [:integer 3]]
        [:token [:identifier "baby"]]
-       [:token [:string "you and me girl"]]])
-    ))
+       [:token [:string "you and me girl"]]]
+      (parse-and-transform
+           (ts/quotes->double "do-re-mi abc 1 2 3 baby 'you and me girl'")))
+  ))
 
 ; If we use the InstaParse built-in ability to perform simple "pre-transforms" on the AST, we can greatly
 ; simplify out manual transformations.  Compare how simple tx-map is below with the previous example. Also,

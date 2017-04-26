@@ -1,18 +1,21 @@
-module calculator {
-    namespace       "http://brocade.com/ns/calculator";
-    contact         "Alan Thompson <athomps@brocade.com>";
-    description     "YANG spec for a simple RPN calculator";
-    revision 2017-04-01 {
-        description "Prototype 1.0";
-    }
 
-    rpc add {
-      description "Add 2 numbers";
-      input {
-        leaf x { 
-          type decimal64; }
-        leaf y { 
-          type decimal64; } }
-      output {
-        leaf result { 
-          type decimal64; } } } }
+  module calculator {
+      namespace       "http://brocade.com/ns/calculator";
+      contact         "Alan Thompson <athomps@brocade.com>";
+      description     "YANG spec for a simple RPN calculator";
+      revision 2017-04-01 {
+          description "Prototype 1.0";
+      }
+
+      rpc add {
+        description "Add 2 numbers";
+        input {
+          leaf x { 
+            type decimal64; }
+          leaf y { 
+            type decimal64; } }
+        output {
+          leaf result { 
+            type decimal64; } } } }
+
+
