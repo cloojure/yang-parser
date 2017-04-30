@@ -460,8 +460,6 @@ int-px        = digits <'px'>   ; ex '123px'
     (is= [:int-px 123] (parse-and-transform "123px"))
     (throws? (parse-and-transform "123xyz"))))
 
-(defn space-pad [text] (str \space text \space))
-
 ;-----------------------------------------------------------------------------
 ; Q: how do we know "123" is not a sequence of 3 values [1 2 3]?
 ; A: we use delimiters to break up a value; iff delims not present then all digits go into one value
@@ -813,6 +811,8 @@ vis-char                = %x21-7E ; visible (printing) characters
       [:tokens [:token [:identifier "girl"]]])
     (is= (parse-and-transform (ts/quotes->double "'abc'"))
       [:tokens [:token [:string "abc"]]])
+    (is= (parse-and-transform +123)
+      [:tokens [:token [:integer 123]]])
     (is= (parse-and-transform -123)
       [:tokens [:token [:integer -123]]])
 

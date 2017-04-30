@@ -136,7 +136,7 @@
   (is= 2.0 (validate-parse-leaf leaf-schema-1 leaf-val-1))
   (is= 3.0 (validate-parse-leaf leaf-schema-2 leaf-val-2))
   (let [rpc-result (enlive->hiccup (validate-parse-rpc rpc-schema rpc-input-val))]
-    (is= (spyx rpc-result)
+    (is= rpc-result
       [:rpc-reply
        {:message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
        [:data 5.0]])))
@@ -213,6 +213,7 @@
           [:leaf [:identifier "imag"] [:type [:identifier "decimal64"]]]
           ]]]] ) ) )
 
+; #todo need to test recursive imports
 (defn import? [arg] (= :import (grab :tag arg)))
 
 (defn resolve-imports [ast]
@@ -222,7 +223,6 @@
         ast-children-no-import (drop-if import? children)
         ast-no-import          (assoc ast :content ast-children-no-import)
         ]
-    (println :rs-enter)
     (if (empty? ast-children-import)
       ast
       (let [resolved-imports
@@ -235,9 +235,7 @@
                                    yang-src      (slurp (io/resource filename))
                                    yang-ast-0    (yp yang-src)
                                    yang-ast-1    (yang-transform yang-ast-0)
-                                   _             (println "  ***** recurse resolve-imports - calling")
                                    yang-ast-1-i  (resolve-imports (hiccup->enlive yang-ast-1))
-                                   _             (println "  ***** recurse resolve-imports - returning")
                                    imp-typedefs  (forv [find-result (find-tree yang-ast-1-i [:module :typedef])]
                                                    (grab :subtree find-result))
                                    ]
@@ -276,5 +274,69 @@
          [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
         [:output
          [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]
-       ])
-  ))
+       ])))
+
+(dotest
+  (let [abnf-src            "
+range                   = <ws> integer <ows> <dotdot> <ows> integer <ws>
+integer                 = 0*1sign digits  ; digits with optional sign
+<dotdot>                = '..'
+<sign>                  = '+' / '-'       ; ignore + or - functions for now
+digits                  = 1*digit
+<digit>                 = %x30-39         ; 0-9
+<ws>                    = 1*' '           ; whitespace:          1 or more
+<ows>                   =  *' '           ; optional whitespace: 0 or more
+"
+        tx-map              {
+                             :digits     (fn fn-digits [& args] (str/join args))
+                             :integer    (fn fn-integer [& args] [:integer (Integer/parseInt (str/join args))])
+                             ;:range      (fn fn-range [& args] [:range (Integer/parseInt (str/join args))])
+                             }
+        parser              (create-abnf-parser abnf-src)
+        parse-and-transform (fn [src-text]
+                              (let [ast-parse (parser (space-pad src-text))
+                                    ast-tx    (insta/transform tx-map ast-parse)]
+                                ast-tx))
+        ]
+    (is= [:range [:integer 123] [:integer 456]] (parse-and-transform "123..456"))
+    (is= [:range [:integer 123] [:integer 456]] (parse-and-transform "123 .. 456"))
+    (is= [:range [:integer 123] [:integer 456]] (parse-and-transform " 123 .. 456  "))
+    ))
+
+(dotest
+  (let [abnf-src            "
+range                   = <ws> integer <ows> <dotdot> <ows> integer <ws>
+integer                 = 0*1sign digits  ; digits with optional sign
+<dotdot>                = '..'
+<sign>                  = '+' / '-'       ; ignore + or - functions for now
+digits                  = 1*digit
+<digit>                 = %x30-39         ; 0-9
+<ws>                    = 1*' '           ; whitespace:          1 or more
+<ows>                   =  *' '           ; optional whitespace: 0 or more
+"
+        tx-map              {
+                             :digits  (fn fn-digits [& args] (str/join args))
+                             :integer (fn fn-integer [& args] [:integer (Integer/parseInt (str/join args))])
+                             :range   (fn fn-range [& args]
+                                        (let [low  (-> args first second)
+                                              high (-> args second second)]
+                                          [:range {:low         low
+                                                   :high        high
+                                                   :fn-validate (fn [arg] (<= low arg high))}]))
+                             }
+        parser              (create-abnf-parser abnf-src)
+        parse-and-transform (fn [src-text]
+                              (let [ast-parse (parser (space-pad src-text))
+                                    ast-tx    (insta/transform tx-map ast-parse)]
+                                ast-tx))
+        ]
+    (is (wild-match? {:low 123 :high 456 :fn-validate :*} (second (parse-and-transform "123..456"))))
+    (is (wild-match? {:low 123 :high 456 :fn-validate :*} (second (parse-and-transform "123 .. 456"))))
+    (is (wild-match? {:low 123 :high 456 :fn-validate :*} (second (parse-and-transform "  123 .. 456 "))))
+    (let [parse-result (parse-and-transform "123..456")
+          fn-validate  (grab :fn-validate (second parse-result))]
+      (is (truthy? (fn-validate 234)))
+      (is (falsey? (fn-validate 111)))
+      (is (falsey? (fn-validate 999))))
+
+    ))

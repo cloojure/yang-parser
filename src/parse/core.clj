@@ -216,6 +216,8 @@
      "yuma-xsd"
    ])
 
+(defn space-pad [text] (str \space text \space))
+
 (defn create-abnf-parser
   "Given an ABNF syntax string, creates & returns a parser"
   [abnf-str]
