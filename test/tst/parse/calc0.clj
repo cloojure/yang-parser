@@ -276,8 +276,7 @@
          [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]
        ])))
 
-(dotest
-  (let [abnf-src            "
+(def range-abnf "
 range                   = <ws> integer <ows> <dotdot> <ows> integer <ws>
 integer                 = 0*1sign digits  ; digits with optional sign
 <dotdot>                = '..'
@@ -286,45 +285,33 @@ digits                  = 1*digit
 <digit>                 = %x30-39         ; 0-9
 <ws>                    = 1*' '           ; whitespace:          1 or more
 <ows>                   =  *' '           ; optional whitespace: 0 or more
-"
-        tx-map              {
-                             :digits     (fn fn-digits [& args] (str/join args))
-                             :integer    (fn fn-integer [& args] [:integer (Integer/parseInt (str/join args))])
-                             ;:range      (fn fn-range [& args] [:range (Integer/parseInt (str/join args))])
-                             }
-        parser              (create-abnf-parser abnf-src)
+")
+
+(dotest
+  (let [tx-map              {:digits  (fn fn-digits [& args] (str/join args))
+                             :integer (fn fn-integer [& args] [:integer (Integer/parseInt (str/join args))])
+                            }
+        parser              (create-abnf-parser range-abnf)
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser (space-pad src-text))
                                     ast-tx    (insta/transform tx-map ast-parse)]
-                                ast-tx))
-        ]
+                                ast-tx))]
     (is= [:range [:integer 123] [:integer 456]] (parse-and-transform "123..456"))
     (is= [:range [:integer 123] [:integer 456]] (parse-and-transform "123 .. 456"))
-    (is= [:range [:integer 123] [:integer 456]] (parse-and-transform " 123 .. 456  "))
-    ))
+    (is= [:range [:integer 123] [:integer 456]] (parse-and-transform " 123 .. 456  ")))
 
-(dotest
-  (let [abnf-src            "
-range                   = <ws> integer <ows> <dotdot> <ows> integer <ws>
-integer                 = 0*1sign digits  ; digits with optional sign
-<dotdot>                = '..'
-<sign>                  = '+' / '-'       ; ignore + or - functions for now
-digits                  = 1*digit
-<digit>                 = %x30-39         ; 0-9
-<ws>                    = 1*' '           ; whitespace:          1 or more
-<ows>                   =  *' '           ; optional whitespace: 0 or more
-"
-        tx-map              {
-                             :digits  (fn fn-digits [& args] (str/join args))
+
+  (let [tx-map              {:digits  (fn fn-digits [& args] (str/join args))
                              :integer (fn fn-integer [& args] [:integer (Integer/parseInt (str/join args))])
                              :range   (fn fn-range [& args]
+                                        ; Input is like:  [:range [:integer 123] [:integer 456]]
                                         (let [low  (-> args first second)
                                               high (-> args second second)]
                                           [:range {:low         low
                                                    :high        high
                                                    :fn-validate (fn [arg] (<= low arg high))}]))
                              }
-        parser              (create-abnf-parser abnf-src)
+        parser              (create-abnf-parser range-abnf)
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser (space-pad src-text))
                                     ast-tx    (insta/transform tx-map ast-parse)]
@@ -337,6 +324,4 @@ digits                  = 1*digit
           fn-validate  (grab :fn-validate (second parse-result))]
       (is (truthy? (fn-validate 234)))
       (is (falsey? (fn-validate 111)))
-      (is (falsey? (fn-validate 999))))
-
-    ))
+      (is (falsey? (fn-validate 999))))))
