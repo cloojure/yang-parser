@@ -57,7 +57,7 @@
 
 (defn tx-uses [ast]
   ; #todo require grouping at top level for now
-  (let [ast-enlive           (hiccup->enlive ast) ; #todo move to caller
+  (let [ast-enlive  ast ; #todo move to caller
         groupings            (find-tree ast-enlive [:module :grouping])
         groupings-subtree    (mapv #(grab :subtree %) groupings)
 
