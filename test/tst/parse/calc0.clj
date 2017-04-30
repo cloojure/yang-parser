@@ -254,9 +254,7 @@
         yang-ast-1-i      (resolve-imports
                             (hiccup->enlive yang-ast-1))
         yang-ast-2        (tx-uses yang-ast-1-i)
-        yang-ast-2-hiccup (enlive->hiccup yang-ast-2)
-        ]
-    (spyx-pretty yang-ast-2-hiccup)
+        yang-ast-2-hiccup (enlive->hiccup yang-ast-2) ]
     (is= yang-ast-2-hiccup
       [:module
        [:typedef
