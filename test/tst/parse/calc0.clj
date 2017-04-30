@@ -213,34 +213,37 @@
           [:leaf [:identifier "imag"] [:type [:identifier "decimal64"]]]
           ]]]] ) ) )
 
+(defn import? [arg] (= :import (grab :tag arg)))
+
 (defn resolve-imports [ast]
   ; imports must be at the top level
-  (let [import-items (find-tree ast [:* :import])]
+  (let [children               (grab :content ast)
+        ast-children-import    (keep-if import? children)
+        ast-children-no-import (drop-if import? children)
+        ast-no-import          (assoc ast :content ast-children-no-import)
+        ]
     (println :rs-enter)
-    (spyx-pretty ast)
-    (if (empty? import-items)
+    (if (empty? ast-children-import)
       ast
       (let [resolved-imports
-                       (apply glue
-                         (forv [import-item (spyx-pretty import-items)]
-                           (let [subtree       (grab :subtree import-item)
-                                 filename-root (get-leaf subtree [:import :identifier])
-                                 filename      (str filename-root ".yang")
-                                 abnf-src      (io/resource "yang4.abnf")
-                                 yp            (create-abnf-parser abnf-src)
-                                 yang-src      (slurp (io/resource filename))
-                                 yang-ast-0    (yp yang-src)
-                                 yang-ast-1    (yang-transform yang-ast-0)
-                                 _             (println "  ***** recurse resolve-imports - calling")
-                                 yang-ast-1-i  (resolve-imports (hiccup->enlive yang-ast-1))
-                                 _             (println "  ***** recurse resolve-imports - returning")
-                                 imp-typedefs  (forv [find-result (find-tree yang-ast-1-i [:module :typedef])]
-                                                 (grab :subtree find-result))
-                                 ]
-                             imp-typedefs)))
-            ast-merged (update-in ast [:content] #(glue resolved-imports %))]
-        (println :rs-exit)
-        (spyx-pretty ast-merged)))))
+                         (apply glue
+                           (forv [subtree ast-children-import]
+                             (let [filename-root (get-leaf subtree [:import :identifier])
+                                   filename      (str filename-root ".yang")
+                                   abnf-src      (io/resource "yang4.abnf")
+                                   yp            (create-abnf-parser abnf-src)
+                                   yang-src      (slurp (io/resource filename))
+                                   yang-ast-0    (yp yang-src)
+                                   yang-ast-1    (yang-transform yang-ast-0)
+                                   _             (println "  ***** recurse resolve-imports - calling")
+                                   yang-ast-1-i  (resolve-imports (hiccup->enlive yang-ast-1))
+                                   _             (println "  ***** recurse resolve-imports - returning")
+                                   imp-typedefs  (forv [find-result (find-tree yang-ast-1-i [:module :typedef])]
+                                                   (grab :subtree find-result))
+                                   ]
+                               imp-typedefs)))
+            ast-resolved (update-in ast-no-import [:content] #(glue resolved-imports %))]
+         ast-resolved))))
 
 (dotest
   (let [abnf-src          (io/resource "yang4.abnf")
@@ -248,17 +251,11 @@
         yang-src          (slurp (io/resource "calc4.yang"))
         yang-ast-0        (yp yang-src)
         yang-ast-1        (yang-transform yang-ast-0)
-        _ (println "main 100")
         yang-ast-1-i      (resolve-imports
                             (hiccup->enlive yang-ast-1))
-        _ (println "main 109")
-        _ (spyx-pretty yang-ast-1-i)
         yang-ast-2        (tx-uses yang-ast-1-i)
-        _ (println "main 209")
-        _ (spyx-pretty yang-ast-2)
         yang-ast-2-hiccup (enlive->hiccup yang-ast-2)
         ]
-    (println "main 309")
     (spyx-pretty yang-ast-2-hiccup)
     (is= yang-ast-2-hiccup
       [:module
@@ -282,30 +279,4 @@
         [:output
          [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]
        ])
-    (nl)
-    (println "diff:")
-    #_(pretty (cd/diff yang-ast-2-hiccup
-                   [:module
-                    [:typedef
-                     [:identifier "octal-digit"]
-                     [:description [:string "An octal digit [0..7]"]]
-                     [:type [:identifier "uint32"]]]
-                    [:identifier "calculator"]
-                    [:namespace [:string "http://brocade.com/ns/calculator"]]
-                    [:contact [:string "Alan Thompson <athomps@brocade.com>"]]
-                    [:description [:string "YANG spec for a simple RPN calculator"]]
-                    [:revision
-                     [:iso-date "2017-04-01"]
-                     [:description [:string "Prototype 1.0"]]]
-                    [:rpc
-                     [:identifier "add"]
-                     [:description [:string "Add 2 numbers"]]
-                     [:input
-                      [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
-                      [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
-                     [:output
-                      [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]
-                    ]))
-    )
-
-)
+  ))
