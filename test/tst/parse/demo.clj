@@ -232,7 +232,7 @@ module toaster {
       [:module
        [:identifier "toaster"]
        [:namespace [:string "http://netconfcentral.org/ns/toaster"]]
-       [:prefix [:identifier "toast"]]
+       [:prefix  "toast"]
        [:organization [:string "Netconf Central"]]
        [:contact [:string "Andy Bierman <andy@netconfcentral.org>"]]
        [:description [:string "YANG version of the TOASTER-MIB."]]

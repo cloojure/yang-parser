@@ -31,13 +31,6 @@ identity = <ows> <"identity"> <ws> identifier <blk-open>
             / base )
            <blk-close>
 
-typedef = <ows> <"typedef"> <ws> identifier <blk-open>
-          *( description  
-           / reference
-           / type
-           / default )
-          <blk-close>
-
 rpc = <ows> <"rpc"> <ws> identifier <blk-open>
       *( rpc-input 
        / rpc-output 
@@ -91,19 +84,14 @@ leaf = <ows> <"leaf"> <ws> identifier <blk-open>
         / description  )
        <blk-close>
 
-<type>              = type-simple / type-composite
-type-simple         = <ows> <"type"> <ws> identifier <term>
-type-composite      = <ows> <"type"> <ws> identifier <blk-open> 
-                      *( length
-                       ; / fraction-digits
-                         / range
-                       ; / pattern
-                         / enum 
-                         / base 
-                       ; / type 
-                       ; / bit 
-                       )
-                      <blk-close> 
+typedef = <ows> <"typedef"> <ws> identifier <blk-open>
+          *( description  
+           / reference
+           / type
+           / default )
+          <blk-close>
+
+type = <ows> <"type"> <ws> identifier <term>
 
 range               = range-simple / range-composite
 range-simple        = <ows> <"range"> <ws> string <term>

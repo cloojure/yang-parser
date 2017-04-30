@@ -211,6 +211,60 @@
          [:container [:identifier "result"]
           [:leaf [:identifier "real"] [:type [:identifier "decimal64"]]]
           [:leaf [:identifier "imag"] [:type [:identifier "decimal64"]]]
-          ]]]] )
-  )
+          ]]]] ) ) )
+
+(defn resolve-imports [ast]
+  ; imports must be at the top level
+  (let [ast-enlive   (hiccup->enlive ast)
+        import-items (find-tree ast-enlive [:* :import])]
+    (spyx import-items)
+    (if (empty? import-items)
+      ast
+      (forv [import-item (spyx import-items)]
+        (do
+          (let [subtree       (grab :subtree import-item)
+                filename-root (get-leaf subtree [:import :identifier])
+                filename      (str filename-root ".yang")
+                _ (spyx filename)
+                abnf-src      (io/resource "yang4.abnf")
+                yp            (create-abnf-parser abnf-src)
+                yang-src      (slurp (io/resource filename))
+                yang-ast-0    (yp yang-src)
+                yang-ast-1    (yang-transform yang-ast-0)
+                yang-ast-1-i  (resolve-imports yang-ast-1)]
+            yang-ast-1-i))))))
+
+(dotest
+  (let [abnf-src          (io/resource "yang4.abnf")
+        yp                (create-abnf-parser abnf-src)
+        yang-src          (slurp (io/resource "calc4.yang"))
+        yang-ast-0        (yp yang-src)
+        yang-ast-1        (yang-transform yang-ast-0)
+        yang-ast-1-i      (resolve-imports yang-ast-1)
+        yang-ast-2        (tx-uses yang-ast-1)
+        yang-ast-2-hiccup (enlive->hiccup yang-ast-2)
+        ]
+    ;(spyx-pretty yang-ast-2-hiccup)
+    (is= (spyx-pretty yang-ast-2-hiccup)
+      [:module
+       [:identifier "calculator"]
+       [:namespace [:string "http://brocade.com/ns/calculator"]]
+       [:contact [:string "Alan Thompson <athomps@brocade.com>"]]
+       [:description [:string "YANG spec for a simple RPN calculator"]]
+       [:revision
+        [:iso-date "2017-04-01"]
+        [:description [:string "Prototype 1.0"]]]
+       [:import [:identifier "calculator-types"] [:prefix "ct"]]
+
+       [:rpc
+        [:identifier "add"]
+        [:description [:string "Add 2 numbers"]]
+        [:input
+         [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+         [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
+        [:output
+         [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]
+       ])
+    )
+
 )

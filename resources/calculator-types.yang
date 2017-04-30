@@ -1,0 +1,7 @@
+module calculator-types {
+  namespace       "http://brocade.com/ns/calculator-types";
+  typedef octal-digit {
+    description "An octal digit [0..7]";
+    type uint32;
+  }
+}

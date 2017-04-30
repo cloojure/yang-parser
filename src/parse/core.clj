@@ -226,12 +226,12 @@
                                               (catch Throwable e ; unlikely
                                                 (throw (RuntimeException.
                                                          (str "root-parser: InstaParse failed for \n"
-                                                           "yang-src=[[" (clip-str 99 yang-src) "]] \n"
+                                                           "yang-src=[[" (clip-str 222 yang-src) "]] \n"
                                                            "caused by=" (.getMessage e))))))]
                            (if (instaparse-failure? parse-result) ; This is the normal failure path
                              (throw (RuntimeException.
                                       (str  "root-parser: InstaParse failed for \n "
-                                            "yang-src=[[" (clip-str 99 yang-src) "]] \n"
+                                            "yang-src=[[" (clip-str 222 yang-src) "]] \n"
                                             "caused by=[[" (pr-str parse-result) "]]" )))
                              parse-result)))]
     wrapped-parser))

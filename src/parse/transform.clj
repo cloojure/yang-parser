@@ -78,6 +78,10 @@
 
 (defn no-label [arg] arg) ; aka identity
 
+(defn fn-import [arg]
+  ; #todo ignore prefix for now
+)
+
 ; An identifier MUST NOT start with (('X'|'x') ('M'|'m') ('L'|'l')) (i.e. 'xml' in any case)
 (defn fn-identifier [& args]
   (let [result  (str/join args)
@@ -92,12 +96,12 @@
   [parse-tree]
   (insta/transform
     {
+     :prefix         (fn fn-prefix [arg] [:prefix (second arg)])
      :identifier     fn-identifier
      :string         fn-string
      :integer        (fn fn-integer [arg] [:integer (java.lang.Integer. arg)])
      :boolean        (fn fn-boolean [arg] [:boolean (java.lang.Boolean. arg)])
      :namespace      (fn fn-namespace [arg] [:namespace arg])
-     :prefix         (fn fn-prefix [arg] [:prefix arg])
      :organization   (fn fn-organization [arg] [:organization arg])
      :contact        (fn fn-contact [arg] [:contact arg])
      :description    (fn fn-description [arg] [:description arg])
@@ -108,8 +112,8 @@
      :identity       (fn fn-identity [& args] (prepend :identity args))
      :typedef        (fn fn-typedef [& args] (prepend :typedef args))
      :container      (fn fn-container [& args] (prepend :container args))
-    ;:grouping          #todo make sure no cycles via uses, import, include
-    ;:import            #todo make sure no cycles via uses, import, include
+     ;:grouping          #todo make sure no cycles via uses, import, include
+     ;:import            #todo make sure no cycles via uses, import, include
      :rpc            fn-rpc
      :rpc-input      (fn fn-input [& args] (prepend :input args))
      :rpc-output     (fn fn-input [& args] (prepend :output args))
