@@ -216,9 +216,9 @@
      "yuma-xsd"
    ])
 
-(defn space-pad [text] (str \space text \space))
+(defn space-wrap [text] (str \space text \space))
 
-(defn create-abnf-parser
+(defn create-abnf-parser-raw
   "Given an ABNF syntax string, creates & returns a parser"
   [abnf-str]
   (let [root-parser    (insta/parser abnf-str :input-format :abnf)
@@ -237,6 +237,14 @@
                                             "caused by=[[" (pr-str parse-result) "]]" )))
                              parse-result)))]
     wrapped-parser))
+(defn create-abnf-parser
+  "Given an ABNF syntax string, creates & returns a parser that wraps the yang source
+  with a leading and trailing space."
+  [abnf-str]
+  (let [parser-raw           (create-abnf-parser-raw abnf-str)
+        space-wrapped-parser (fn fn-space-wrapped-parser [yang-src]
+                               (parser-raw (space-wrap yang-src)))]
+    space-wrapped-parser))
 
 (defn -main
   [& args]

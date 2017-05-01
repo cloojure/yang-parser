@@ -102,7 +102,7 @@ identifier                      = identifier-start-char *identifier-body-char
 <identifier-body-char>          = alpha / underscore / digit / hyphen ")
 (dotest
   (let [abnf-src (str abnf-string abnf-base)
-        yp       (create-abnf-parser abnf-src)
+        yp       (create-abnf-parser-raw abnf-src)
         s1       (ts/quotes->double "'hello'")
         s1-tree  (yp s1)
         s1-ast   (yang-transform s1-tree)
@@ -110,7 +110,7 @@ identifier                      = identifier-start-char *identifier-body-char
     (is= [:string "h" "e" "l" "l" "o"] s1-tree)
     (is= [:string "hello"] s1-ast))
   (let [abnf-src (str abnf-identifier abnf-base)
-        yp       (create-abnf-parser abnf-src)
+        yp       (create-abnf-parser-raw abnf-src)
         s1       "name"
         s1-tree  (yp s1)
         s1-ast   (yang-transform s1-tree)]
@@ -470,13 +470,13 @@ int-px        = digits <'px'>   ; ex '123px'
   (let [abnf-src "
 digits = 1*(%x30-39)  ; 0-9 / 1 or more
 " ]
-    (is= ((create-abnf-parser abnf-src) "123")
+    (is= ((create-abnf-parser-raw abnf-src) "123")
       [:digits "1" "2" "3"] ))
   (let [abnf-src "
 number = 1*digit
 digit = %x30-39  ; 0-9
 " ]
-    (is= ((create-abnf-parser abnf-src) "123")
+    (is= ((create-abnf-parser-raw abnf-src) "123")
       [:number
        [:digit "1"]
        [:digit "2"]
@@ -486,7 +486,7 @@ file = *number
 number = 1*digit
 digit = %x30-39  ; 0-9
 " ]
-    (is= ((create-abnf-parser abnf-src) "123")
+    (is= ((create-abnf-parser-raw abnf-src) "123")
       [:file [:number [:digit "1"]]
              [:number [:digit "2"]]
              [:number [:digit "3"]]] ))
@@ -496,12 +496,12 @@ digits        = ws 1*digit ws
 digit         = %x30-39         ; 0-9
 ws            = 1*' '           ; space: 1 or more
 "
-        parser (create-abnf-parser abnf-src) ]
-    (throws? (parser "123"))
+        parser-raw (create-abnf-parser-raw abnf-src) ]
+    (throws? (parser-raw "123"))
 
-    (is= (parser (space-pad "123"))
+    (is= (parser-raw (space-wrap "123"))
       [:digits [:ws " "] [:digit "1"] [:digit "2"] [:digit "3"] [:ws " "]])
-    (is= (parser (space-pad " 123  "))
+    (is= (parser-raw (space-wrap " 123  "))
       [:digits [:ws " " " "] [:digit "1"] [:digit "2"] [:digit "3"] [:ws " " " " " "]]))
 )
 
@@ -526,7 +526,7 @@ ws            = 1*' '           ; space: 1 or more
 "
         parser              (create-abnf-parser abnf-src)
         parse-and-transform (fn [src-text]
-                              (let [parse-tree (parser (space-pad src-text))
+                              (let [parse-tree (parser src-text)
                                     ast-prune  (prune-whitespace-nodes parse-tree)]
                                 ast-prune))
         ]
@@ -551,7 +551,7 @@ ws            = 1*' '           ; space: 1 or more
                              }
         parser              (create-abnf-parser abnf-src)
         parse-and-transform (fn [src-text]
-                              (let [ast-parse (parser (space-pad src-text))
+                              (let [ast-parse (parser src-text)
                                     ast-prune  (prune-whitespace-nodes ast-parse)
                                     ast-tx    (insta/transform tx-map ast-prune) ]
                                 ast-tx)) ]
@@ -592,7 +592,7 @@ ws            = 1*' '           ; space: 1 or more
                              }
         parser              (create-abnf-parser abnf-src)
         parse-and-transform (fn [src-text]
-                              (let [ast-parse (parser (space-pad src-text))
+                              (let [ast-parse (parser src-text)
                                     ast-prune  (prune-whitespace-nodes ast-parse)
                                     ast-tx    (insta/transform tx-map ast-prune) ]
                                 ast-tx))
@@ -636,7 +636,7 @@ ws                      = 1*' '           ; space: 1 or more
                              }
         parser              (create-abnf-parser abnf-src)
         parse-and-transform (fn [src-text]
-                              (let [ast-parse (parser (space-pad src-text))
+                              (let [ast-parse (parser src-text)
                                     ast-prune  (prune-whitespace-nodes ast-parse)
                                     ast-tx    (insta/transform tx-map ast-prune) ]
                                 ast-tx))
@@ -679,7 +679,7 @@ ws                      = 1*' '           ; space: 1 or more
                              }
         parser              (create-abnf-parser abnf-src)
         parse-and-transform (fn [src-text]
-                              (let [ast-parse (parser (space-pad src-text))
+                              (let [ast-parse (parser src-text)
                                     ast-tx    (insta/transform tx-map ast-parse)
                                     ast-prune  (prune-whitespace-nodes ast-tx) ]
                                 ast-prune))
@@ -743,7 +743,7 @@ vis-char-no-dquote      = %x21    / %x23-7E ; all visible chars without quote-do
                              }
         parser              (create-abnf-parser abnf-src)
         parse-and-transform (fn [src-text]
-                              (let [ast-parse (parser (space-pad src-text))
+                              (let [ast-parse (parser src-text)
                                     ast-tx    (insta/transform tx-map ast-parse)
                                     ast-prune  (prune-whitespace-nodes ast-tx) ]
                                 ast-prune))
@@ -797,9 +797,9 @@ vis-char                = %x21-7E ; visible (printing) characters
                              :identifier (fn fn-identifier [& args] [:identifier (str/join args)])
                              :string     (fn fn-string [& args] [:string (str/join args)])
                              }
-        parser              (insta/parser abnf-src :input-format :abnf)
+        parser              (create-abnf-parser abnf-src )
         parse-and-transform (fn [src-text]
-                              (let [ast-parse (parser (space-pad src-text))
+                              (let [ast-parse (parser src-text)
                                     ast-tx    (insta/transform tx-map ast-parse)
                                     _         (if (instaparse-failure? ast-tx)
                                                 (throw (IllegalArgumentException. (str ast-tx)))
@@ -860,9 +860,9 @@ vis-char                = %x21-7E ; visible (printing) characters
                              :identifier (fn fn-identifier [& args] [:identifier (str/join args)])
                              :string     (fn fn-string [& args] [:string (str/join args)])
                             }
-        parser              (insta/parser abnf-src :input-format :abnf)
+        parser              (create-abnf-parser abnf-src)
         parse-and-transform (fn [src-text]
-                              (let [ast-parse (parser (space-pad src-text))
+                              (let [ast-parse (parser src-text)
                                     ast-tx    (insta/transform tx-map ast-parse)
                                     _         (if (instaparse-failure? ast-tx)
                                                 (throw (IllegalArgumentException. (str ast-tx)))

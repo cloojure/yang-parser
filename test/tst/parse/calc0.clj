@@ -293,13 +293,12 @@ digits                  = 1*digit
                             }
         parser              (create-abnf-parser range-abnf)
         parse-and-transform (fn [src-text]
-                              (let [ast-parse (parser (space-pad src-text))
+                              (let [ast-parse (parser src-text)
                                     ast-tx    (insta/transform tx-map ast-parse)]
                                 ast-tx))]
     (is= [:range [:integer 123] [:integer 456]] (parse-and-transform "123..456"))
     (is= [:range [:integer 123] [:integer 456]] (parse-and-transform "123 .. 456"))
     (is= [:range [:integer 123] [:integer 456]] (parse-and-transform " 123 .. 456  ")))
-
 
   (let [tx-map              {:digits  (fn fn-digits [& args] (str/join args))
                              :integer (fn fn-integer [& args] [:integer (Integer/parseInt (str/join args))])
@@ -313,7 +312,7 @@ digits                  = 1*digit
                              }
         parser              (create-abnf-parser range-abnf)
         parse-and-transform (fn [src-text]
-                              (let [ast-parse (parser (space-pad src-text))
+                              (let [ast-parse (parser src-text)
                                     ast-tx    (insta/transform tx-map ast-parse)]
                                 ast-tx))
         ]
