@@ -309,20 +309,22 @@ digits                  = 1*digit
                                           (assert (<= low high))
                                           [:range {:low         low
                                                    :high        high
-                                                   :fn-validate (fn [arg] (<= low arg high))}]))
-                             }
+                                                   :fn-validate (fn [arg] (<= low arg high))}]
+                                          )) }
         parser              (create-abnf-parser range-abnf)
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser src-text)
                                     ast-tx    (insta/transform tx-map ast-parse)]
                                 ast-tx))
         ]
-    (is (wild-match? {:low 123 :high 456 :fn-validate :*} (second (parse-and-transform "123..456"))))
-    (is (wild-match? {:low 123 :high 456 :fn-validate :*} (second (parse-and-transform "123 .. 456"))))
-    (is (wild-match? {:low 123 :high 456 :fn-validate :*} (second (parse-and-transform "  123 .. 456 "))))
-    (is (wild-match? {:low -123 :high -45 :fn-validate :*} (second (parse-and-transform "-123..-45"))))
+    (is (wild-match? [:range {:low 123 :high 456 :fn-validate :*}]
+          (parse-and-transform "123..456")
+          (parse-and-transform "123 .. 456")
+          (parse-and-transform "  123 .. 456 ")))
+    (is (wild-match? [:range {:low -123 :high -45 :fn-validate :*}] (parse-and-transform "-123..-45")))
     (let [parse-result (parse-and-transform "123..456")
           fn-validate  (grab :fn-validate (second parse-result))]
       (is (truthy? (fn-validate 234)))
       (is (falsey? (fn-validate 111)))
       (is (falsey? (fn-validate 999))))))
+
