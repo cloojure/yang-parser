@@ -306,6 +306,7 @@ digits                  = 1*digit
                                         ; Input is like:  [:range [:integer 123] [:integer 456]]
                                         (let [low  (-> args first second)
                                               high (-> args second second)]
+                                          (assert (<= low high))
                                           [:range {:low         low
                                                    :high        high
                                                    :fn-validate (fn [arg] (<= low arg high))}]))
@@ -319,6 +320,7 @@ digits                  = 1*digit
     (is (wild-match? {:low 123 :high 456 :fn-validate :*} (second (parse-and-transform "123..456"))))
     (is (wild-match? {:low 123 :high 456 :fn-validate :*} (second (parse-and-transform "123 .. 456"))))
     (is (wild-match? {:low 123 :high 456 :fn-validate :*} (second (parse-and-transform "  123 .. 456 "))))
+    (is (wild-match? {:low -123 :high -45 :fn-validate :*} (second (parse-and-transform "-123..-45"))))
     (let [parse-result (parse-and-transform "123..456")
           fn-validate  (grab :fn-validate (second parse-result))]
       (is (truthy? (fn-validate 234)))
