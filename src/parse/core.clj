@@ -11,7 +11,7 @@
     [tupelo.parse :as tp]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
-  ))
+    [tupelo.enlive :as te]))
 (t/refer-tupelo)
 
 (defn instaparse-failure? [arg] (instance? instaparse.gll.Failure arg))
@@ -27,7 +27,7 @@
 (defn leaf-schema->parser
   [schema]
   (try
-    (let [type      (get-leaf schema [:leaf :type :identifier]) ; eg "decimal64"
+    (let [type      (te/get-leaf schema [:leaf :type :identifier]) ; eg "decimal64"
           parser-fn (grab type parser-map)]
       parser-fn)
     (catch Exception e
@@ -39,7 +39,7 @@
   [leaf-schema leaf-val]
   (try
     (assert (= (grab :tag leaf-schema) :leaf))
-    (let [leaf-name-schema (keyword (get-leaf leaf-schema [:leaf :identifier]))
+    (let [leaf-name-schema (keyword (te/get-leaf leaf-schema [:leaf :identifier]))
           leaf-name-val    (grab :tag leaf-val)
           xx              (assert (= leaf-name-schema leaf-name-val))
           ; #todo does not yet verify any attrs;  what rules?
@@ -57,14 +57,14 @@
   (try
     (assert (= :rpc (grab :tag rpc-schema) (grab :tag rpc-msg)))
     (let [rpc-attrs       (grab :attrs rpc-msg)
-          rpc-tag-schema  (keyword (get-leaf rpc-schema [:rpc :identifier]))
-          rpc-value       (get-leaf rpc-msg [:rpc])
+          rpc-tag-schema  (keyword (te/get-leaf rpc-schema [:rpc :identifier]))
+          rpc-value       (te/get-leaf rpc-msg [:rpc])
           rpc-value-tag   (grab :tag rpc-value)
           rpc-value-attrs (grab :attrs rpc-value)
           xx              (assert (= rpc-tag-schema rpc-value-tag))
           ; #todo does not yet verify any attrs ;  what rules?
-          fn-args-schema  (grab :content (get-tree rpc-schema [:rpc :input]))
-          fn-args-value   (grab :content (get-tree rpc-msg [:rpc rpc-value-tag]))
+          fn-args-schema  (grab :content (te/get-tree rpc-schema [:rpc :input]))
+          fn-args-value   (grab :content (te/get-tree rpc-msg [:rpc rpc-value-tag]))
           parsed-args     (mapv validate-parse-leaf fn-args-schema fn-args-value)
           rpc-fn          (grab rpc-value-tag rpc-fn-map)
           rpc-fn-result   (apply rpc-fn parsed-args)

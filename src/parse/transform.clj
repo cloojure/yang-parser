@@ -7,10 +7,11 @@
     [instaparse.core :as insta]
     [schema.core :as s]
     [tupelo.core :as t]
+    [tupelo.enlive :as te]
     [tupelo.misc :as tm]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
-    ))
+  ))
 (t/refer-tupelo)
 
 (defn container? [tree] (= :container (grab :tag tree)))
@@ -58,16 +59,16 @@
 (defn tx-uses [ast]
   ; #todo require grouping at top level for now
   (let [ast-enlive  ast ; #todo move to caller
-        groupings            (find-tree ast-enlive [:module :grouping])
+        groupings            (te/find-tree ast-enlive [:module :grouping])
         groupings-subtree    (mapv #(grab :subtree %) groupings)
 
 
         groupings-map        (apply glue {}
                                (forv [grouping-subtree groupings-subtree]
-                                 (let [identifier     (get-leaf grouping-subtree [:grouping :identifier])
+                                 (let [identifier     (te/get-leaf grouping-subtree [:grouping :identifier])
                                        subtree-pruned (grouping-prune grouping-subtree)]
                                    {identifier subtree-pruned})))
-        uses-trees           (find-tree ast-enlive [:module :** :uses])
+        uses-trees           (te/find-tree ast-enlive [:module :** :uses])
         uses-replace-wrapper (fn [x]
                                (if (enlive-tree-node? x)
                                  (uses-replace groupings-map x)
