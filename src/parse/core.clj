@@ -75,19 +75,11 @@
                                       :content [rpc-fn-result]}]}]
       rpc-result)
     (catch Exception e
-      (throw (RuntimeException. (str "validate-parse-leaf: failed for rpc-schema=" rpc-schema \newline
+      (throw (RuntimeException. (str "validate-parse-rpc: failed for rpc-schema=" rpc-schema \newline
                                   "  rpc-msg=" rpc-msg \newline
                                   "  caused by=" (.getMessage e)))))))
 
 ;---------------------------------------------------------------------------------------------------
-(s/def chars-visible-no-dquote :- tsk/Set
-  "All visible (printing) ASCII chars except double-quote."
-  (set/difference ts/chars-visible #{\"}))
-
-(s/def chars-visible-no-squote :- tsk/Set
-  "All visible (printing) ASCII chars except double-quote."
-  (set/difference ts/chars-visible #{\'}))
-
 ; #todo #awt add schema stuff
 ; #todo replace tsk/List -> [Character]
 ; #todo replace txt -> charseq

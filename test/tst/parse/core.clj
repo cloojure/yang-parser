@@ -20,10 +20,6 @@
     ))
 (t/refer-tupelo)
 
-(dotest
-  (is= ts/chars-visible (set/union chars-visible-no-dquote #{\"}))
-  (is= ts/chars-visible (set/union chars-visible-no-squote #{\'}))
-  )
 
 (dotest
   (check 99
