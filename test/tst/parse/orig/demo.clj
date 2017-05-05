@@ -1,10 +1,8 @@
-(ns tst.parse.demo
+(ns tst.parse.orig.demo
   (:use parse.core
         parse.transform
         tupelo.test
-        clojure.test
-        tupelo.x-forest
-        )
+        clojure.test)
   (:require
     [clojure.data :as cd]
     [clojure.java.io :as io]
@@ -18,17 +16,15 @@
     [instaparse.core :as insta]
     [schema.core :as s]
     [tupelo.core :as t]
-    [tupelo.x-forest :as tf]
     [tupelo.gen :as tgen]
     [tupelo.misc :as tm]
     [tupelo.parse :as tp]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
-    [tupelo.enlive :as te])
+    )
   (:import [java.util.concurrent TimeoutException]
            [java.util List]))
 (t/refer-tupelo)
-
 
 ;*****************************************************************************
 (dotest
@@ -45,22 +41,17 @@ delim         = %x20            ; space or semicolon
 
         parser              (insta/parser abnf-src :input-format :abnf)
         parse-and-transform (fn [text]
-                              (let [result (te/hiccup->enlive
-                                             (insta/transform tx-map
-                                               (parser text)))]
+                              (let [result (insta/transform tx-map
+                                             (parser text))]
                                 (if (instaparse-failure? result)
                                   (throw (IllegalArgumentException. (str result)))
                                   result)))
         ]
+    (is= [:int 123] (parse-and-transform "123"))
     (throws? (parse-and-transform "123xyz"))
     (throws? (parse-and-transform " 123  "))
-    (with-forest (new-forest)
-      (is= (spyx-pretty (hid->tree (add-tree (parse-and-transform "123"))))
-        {:attrs {:tag :int}, :value [123]})
+    ))
 
-    )))
-
-(comment ;=============================================================================
 ;*****************************************************************************
 (def abnf-base "
 <text-char>                     = vis-char / char-whitespace
@@ -883,5 +874,3 @@ vis-char                = %x21-7E ; visible (printing) characters
       [:tokens [:token [:identifier "girl.2"]]])
     ))
 
-
-)
