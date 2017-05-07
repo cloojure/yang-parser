@@ -18,8 +18,6 @@
     [instaparse.core :as insta]
     [schema.core :as s]
     [tupelo.core :as t]
-    [tupelo.x-forest :as tf]
-    [tupelo.gen :as tgen]
     [tupelo.misc :as tm]
     [tupelo.parse :as tp]
     [tupelo.schema :as tsk]
@@ -45,7 +43,7 @@ delim         = %x20            ; space or semicolon
 
         parser              (insta/parser abnf-src :input-format :abnf)
         parse-and-transform (fn [text]
-                              (let [result (te/hiccup->enlive
+                              (let [result (hiccup->enlive
                                              (insta/transform tx-map
                                                (parser text)))]
                                 (if (instaparse-failure? result)
@@ -55,7 +53,7 @@ delim         = %x20            ; space or semicolon
     (throws? (parse-and-transform "123xyz"))
     (throws? (parse-and-transform " 123  "))
     (with-forest (new-forest)
-      (is= (spyx-pretty (hid->tree (add-tree (parse-and-transform "123"))))
+      (is= (hid->tree (add-tree (parse-and-transform "123")))
         {:attrs {:tag :int}, :value [123]})
 
     )))
@@ -100,28 +98,28 @@ vis-char                = %x21-7E ; visible (printing) characters
                                 ast-tx))
         ]
     (with-forest (new-forest)
-      (is= (hid->tree (tf/add-tree-hiccup (parse-and-transform "girl")))
+      (is= (hid->tree (add-tree-hiccup (parse-and-transform "girl")))
         {:attrs {:tag :tokens},
          :kids  [{:attrs {:tag :token},
                   :kids  [{:attrs {:tag :identifier}, :value ["girl"]}]}]})
 
-      (is= (hid->tree (tf/add-tree-hiccup (parse-and-transform (ts/quotes->double "'abc'"))))
+      (is= (hid->tree (add-tree-hiccup (parse-and-transform (ts/quotes->double "'abc'"))))
         {:attrs {:tag :tokens},
          :kids  [{:attrs {:tag :token},
                   :kids  [{:attrs {:tag :string}, :value ["abc"]}]}]})
 
-      (is= (hid->tree (tf/add-tree-hiccup (parse-and-transform +123)))
+      (is= (hid->tree (add-tree-hiccup (parse-and-transform +123)))
         {:attrs {:tag :tokens},
          :kids  [{:attrs {:tag :token},
                   :kids  [{:attrs {:tag :integer}, :value [123]}]}]})
 
-      (is= (hid->tree (tf/add-tree-hiccup (parse-and-transform -123)))
+      (is= (hid->tree (add-tree-hiccup (parse-and-transform -123)))
         {:attrs {:tag :tokens},
          :kids  [{:attrs {:tag :token},
                   :kids  [{:attrs {:tag :integer}, :value [-123]}]}]})
 
       ; All together now!
-      (is= (hid->tree (tf/add-tree-hiccup
+      (is= (hid->tree (add-tree-hiccup
                         (parse-and-transform
                           (ts/quotes->double "do-re-mi abc 1 23 baby 'you and me girl'"))))
         {:attrs {:tag :tokens},
@@ -179,7 +177,7 @@ vis-char                = %x21-7E ; visible (printing) characters
                                 ast-tx))
         ]
     (with-forest (new-forest)
-      (is= (hid->tree (tf/add-tree-hiccup (parse-and-transform "girl.2")))
+      (is= (hid->tree (add-tree-hiccup (parse-and-transform "girl.2")))
         {:attrs {:tag :tokens},
          :kids  [{:attrs {:tag :token},
                   :kids  [{:attrs {:tag :identifier}, :value ["girl.2"]}]}]}))))

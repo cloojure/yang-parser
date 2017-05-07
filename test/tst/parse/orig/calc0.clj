@@ -1,6 +1,6 @@
-(ns tst.parse.calc0
-  (:use parse.core
-        parse.transform
+(ns tst.parse.orig.calc0
+  (:use parse.orig.core
+        parse.orig.transform
         tupelo.test
         clojure.test)
   (:require

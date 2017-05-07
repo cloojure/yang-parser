@@ -1,5 +1,5 @@
-(ns tst.parse.gen
-  (:use parse.gen
+(ns tst.parse.orig.gen
+  (:use parse.orig.gen
         tupelo.test
         clojure.test )
   (:require
