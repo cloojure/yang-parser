@@ -85,7 +85,7 @@
                           [:result 5]]
         rpc-call-enlive  (hiccup->enlive rpc-call)
         rpc-reply-enlive (hiccup->enlive rpc-reply)
-        add-call         (grab :subtree (only (te/find-tree rpc-call-enlive [:rpc :add])))
+        add-call         (grab :subtree (only (spyx (te/find-tree rpc-call-enlive [:rpc :add]))))
         add-params       (grab :content add-call) ]
     (is= rpc-call-enlive
       {:tag   :rpc,

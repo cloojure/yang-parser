@@ -87,10 +87,8 @@ vis-char                = %x21-7E ; visible (printing) characters
         parser              (create-abnf-parser abnf-src)
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser src-text)
-                                    ast-tx    (insta/transform tx-map ast-parse)
-                                    ]
-                                ast-tx))
-        ]
+                                    ast-tx    (insta/transform tx-map ast-parse) ]
+                                ast-tx)) ]
     (with-forest (new-forest)
       (is= (hid->tree (add-tree-hiccup (parse-and-transform "girl")))
         {:attrs {:tag :tokens},
