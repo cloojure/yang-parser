@@ -31,32 +31,28 @@
 ;*****************************************************************************
 (dotest
   (let [abnf-src            "
-int           = digits          ; ex '123'
-digits        = 1*digit         ; 1 or more digits
-digit         = %x30-39         ; 0-9
-delim         = %x20            ; space or semicolon
+int           = <ws> digits <ws>  ; ex '123'
+digits        = 1*digit           ; 1 or more digits
+<digit>       = %x30-39           ; 0-9
+<ws>          = 1*' '             ; space: 1 or more
 "
         tx-map              {:int    (fn fn-int [arg] [:int (Integer/parseInt arg)])
-                             :digit  no-label
                              :digits str
                              }
 
-        parser              (insta/parser abnf-src :input-format :abnf)
+        parser              (create-abnf-parser abnf-src)
         parse-and-transform (fn [text]
-                              (let [result (hiccup->enlive
-                                             (insta/transform tx-map
-                                               (parser text)))]
-                                (if (instaparse-failure? result)
-                                  (throw (IllegalArgumentException. (str result)))
-                                  result)))
+                              (insta/transform tx-map
+                                (parser text)))
         ]
     (throws? (parse-and-transform "123xyz"))
-    (throws? (parse-and-transform " 123  "))
     (with-forest (new-forest)
-      (is= (hid->tree (add-tree (parse-and-transform "123")))
-        {:attrs {:tag :int}, :value [123]})
+      (is=
+        (hid->tree (add-tree-hiccup (parse-and-transform "123")))
+        (hid->tree (add-tree-hiccup (parse-and-transform "  123 ")))
+        {:attrs {:tag :int}, :value [123]}))))
 
-    )))
+(comment
 
 ; If we use the InstaParse built-in ability to perform simple "pre-transforms" on the AST, we can greatly
 ; simplify out manual transformations.  Compare how simple tx-map is below with the previous example. Also,
@@ -83,13 +79,11 @@ quote-single            = %x27
 vis-char                = %x21-7E ; visible (printing) characters
 <vis-char-no-dquote>    = %x21    / %x23-7E ; all visible chars without quote-double
 "
-        tx-map              {
-                             :digits     (fn fn-digits [& args] (str/join args))
-                             :sign       no-label
+        tx-map              {:digits     (fn fn-digits [& args] (str/join args))
                              :integer    (fn fn-integer [& args] [:integer (Integer/parseInt (str/join args))])
                              :identifier (fn fn-identifier [& args] [:identifier (str/join args)])
                              :string     (fn fn-string [& args] [:string (str/join args)])
-                             }
+                            }
         parser              (create-abnf-parser abnf-src)
         parse-and-transform (fn [src-text]
                               (let [ast-parse (parser src-text)
@@ -183,3 +177,4 @@ vis-char                = %x21-7E ; visible (printing) characters
                   :kids  [{:attrs {:tag :identifier}, :value ["girl.2"]}]}]}))))
 
 
+)
