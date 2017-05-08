@@ -21,6 +21,7 @@
     [tupelo.parse :as tp]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
+    [tupelo.x-forest :as tf]
     [tupelo.enlive :as te])
   (:import [java.util.concurrent TimeoutException]
            [java.util List]))
@@ -83,8 +84,8 @@
                            [:y 3]]]
         rpc-reply        [:rpc-reply {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
                           [:result 5]]
-        rpc-call-enlive  (hiccup->enlive rpc-call)
-        rpc-reply-enlive (hiccup->enlive rpc-reply)
+        rpc-call-enlive  (tf/hiccup->enlive rpc-call)
+        rpc-reply-enlive (tf/hiccup->enlive rpc-reply)
         add-call         (grab :subtree (only (te/find-tree rpc-call-enlive [:rpc :add])))
         add-params       (grab :content add-call) ]
     (is= rpc-call-enlive
@@ -114,12 +115,12 @@
 
 ;-----------------------------------------------------------------------------
 
-(def leaf-schema-1 (hiccup->enlive [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]))
-(def leaf-schema-2 (hiccup->enlive [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]))
+(def leaf-schema-1 (tf/hiccup->enlive [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]))
+(def leaf-schema-2 (tf/hiccup->enlive [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]))
 (def leaf-val-1 {:tag :x, :attrs {}, :content ["2"]})
 (def leaf-val-2 {:tag :y, :attrs {}, :content ["3"]})
 (def rpc-schema
-  (hiccup->enlive [:rpc
+  (tf/hiccup->enlive [:rpc
                    [:identifier "add"]
                    [:description [:string "Add 2 numbers"]]
                    [:input
@@ -128,14 +129,14 @@
                    [:output
                     [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]))
 (def rpc-input-val
-  (hiccup->enlive [:rpc {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+  (tf/hiccup->enlive [:rpc {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
                    [:add {:xmlns "my-own-ns/v1"}
                     [:x "2"]
                     [:y "3"]]]))
 (dotest
   (is= 2.0 (validate-parse-leaf leaf-schema-1 leaf-val-1))
   (is= 3.0 (validate-parse-leaf leaf-schema-2 leaf-val-2))
-  (let [rpc-result (enlive->hiccup (validate-parse-rpc rpc-schema rpc-input-val))]
+  (let [rpc-result (tf/enlive->hiccup (validate-parse-rpc rpc-schema rpc-input-val))]
     (is= rpc-result
       [:rpc-reply
        {:message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
@@ -143,18 +144,18 @@
 
 ;-----------------------------------------------------------------------------
 (dotest
-  (is= (container-with-uses? (hiccup->enlive
+  (is= (container-with-uses? (tf/hiccup->enlive
                                [:container
                                 [:identifier "result"]
                                 [:uses [:identifier "complex-grp"]]] )))
-  (is= (container-with-uses? (hiccup->enlive
+  (is= (container-with-uses? (tf/hiccup->enlive
                                [:container
                                 [:identifier "result"]
                                 [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]] )))
 
   (is= (uses-replace
-         {"complex-grp" (hiccup->enlive [:stuff [:a 1] [:b 2]])}
-         (hiccup->enlive
+         {"complex-grp" (tf/hiccup->enlive [:stuff [:a 1] [:b 2]])}
+         (tf/hiccup->enlive
            [:container
             [:identifier "result"]
             [:uses [:identifier "complex-grp"]]]))
@@ -169,8 +170,8 @@
         yang-src   (slurp (io/resource "calc3.yang"))
         yang-tree  (yp yang-src)
         yang-ast-1 (yang-transform yang-tree)
-        yang-ast-2 (tx-uses (hiccup->enlive yang-ast-1))
-        yang-ast-2-hiccup (enlive->hiccup yang-ast-2)
+        yang-ast-2 (tx-uses (tf/hiccup->enlive yang-ast-1))
+        yang-ast-2-hiccup (tf/enlive->hiccup yang-ast-2)
         ]
     ;(spyx-pretty yang-ast-2-hiccup)
     (is= yang-ast-2-hiccup
@@ -235,7 +236,7 @@
                                    yang-src      (slurp (io/resource filename))
                                    yang-ast-0    (yp yang-src)
                                    yang-ast-1    (yang-transform yang-ast-0)
-                                   yang-ast-1-i  (resolve-imports (hiccup->enlive yang-ast-1))
+                                   yang-ast-1-i  (resolve-imports (tf/hiccup->enlive yang-ast-1))
                                    imp-typedefs  (forv [find-result (te/find-tree yang-ast-1-i [:module :typedef])]
                                                    (grab :subtree find-result))
                                    ]
@@ -250,9 +251,9 @@
         yang-ast-0        (yp yang-src)
         yang-ast-1        (yang-transform yang-ast-0)
         yang-ast-1-i      (resolve-imports
-                            (hiccup->enlive yang-ast-1))
+                            (tf/hiccup->enlive yang-ast-1))
         yang-ast-2        (tx-uses yang-ast-1-i)
-        yang-ast-2-hiccup (enlive->hiccup yang-ast-2) ]
+        yang-ast-2-hiccup (tf/enlive->hiccup yang-ast-2) ]
     (is= yang-ast-2-hiccup
       [:module
        [:typedef

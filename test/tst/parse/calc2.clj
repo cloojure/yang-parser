@@ -16,12 +16,14 @@
     [instaparse.core :as insta]
     [schema.core :as s]
     [tupelo.core :as t]
+    [tupelo.enlive :as te]
     [tupelo.gen :as tgen]
     [tupelo.misc :as tm]
     [tupelo.parse :as tp]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
-    [tupelo.enlive :as te])
+    [tupelo.x-forest :as tf]
+    )
   (:import [java.util.concurrent TimeoutException]
            [java.util List]))
 (t/refer-tupelo)
@@ -30,7 +32,7 @@
 (def ^:dynamic *rpc-delay-simulated-ms* 30)
 
 (def rpc-schema
-  (hiccup->enlive [:rpc
+  (tf/hiccup->enlive [:rpc
                    [:identifier "add"]
                    [:description [:string "Add 2 numbers"]]
                    [:input
@@ -67,7 +69,7 @@
 
 (defn add-2 [x y]
   (let [result-promise (rpc-call-2
-                         (hiccup->enlive
+                         (tf/hiccup->enlive
                            [:rpc
                             [:add {:xmlns "my-own-ns/v1"}
                              [:x (str x)]

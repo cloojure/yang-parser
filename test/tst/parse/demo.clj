@@ -50,7 +50,7 @@ digits        = 1*digit           ; 1 or more digits
       (is=
         (hid->tree (add-tree-hiccup (parse-and-transform "123")))
         (hid->tree (add-tree-hiccup (parse-and-transform "  123 ")))
-        {:attrs {:tag :int}, :value [123]}))))
+        {:attrs {:tag :int}, :content [123]}))))
 
 (comment
 

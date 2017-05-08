@@ -21,6 +21,7 @@
     [tupelo.parse :as tp]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
+    [tupelo.x-forest :as tf]
     [tupelo.enlive :as te])
   (:import [java.util.concurrent TimeoutException]
            [java.util List]))
@@ -30,7 +31,7 @@
 (def ^:dynamic *rpc-delay-simulated-ms* 30)
 
 (def rpc-schema
-  (hiccup->enlive [:rpc
+  (tf/hiccup->enlive [:rpc
                    [:identifier "add"]
                    [:description [:string "Add 2 numbers"]]
                    [:input
@@ -67,7 +68,7 @@
 
 (defn add-2 [x y]
   (let [result-promise (rpc-call-2
-                         (hiccup->enlive
+                         (tf/hiccup->enlive
                            [:rpc
                             [:add {:xmlns "my-own-ns/v1"}
                              [:x (str x)]

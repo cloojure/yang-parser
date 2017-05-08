@@ -21,6 +21,7 @@
     [tupelo.parse :as tp]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
+    [tupelo.x-forest :as tf]
     [tupelo.enlive :as te])
   (:import [java.util.concurrent TimeoutException]
            [java.util List]))
@@ -42,7 +43,7 @@
     result-promise))
 
 (defn add-1 [x y]
-  (let [result-promise (rpc-call-1 (hiccup->enlive [:add x y]))
+  (let [result-promise (rpc-call-1 (tf/hiccup->enlive [:add x y]))
         rpc-result     (deref result-promise *rpc-timeout-ms* :timeout-failure)]
     (when (= :timeout-failure rpc-result)
       (throw (TimeoutException. (format "Timeout Exceed=%s  add: %s %s; " *rpc-timeout-ms* x y))))
