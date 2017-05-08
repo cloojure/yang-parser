@@ -52,8 +52,6 @@ digits        = 1*digit           ; 1 or more digits
         (hid->tree (add-tree-hiccup (parse-and-transform "  123 ")))
         {:attrs {:tag :int}, :content [123]}))))
 
-(comment
-
 ; If we use the InstaParse built-in ability to perform simple "pre-transforms" on the AST, we can greatly
 ; simplify out manual transformations.  Compare how simple tx-map is below with the previous example. Also,
 ; notice that we don't need the (prune-whitespace-nodes ...) function anyplace either.
@@ -90,41 +88,38 @@ vis-char                = %x21-7E ; visible (printing) characters
                                     ast-tx    (insta/transform tx-map ast-parse) ]
                                 ast-tx)) ]
     (with-forest (new-forest)
-      (is= (hid->tree (add-tree-hiccup (parse-and-transform "girl")))
-        {:attrs {:tag :tokens},
-         :kids  [{:attrs {:tag :token},
-                  :kids  [{:attrs {:tag :identifier}, :value ["girl"]}]}]})
+      (is= (hid->bush (add-tree-hiccup (parse-and-transform "girl")))
+        [{:tag :tokens}
+         [{:tag :token}
+          [{:tag :identifier} "girl"]]] )
 
-      (is= (hid->tree (add-tree-hiccup (parse-and-transform (ts/quotes->double "'abc'"))))
-        {:attrs {:tag :tokens},
-         :kids  [{:attrs {:tag :token},
-                  :kids  [{:attrs {:tag :string}, :value ["abc"]}]}]})
+      (is= (hid->bush (add-tree-hiccup (parse-and-transform (ts/quotes->double "'abc'"))))
+        [{:tag :tokens}
+         [{:tag :token}
+          [{:tag :string} "abc"]]] )
 
-      (is= (hid->tree (add-tree-hiccup (parse-and-transform +123)))
-        {:attrs {:tag :tokens},
-         :kids  [{:attrs {:tag :token},
-                  :kids  [{:attrs {:tag :integer}, :value [123]}]}]})
+      (is= (hid->bush (add-tree-hiccup (parse-and-transform +123)))
+        [{:tag :tokens}
+         [{:tag :token}
+          [{:tag :integer} 123]]])
 
-      (is= (hid->tree (add-tree-hiccup (parse-and-transform -123)))
-        {:attrs {:tag :tokens},
-         :kids  [{:attrs {:tag :token},
-                  :kids  [{:attrs {:tag :integer}, :value [-123]}]}]})
+      (is= (hid->bush (add-tree-hiccup (parse-and-transform -123)))
+        [{:tag :tokens}
+         [{:tag :token}
+          [{:tag :integer} -123]]])
 
       ; All together now!
-      (is= (hid->tree (add-tree-hiccup
+      (is= (hid->bush (add-tree-hiccup
                         (parse-and-transform
                           (ts/quotes->double "do-re-mi abc 1 23 baby 'you and me girl'"))))
-        {:attrs {:tag :tokens},
-         :kids  [{:attrs {:tag :token},
-                  :kids  [{:attrs {:tag :identifier}, :value ["do-re-mi"]}]}
-                 {:attrs {:tag :token},
-                  :kids  [{:attrs {:tag :identifier}, :value ["abc"]}]}
-                 {:attrs {:tag :token}, :kids [{:attrs {:tag :integer}, :value [1]}]}
-                 {:attrs {:tag :token}, :kids [{:attrs {:tag :integer}, :value [23]}]}
-                 {:attrs {:tag :token},
-                  :kids  [{:attrs {:tag :identifier}, :value ["baby"]}]}
-                 {:attrs {:tag :token},
-                  :kids  [{:attrs {:tag :string}, :value ["you and me girl"]}]}]}))))
+        [{:tag :tokens}
+         [{:tag :token} [{:tag :identifier} "do-re-mi"]]
+         [{:tag :token} [{:tag :identifier} "abc"]]
+         [{:tag :token} [{:tag :integer} 1]]
+         [{:tag :token} [{:tag :integer} 23]]
+         [{:tag :token} [{:tag :identifier} "baby"]]
+         [{:tag :token} [{:tag :string} "you and me girl"]]]))))
+
 
 ;-----------------------------------------------------------------------------
 (dotest
@@ -166,13 +161,11 @@ vis-char                = %x21-7E ; visible (printing) characters
                                                 (throw (IllegalArgumentException. (str ast-tx)))
                                                 ast-tx)
                                     ]
-                                ast-tx))
-        ]
+                                ast-tx)) ]
     (with-forest (new-forest)
-      (is= (hid->tree (add-tree-hiccup (parse-and-transform "girl.2")))
-        {:attrs {:tag :tokens},
-         :kids  [{:attrs {:tag :token},
-                  :kids  [{:attrs {:tag :identifier}, :value ["girl.2"]}]}]}))))
+      (is= (hid->bush (add-tree-hiccup (parse-and-transform "girl.2")))
+        [{:tag :tokens}
+         [{:tag :token}
+          [{:tag :identifier} "girl.2"]]]))))
 
 
-)
