@@ -57,22 +57,18 @@
           [:output
            [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]])
 
-      (is= (tf/format-solns-bush (tf/find-paths yang-hid [:module :rpc :identifier]))
-        #{[{:tag :module}
-           [{:tag :rpc} [{:tag :identifier} "add"]]]})
-
-      (is= (tf/format-solns-bush (tf/find-paths yang-hid [:module :rpc :identifier]))
+      (is= (tf/format-solns (tf/find-paths yang-hid [:module :rpc :identifier]))
         #{[{:tag :module}
            [{:tag :rpc}
-            [{:tag :identifier} "add"]]]} )
+            [{:tag :identifier} "add"]]]})
 
-      (is= (tf/format-solns-bush (tf/find-paths yang-hid [:module :revision]))
+      (is= (tf/format-solns (tf/find-paths yang-hid [:module :revision]))
         #{[{:tag :module}
            [{:tag :revision}
             [{:tag :iso-date} "2017-04-01"]
             [{:tag :description} [{:tag :string} "Prototype 1.0"]]]]})
 
-      (is= (tf/format-solns-bush (tf/find-paths yang-hid [:module :rpc :input]))
+      (is= (tf/format-solns (tf/find-paths yang-hid [:module :rpc :input]))
         #{[{:tag :module}
            [{:tag :rpc}
             [{:tag :input}
@@ -83,7 +79,7 @@
               [{:tag :identifier} "y"]
               [{:tag :type} [{:tag :identifier} "decimal64"]]]]]]})
 
-      (is= (tf/format-solns-bush (tf/find-paths yang-hid [:module :rpc :output]))
+      (is= (tf/format-solns (tf/find-paths yang-hid [:module :rpc :output]))
         #{[{:tag :module}
            [{:tag :rpc}
             [{:tag :output}
@@ -91,19 +87,54 @@
               [{:tag :identifier} "result"]
               [{:tag :type} [{:tag :identifier} "decimal64"]]]]]]})
 
-      (is= (tf/format-solns-bush (tf/find-paths yang-hid [:module :rpc :input :leaf]))
-        #{[{:tag :module}
-           [{:tag :rpc}
-            [{:tag :input}
-             [{:tag :leaf}
-              [{:tag :identifier} "x"]
-              [{:tag :type} [{:tag :identifier} "decimal64"]]]]]]
-          [{:tag :module}
-           [{:tag :rpc}
-            [{:tag :input}
-             [{:tag :leaf}
-              [{:tag :identifier} "y"]
-              [{:tag :type} [{:tag :identifier} "decimal64"]]]]]]}))))
+      (let [solns (tf/find-paths yang-hid [:module :rpc :input :leaf])
+            soln-elems (mapv last solns)]
+        (is= (tf/format-solns solns)
+          #{[{:tag :module}
+             [{:tag :rpc}
+              [{:tag :input}
+               [{:tag :leaf}
+                [{:tag :identifier} "x"]
+                [{:tag :type} [{:tag :identifier} "decimal64"]]]]]]
+            [{:tag :module}
+             [{:tag :rpc}
+              [{:tag :input}
+               [{:tag :leaf}
+                [{:tag :identifier} "y"]
+                [{:tag :type} [{:tag :identifier} "decimal64"]]]]]]})
+        (is= (set (forv [elem soln-elems]
+                    (tf/hid->tree elem)))
+          (set [{:attrs {:tag :leaf},
+                 :kids  [{:attrs {:tag :identifier}, :content ["y"]}
+                         {:attrs {:tag :type},
+                          :kids  [{:attrs {:tag :identifier}, :content ["decimal64"]}]}]}
+                {:attrs {:tag :leaf},
+                 :kids  [{:attrs {:tag :identifier}, :content ["x"]}
+                         {:attrs {:tag :type},
+                          :kids  [{:attrs {:tag :identifier}, :content ["decimal64"]}]}]}])) )
+      (let [soln-hid (last (only (tf/find-paths yang-hid [:module :rpc :input])))]
+        (is= (tf/hid->bush soln-hid)
+          [{:tag :input}
+           [{:tag :leaf}
+            [{:tag :identifier} "x"]
+            [{:tag :type}
+             [{:tag :identifier} "decimal64"]]]
+           [{:tag :leaf}
+            [{:tag :identifier} "y"]
+            [{:tag :type}
+             [{:tag :identifier} "decimal64"]]]])
+        (is= (tf/hid->hiccup soln-hid)
+          [:input
+           [:leaf
+            [:identifier "x"]
+            [:type
+             [:identifier "decimal64"]]]
+           [:leaf
+            [:identifier "y"]
+            [:type
+             [:identifier "decimal64"]]]])
+        )
+      )))
 
 (dotest
   (let [rpc-call         [:rpc {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
