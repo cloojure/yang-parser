@@ -16,65 +16,71 @@
     [instaparse.core :as insta]
     [schema.core :as s]
     [tupelo.core :as t]
+    [tupelo.enlive :as te]
     [tupelo.gen :as tgen]
     [tupelo.misc :as tm]
     [tupelo.parse :as tp]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
-    [tupelo.enlive :as te])
+    [tupelo.x-forest :as tf] )
   (:import [java.util.concurrent TimeoutException]
            [java.util List]))
 (t/refer-tupelo)
 
 (dotest
-  (let [abnf-src  (io/resource "yang3.abnf")
-        yp        (create-abnf-parser abnf-src)
-        yang-src  (slurp (io/resource "calc.yang"))
+  (tf/with-forest (tf/new-forest)
+    (let [abnf-src        (io/resource "yang3.abnf")
+          yp              (create-abnf-parser abnf-src)
+          yang-src        (slurp (io/resource "calc.yang"))
 
-        yang-tree (yp yang-src)
-        yang-ast  (yang-transform yang-tree) ]
-    (is= yang-ast
-      [:module
-       [:identifier "calculator"]
-       [:namespace [:string "http://brocade.com/ns/calculator"]]
-       [:contact [:string "Alan Thompson <athomps@brocade.com>"]]
-       [:description [:string "YANG spec for a simple RPN calculator"]]
-       [:revision
-        [:iso-date "2017-04-01"]
-        [:description [:string "Prototype 1.0"]]]
-       [:rpc
-        [:identifier "add"]
-        [:description [:string "Add 2 numbers"]]
-        [:input
-         [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
-         [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
-        [:output
-         [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]] )
+          yang-tree       (yp yang-src)
+          yang-ast-hiccup (yang-transform yang-tree)
+          yang-hid        (tf/add-tree-hiccup yang-ast-hiccup)
+          yang-tree       (tf/hid->tree yang-hid)
+          yang-ast-h2     (tf/tree->hiccup yang-tree)
+          ]
+      (is= yang-ast-hiccup yang-ast-h2
+        [:module
+         [:identifier "calculator"]
+         [:namespace [:string "http://brocade.com/ns/calculator"]]
+         [:contact [:string "Alan Thompson <athomps@brocade.com>"]]
+         [:description [:string "YANG spec for a simple RPN calculator"]]
+         [:revision
+          [:iso-date "2017-04-01"]
+          [:description [:string "Prototype 1.0"]]]
+         [:rpc
+          [:identifier "add"]
+          [:description [:string "Add 2 numbers"]]
+          [:input
+           [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+           [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
+          [:output
+           [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]])
 
-    (is= (te/find-tree-hiccup yang-ast [:module :rpc :identifier])
-      #{ {:parent-path [:module :rpc], :subtree [:identifier "add"]} } )
-    (is= (te/find-tree-hiccup yang-ast [:module :revision])
-      #{{:parent-path [:module]
-         :subtree     [:revision
-                       [:iso-date "2017-04-01"]
-                       [:description [:string "Prototype 1.0"]]]}})
-    (is= (te/find-tree-hiccup yang-ast [:module :rpc :input])
-      #{ {:parent-path [:module :rpc],
-          :subtree     [:input
-                        [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
-                        [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]}})
-    (is= (te/find-tree-hiccup yang-ast [:module :rpc :output])
-      #{{:parent-path [:module :rpc],
-         :subtree     [:output
-                       [:leaf
-                        [:identifier "result"]
-                        [:type [:identifier "decimal64"]]]]}} )
-    (is= (te/find-tree-hiccup yang-ast [:module :rpc :input :leaf])
-      #{{:parent-path [:module :rpc :input],
-         :subtree [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]}
-        {:parent-path [:module :rpc :input],
-         :subtree [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]} } )
-  ))
+      (is= (te/find-tree-hiccup yang-ast-hiccup [:module :rpc :identifier])
+        #{{:parent-path [:module :rpc], :subtree [:identifier "add"]}})
+      (is= (te/find-tree-hiccup yang-ast-hiccup [:module :revision])
+        #{{:parent-path [:module]
+           :subtree     [:revision
+                         [:iso-date "2017-04-01"]
+                         [:description [:string "Prototype 1.0"]]]}})
+      (is= (te/find-tree-hiccup yang-ast-hiccup [:module :rpc :input])
+        #{{:parent-path [:module :rpc],
+           :subtree     [:input
+                         [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+                         [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]}})
+      (is= (te/find-tree-hiccup yang-ast-hiccup [:module :rpc :output])
+        #{{:parent-path [:module :rpc],
+           :subtree     [:output
+                         [:leaf
+                          [:identifier "result"]
+                          [:type [:identifier "decimal64"]]]]}})
+      (is= (te/find-tree-hiccup yang-ast-hiccup [:module :rpc :input :leaf])
+        #{{:parent-path [:module :rpc :input],
+           :subtree     [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]}
+          {:parent-path [:module :rpc :input],
+           :subtree     [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]}})
+      )))
 
 (dotest
   (let [rpc-call         [:rpc {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
@@ -85,7 +91,7 @@
                           [:result 5]]
         rpc-call-enlive  (hiccup->enlive rpc-call)
         rpc-reply-enlive (hiccup->enlive rpc-reply)
-        add-call         (grab :subtree (only (spyx (te/find-tree rpc-call-enlive [:rpc :add]))))
+        add-call         (grab :subtree (only (te/find-tree rpc-call-enlive [:rpc :add])))
         add-params       (grab :content add-call) ]
     (is= rpc-call-enlive
       {:tag   :rpc,
