@@ -22,7 +22,8 @@
     [tupelo.parse :as tp]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
-    [tupelo.x-forest :as tf] )
+    [tupelo.x-forest :as tf]
+    [tupelo.impl :as i])
   (:import [java.util.concurrent TimeoutException]
            [java.util List]))
 (t/refer-tupelo)
@@ -388,3 +389,55 @@ digits                  = 1*digit
       (is (falsey? (fn-validate 111)))
       (is (falsey? (fn-validate 999))))))
 
+;-----------------------------------------------------------------------------
+
+(dotest
+  (let [iiinc-txt "(fn fn-iiinc [x] (+ 3 x))"
+        iiinc-str-fn (eval (read-string iiinc-txt)) ]
+    (is= 5 (iiinc-str-fn 2)))
+
+  (let [iiinc-ast '(fn fn-iiinc [x] (+ 3 x))
+        iiinc-ast-fn (eval iiinc-ast) ]
+    (is= 5 (iiinc-ast-fn 2)))
+
+  (let [state (atom {})
+        yang-forest
+          (tf/with-forest (tf/new-forest)
+            (let [abnf-src        (io/resource "yang3.abnf")
+                  yp              (create-abnf-parser abnf-src)
+                  yang-src        (slurp (io/resource "calc.yang"))
+
+                  yang-tree       (yp yang-src)
+                  yang-ast-hiccup (yang-transform yang-tree)
+                  yang-hid        (tf/add-tree-hiccup yang-ast-hiccup)
+                  yang-tree       (tf/hid->tree yang-hid)
+                  yang-ast-h2     (tf/tree->hiccup yang-tree)
+                  ]
+              (reset! state (vals->map yang-hid))
+              (is= yang-ast-hiccup yang-ast-h2
+                [:module
+                 [:identifier "calculator"]
+                 [:namespace [:string "http://brocade.com/ns/calculator"]]
+                 [:contact [:string "Alan Thompson <athomps@brocade.com>"]]
+                 [:description [:string "YANG spec for a simple RPN calculator"]]
+                 [:revision
+                  [:iso-date "2017-04-01"]
+                  [:description [:string "Prototype 1.0"]]]
+                 [:rpc
+                  [:identifier "add"]
+                  [:description [:string "Add 2 numbers"]]
+                  [:input
+                   [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+                   [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
+                  [:output
+                   [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]])
+
+              (is= (tf/format-solns (tf/find-paths yang-hid [:module :rpc :identifier]))
+                #{[{:tag :module}
+                   [{:tag :rpc}
+                    [{:tag :identifier} "add"]]]}) ))]
+    (tf/with-forest yang-forest
+      (with-map-vals @state [yang-hid]
+        (leaf-type-ident yang-hid)))
+
+  ))

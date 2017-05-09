@@ -11,7 +11,7 @@
     [tupelo.misc :as tm]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
-  ))
+    [tupelo.x-forest :as tf]))
 (t/refer-tupelo)
 
 (defn container? [tree] (= :container (grab :tag tree)))
@@ -136,3 +136,27 @@
      :leaf           (fn fn-leaf [& args] (t/prepend :leaf args))
      } parse-tree))
 
+
+(s/defn leaf-type->attrs
+  [leaf-hid :- tf/HID]
+  (let [
+        type-hid (last (only (tf/find-paths leaf-hid [:leaf :type])))
+            type-tree (tf/hid->tree type-hid)
+        ]
+    )
+  )
+
+(s/defn leaf-type-ident
+  "Wihtin a [:leaf ...] node, convert [:type [:identifier 'decimal64']] ->
+    {:type :decimal64} "
+  [root-hid  :- tf/HID]
+  (tf/validate-hid root-hid)
+  (let [
+        rpc-leaf-paths (tf/find-paths root-hid [:module :rpc :* :leaf])
+        rpc-leaf-hids (mapv last rpc-leaf-paths)
+  ]
+    ;(spyx-pretty (mapv tf/hid->tree rpc-leaf-hids))
+    ;(mapv leaf-type->attrs rpc-leaf-hids)
+
+    )
+  )
