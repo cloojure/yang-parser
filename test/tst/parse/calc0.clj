@@ -438,6 +438,9 @@ digits                  = 1*digit
                     [{:tag :identifier} "add"]]]}) ))]
     (tf/with-forest yang-forest
       (with-map-vals @state [yang-hid]
-        (leaf-type-ident yang-hid)))
+        (spy-let [rpc-hid (tf/find-hid yang-hid [:module :rpc])]
+          (tx-rpc rpc-hid)
+          (spyx-pretty (tf/hid->bush rpc-hid)))
+        ))
 
   ))

@@ -137,26 +137,45 @@
      } parse-tree))
 
 
+(s/defn leaf-name->attrs
+  [leaf-hid :- tf/HID]
+  (let [
+        name-leaf  (tf/find-leaf leaf-hid [:leaf :identifier] :*)
+        name-kw    (keyword (only (grab :content name-leaf)))
+        name-attrs {:name name-kw} ]
+    (tf/merge-attrs leaf-hid name-attrs)))
+
 (s/defn leaf-type->attrs
   [leaf-hid :- tf/HID]
   (let [
-        type-hid (last (only (tf/find-paths leaf-hid [:leaf :type])))
-            type-tree (tf/hid->tree type-hid)
-        ]
-    )
-  )
+        type-leaf  (tf/find-leaf leaf-hid [:leaf :type :identifier] :*)
+        type-kw    (keyword (only (grab :content type-leaf)))
+        type-attrs {:type type-kw} ]
+    (tf/merge-attrs leaf-hid type-attrs)))
 
-(s/defn leaf-type-ident
+(s/defn tx-leaf-type-ident
   "Wihtin a [:leaf ...] node, convert [:type [:identifier 'decimal64']] ->
     {:type :decimal64} "
-  [root-hid  :- tf/HID]
-  (tf/validate-hid root-hid)
-  (let [
-        rpc-leaf-paths (tf/find-paths root-hid [:module :rpc :* :leaf])
-        rpc-leaf-hids (mapv last rpc-leaf-paths)
-  ]
-    ;(spyx-pretty (mapv tf/hid->tree rpc-leaf-hids))
-    ;(mapv leaf-type->attrs rpc-leaf-hids)
+  [rpc-hid :- tf/HID]
+  (tf/validate-hid rpc-hid)
+  (let [rpc-leaf-paths (tf/find-paths rpc-hid [:rpc :* :leaf])
+        rpc-leaf-hids  (mapv last rpc-leaf-paths) ]
+    (mapv tf/hid->tree rpc-leaf-hids)
+    (mapv leaf-type->attrs rpc-leaf-hids)
+    (mapv leaf-name->attrs rpc-leaf-hids)
+    (doseq [hid rpc-leaf-hids]
+      (tf/remove-kids hid (tf/hid->kids hid)))))
 
-    )
+(s/defn tx-rpc
+  [rpc-hid]
+  (tf/validate-hid rpc-hid)
+  (let [name-leaf (spyx-pretty (tf/find-leaf rpc-hid [:rpc :identifier] :*))
+        name-kw    (keyword (only (grab :content name-leaf)))
+        name-attrs {:name name-kw} ]
+    (tf/merge-attrs rpc-hid name-attrs))
+  (spy-let [hids-to-remove #{(tf/find-hid rpc-hid [:rpc :identifier])
+                             (tf/find-hid rpc-hid [:rpc :description])}]
+    (tf/remove-kids rpc-hid hids-to-remove)
+    (tx-leaf-type-ident rpc-hid))
+
   )
