@@ -438,9 +438,39 @@ digits                  = 1*digit
                     [{:tag :identifier} "add"]]]}) ))]
     (tf/with-forest yang-forest
       (with-map-vals @state [yang-hid]
-        (spy-let [rpc-hid (tf/find-hid yang-hid [:module :rpc])]
-          (tx-rpc rpc-hid)
-          (spyx-pretty (tf/hid->bush rpc-hid)))
-        ))
+        (let [rpc-hid (tf/find-hid yang-hid [:module :rpc])]
+          (let [rpc-hiccup (tf/hid->hiccup rpc-hid)
+                rpc-bush   (tf/hid->bush rpc-hid)
+                rpc-tree   (tf/hid->tree rpc-hid) ]
+            (is= rpc-hiccup
+              [:rpc
+               [:identifier "add"]
+               [:description [:string "Add 2 numbers"]]
+               [:input
+                [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+                [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
+               [:output
+                [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]])
+            (spyx-pretty rpc-tree )
+            (spyx-pretty rpc-bush )
 
+            )
+
+          (tx-rpc rpc-hid)
+          (is= (tf/hid->bush rpc-hid)
+            [{:tag :rpc, :name :add}
+             [{:tag :input}
+              [{:tag :leaf, :type :decimal64, :name :x}]
+              [{:tag :leaf, :type :decimal64, :name :y}]]
+             [{:tag :output} [{:tag :leaf, :type :decimal64, :name :result}]]])
+
+          (is= (tf/hid->hiccup rpc-hid)
+            [:rpc
+             {:name :add}
+             [:input
+              [:leaf {:type :decimal64, :name :x}]
+              [:leaf {:type :decimal64, :name :y}]]
+             [:output [:leaf {:type :decimal64, :name :result}]]])
+
+        )))
   ))
