@@ -90,7 +90,7 @@
     (when (= "xml" first-3)
       (throw (IllegalArgumentException. (format "Identifier cannot begin with 'xml': %s " result))))
     [:identifier result] ))
-(defn fn-string [& args] [:string (tm/collapse-whitespace (str/join args))] )
+(defn fn-string [& args] [:string (ts/collapse-whitespace (str/join args))] )
 (defn fn-rpc [& args] (prepend :rpc args))
 
 (defn yang-transform
@@ -122,7 +122,7 @@
 
      :base           (fn fn-base [arg] [:base arg])
 
-     :error-message  (fn fn-description [arg] [:error-message (tm/collapse-whitespace arg)])
+     :error-message  (fn fn-description [arg] [:error-message (ts/collapse-whitespace arg)])
      :length         (fn fn-length [arg] [:length arg])
 
      :enum-simple    (fn fn-enum-simple [& args] [:enum [:name (first args)]])
@@ -178,7 +178,7 @@
 (s/defn rpc->api :- [s/Any]
   [rpc-hid :- tf/HID]
   (let [rpc-tree           (tf/hid->tree rpc-hid)
-        rpc-name           (name (fetch-in rpc-tree [:attrs :name]))
+        rpc-name           (kw->str (fetch-in rpc-tree [:attrs :name]))
         rpc-input-hid      (tf/find-hid rpc-hid [:rpc :input])
         rpc-input-arg-hids (grab :kids (tf/hid->node rpc-input-hid))
         rpc-arg-syms       (forv [hid rpc-input-arg-hids]

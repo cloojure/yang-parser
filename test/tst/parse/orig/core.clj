@@ -243,34 +243,34 @@
 
 ; #todo add generative testing
 (deftest t-remove-comments
-  (is= (tm/collapse-whitespace " abc ")
-    (tm/collapse-whitespace
+  (is= (ts/collapse-whitespace " abc ")
+    (ts/collapse-whitespace
       (str/join (remove-comments " abc // xxx "))))
 
-  (is= (tm/collapse-whitespace " abc ")
-    (tm/collapse-whitespace
+  (is= (ts/collapse-whitespace " abc ")
+    (ts/collapse-whitespace
       (str/join (remove-comments " abc /* xxx */ "))))
 
-  (is= (tm/collapse-whitespace
+  (is= (ts/collapse-whitespace
          (str/join (remove-comments
                      " line 1;  // cpp-1
                            line 2; /* c-1 */
                            /* c-2 */
                       // cpp-2
                       line 3; ")))
-    (tm/collapse-whitespace "line 1; line 2; line 3;"))
+    (ts/collapse-whitespace "line 1; line 2; line 3;"))
 
-  (is= (tm/collapse-whitespace
+  (is= (ts/collapse-whitespace
          (str/join (remove-comments
                      "line 1;  // cpp-1
                       line 2 \"has a string\"; /* c-1 */
                       /* c-2 */
                       // cpp-2
                       line 3; ")))
-    (tm/collapse-whitespace "line 1;
+    (ts/collapse-whitespace "line 1;
                                  line 2 \"has a string\";
                                  line 3;"))
-  (is= (tm/collapse-whitespace
+  (is= (ts/collapse-whitespace
          (str/join (remove-comments
                      "line 1;  // cpp-1 'str-1'
                       line 2;  // \"str-2\" cpp-2
@@ -281,7 +281,7 @@
                       /* \" dummy-com \" */
                       /*  ' dummy-com  ' */
                       line 7; ")))
-    (tm/collapse-whitespace
+    (ts/collapse-whitespace
       "line 1;
        line 2;
        line 3 \"has a // dummy-com // string\";
@@ -308,24 +308,24 @@
       (spyx (str as-and-bs))
       (spyx (pr-str as-and-bs))
       (println as-and-bs))
-    (is (tm/equals-ignore-spacing
+    (is (ts/equals-ignore-spacing
           (pr-str as-and-bs)
-          (tm/single-quotes->double-quotes
+          (ts/single-quotes->double-quotes
             "S = AB*
              AB = A B
              A = 'a'+
              B = 'b'+")))
 
-    (is (tm/equals-ignore-spacing
+    (is (ts/equals-ignore-spacing
           (pr-str (as-and-bs "aaaaabbbaaaabb"))
-          (tm/single-quotes->double-quotes
+          (ts/single-quotes->double-quotes
             "[:S
                [:AB [:A 'a' 'a' 'a' 'a' 'a'] [:B 'b' 'b' 'b']]
                [:AB [:A 'a' 'a' 'a' 'a'] [:B 'b' 'b']]] ")))
 
-    (is (tm/equals-ignore-spacing
+    (is (ts/equals-ignore-spacing
           (pr-str (as-and-bs-enlive "aaaaabbbaaaabb"))
-          (tm/single-quotes->double-quotes
+          (ts/single-quotes->double-quotes
             "{:tag :S,
               :content
               ({:tag :AB,
