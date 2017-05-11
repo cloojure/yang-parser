@@ -1,0 +1,75 @@
+
+= Parse, Validate, Manipulate, and Use YANG Modules
+
+=== The yang-parser API Docs link:http://cloojure.github.io/doc/tupelo[are posted on GitHub Pages]
+
+== Yang-Parser Overview
+
+
+== Running Unit Tests
+
+A full suite of unit tests is included to verify correct installation & dependencies.  To run:
+
+[source,bash]
+----
+> lein test
+
+-------------------------------------
+   Clojure 1.8.0    Java 1.8.0_111
+-------------------------------------
+
+Testing tst.parse.calc0
+
+Testing tst.parse.calc1
+
+Testing tst.parse.calc2
+
+Testing tst.parse.core
+
+Testing tst.parse.demo
+
+Testing tst.parse.orig.calc0
+
+Testing tst.parse.orig.calc1
+
+Testing tst.parse.orig.calc2
+
+Testing tst.parse.orig.core
+
+Testing tst.parse.orig.demo
+
+Ran 60 tests containing 386 assertions.
+0 failures, 0 errors.
+
+Passed all tests
+Finished at 21:28:37.086 (run time: 12.964s)
+----
+
+
+== Requirements
+
+ - Clojure 1.8.0
+ - Java 1.8
+
+== Change Log
+
+TBD
+
+== License
+
+Copyright © 2017
+
+Distributed under the link:https://www.eclipse.org/legal/epl-v10.html[Eclipse Public License], the same as Clojure.
+
+Developed using link:https://www.jetbrains.com/idea/[*IntelliJ IDEA*] 
+with the link:https://cursive-ide.com/[*Cursive* Clojure plugin].
+
+image:resources/intellij-idea-logo-400.png[IntelliJ,200,200]
+image:resources/cursive-logo-300.png[Cursive]
+
+==== ToDo List (#todo)
+
+  automated api generation
+  api stubs generation for client & server
+  netconf msg generation, parsing, validation
+

@@ -451,10 +451,9 @@ digits                  = 1*digit
                 [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
                [:output
                 [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]])
-            (spyx-pretty rpc-tree )
-            (spyx-pretty rpc-bush )
-
-            )
+           ;(spyx-pretty rpc-tree )
+           ;(spyx-pretty rpc-bush )
+          )
 
           (tx-rpc rpc-hid)
           (is= (tf/hid->bush rpc-hid)
