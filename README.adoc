@@ -43,6 +43,24 @@ module calculator {
         type decimal64; } } } }
 ----
 
+This text file defines a Calculator server advertising a single function `add`. The `add` function
+accepts 2 arguments `x` and `y` of type `decimal64`, and returns a single value `result` also of
+type `decimal64`.  A similar function defined in Java may look like the following:
+
+[source,java]
+----
+import CalculatorTypes;
+
+public interface Calculator {
+  public static final String namespace       "http://brocade.com/ns/calculator";
+  public static final String contact         "Alan Thompson <athomps@brocade.com>";
+  public static final String description     "YANG spec for a simple RPN calculator";
+  public static final String revision "2017-04-01";  // Prototype 1.0
+
+  double add( double x, double y );
+}
+----
+
 
 == Running Unit Tests
 
