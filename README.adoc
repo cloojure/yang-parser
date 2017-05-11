@@ -16,7 +16,7 @@ the history & use of YANG can be found link:http://www.yang-central.org[at YANG 
 Suppose we wished to create a simple Calculator service. We might choose to specify the semantics of
 or service in a YANG file:
 
-
+==== File: calc.yang
 [source,yang]
 ----
 module calculator {
@@ -56,11 +56,13 @@ public interface Calculator {
   public static final String namespace       "http://brocade.com/ns/calculator";
   public static final String contact         "Alan Thompson <athomps@brocade.com>";
   public static final String description     "YANG spec for a simple RPN calculator";
-  public static final String revision "2017-04-01";  // Prototype 1.0
+  public static final String revision        "2017-04-01";  // Prototype 1.0
 
   double add( double x, double y );
 }
 ----
+
+The goal of the yang-parser is to read a text file 
 
 
 == Running Unit Tests
