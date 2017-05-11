@@ -464,12 +464,14 @@ digits                  = 1*digit
              [{:tag :output} [{:tag :leaf, :type :decimal64, :name :result}]]])
 
           (is= (tf/hid->hiccup rpc-hid)
-            [:rpc
-             {:name :add}
+            [:rpc {:name :add}
              [:input
               [:leaf {:type :decimal64, :name :x}]
               [:leaf {:type :decimal64, :name :y}]]
              [:output [:leaf {:type :decimal64, :name :result}]]])
 
-        )))
+          (is= (rpc->api rpc-hid)
+            '(fn fn-add [x y] (fn-add-impl x y)))
+
+      )))
   ))

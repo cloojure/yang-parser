@@ -109,6 +109,43 @@ readily usable for code generation and other tasks:
 We can see that, after this transformation, the `x` and `y` leaf values have been collapsed into a
 simpler form, and the RPC function name `add` is attached directly to the `:rpc` element.
 
+== Code Generation
+
+Once the YANG definition file has been parsed and tranformed in to a usable AST, we can read
+information about our Calculator RPC in order to generate an API definition as seen here:
+
+[source,clojure]
+----
+(is= (rpc->api rpc-hid)
+  '(fn fn-add [x y] (fn-add-impl x y)))
+----
+
+where the Clojure function `rpc->api` looks like this:
+
+
+[source,clojure]
+----
+(s/defn rpc->api :- [s/Any]
+  [rpc-hid :- HID]
+  (let [rpc-tree           (tf/hid->tree rpc-hid)
+        rpc-name           (name (fetch-in rpc-tree [:attrs :name]))
+        rpc-input-hid      (tf/find-hid rpc-hid [:rpc :input])
+        rpc-input-arg-hids (grab :kids (tf/hid->node rpc-input-hid))
+        rpc-arg-syms       (forv [hid rpc-input-arg-hids]
+                             (it-> hid
+                               (tf/hid->tree it)
+                               (fetch-in it [:attrs :name])
+                               (kw->sym it)))
+        fn-name            (symbol (str "fn-" rpc-name))
+        fn-name-impl       (symbol (str fn-name "-impl"))
+        fn-def             (vec->list
+                             (->
+                               (append '(fn) fn-name rpc-arg-syms)
+                               (append (vec->list (prepend fn-name-impl rpc-arg-syms))))) ]
+    fn-def ))
+----
+
+
 == YANG ABNF Specification
 
 The YANG syntax is described via Augmented Backus-Naur Form (ABNF) syntax as specified in RFC 6020
