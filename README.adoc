@@ -8,7 +8,7 @@
 YANG is defined by the IETF link:https://tools.ietf.org/html/rfc6020[in RFC 6020] and
 link:https://tools.ietf.org/html/rfc7950[in RFC 7950] as an Interface Definition Language (IDL) 
 to facilitate the interchange of data and to perform Remote Procedure Calls (RPC). YANG is a popular 
-tool for the configuation and control of computer network routers/switches.  Further information on 
+tool for the configuration and control of computer network routers/switches.  Further information on 
 the history & use of YANG can be found link:http://www.yang-central.org[at YANG Central].
 
 == YANG Example
@@ -63,7 +63,7 @@ public interface Calculator {
 ----
 
 The goal of the yang-parser is to read the characters from a raw text file like `calc.yang` and
-construct an Abstract Syntax Tree suitable for further processing. The 
+construct an Abstract Syntax Tree (AST) suitable for further processing. The 
 link:https://github.com/cloojure/yang-parser/blob/master/test/tst/parse/calc0.clj[yang-parser unit tests]
 show the results of running the parser:
 

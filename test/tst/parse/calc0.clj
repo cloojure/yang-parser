@@ -436,6 +436,7 @@ digits                  = 1*digit
                 #{[{:tag :module}
                    [{:tag :rpc}
                     [{:tag :identifier} "add"]]]}) ))]
+
     (tf/with-forest yang-forest
       (with-map-vals @state [yang-hid]
         (let [rpc-hid (tf/find-hid yang-hid [:module :rpc])]
