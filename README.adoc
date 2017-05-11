@@ -64,7 +64,7 @@ public interface Calculator {
 
 The goal of the yang-parser is to read the characters from a raw text file like `calc.yang` and
 construct an Abstract Syntax Tree suitable for further processing. The `yang-parser` unit tests
-show the results of such the parser:
+show the results of running the parser:
 
 [source,clojure]
 ---- 
@@ -107,6 +107,13 @@ readily usable for code generation and other tasks:
 
 We can see that, after this transformation, the `x` and `y` leaf values have been collapsed into a
 simpler form, and the RPC function name `add` is attached directly to the `:rpc` element.
+
+== YANG ABNF Specification
+
+The YANG syntax is described via Augmented Backus-Naur Form (ABNF) syntax as specified in RFC 6020
+and RFC 7950.  The yang-parser uses a modified version of the ABNF syntax definition file designed
+to correct errors, remove ambiguities, and ease understanding and use of YANG files. The YANG ABNF 
+syntax definition files are located in the `./resources` directory.
 
 == Running Unit Tests
 
