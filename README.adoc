@@ -1,7 +1,7 @@
 
 = Parse, Validate, Manipulate, and Use YANG Modules
 
-=== The yang-parser API Docs link:http://cloojure.github.io/doc/tupelo[are posted on GitHub Pages]
+=== The yang-parser API Docs link:http://cloojure.github.io/doc/yang-parser[are posted on GitHub Pages]
 
 == Yang-Parser Overview
 
