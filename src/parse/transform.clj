@@ -189,7 +189,7 @@
         fn-name            (symbol (str "fn-" rpc-name))
         fn-name-impl       (symbol (str fn-name "-impl"))
         fn-def             (vec->list
-                             (->
-                               (append '(fn) fn-name rpc-arg-syms)
+                             (-> '(fn)
+                               (append fn-name rpc-arg-syms)
                                (append (vec->list (prepend fn-name-impl rpc-arg-syms))))) ]
     fn-def ))

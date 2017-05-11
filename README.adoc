@@ -139,11 +139,16 @@ where the Clojure function `rpc->api` looks like this:
         fn-name            (symbol (str "fn-" rpc-name))
         fn-name-impl       (symbol (str fn-name "-impl"))
         fn-def             (vec->list
-                             (->
-                               (append '(fn) fn-name rpc-arg-syms)
+                             (-> '(fn) 
+                               (append fn-name rpc-arg-syms)
                                (append (vec->list (prepend fn-name-impl rpc-arg-syms))))) ]
     fn-def ))
 ----
+
+The implementation function `fn-add-impl` is the stub function that will marshall the args `x` and
+`y` into a `netconf` message for transmission to the Calculator server. It will also receive the
+rpc-reply message from the server, unmarshal the result of the calculation, and return it to the
+client.
 
 
 == YANG ABNF Specification
