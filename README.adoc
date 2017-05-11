@@ -63,7 +63,8 @@ public interface Calculator {
 ----
 
 The goal of the yang-parser is to read the characters from a raw text file like `calc.yang` and
-construct an Abstract Syntax Tree suitable for further processing. The `yang-parser` unit tests
+construct an Abstract Syntax Tree suitable for further processing. The 
+link:https://github.com/cloojure/yang-parser/blob/master/test/tst/parse/calc0.clj[yang-parser unit tests]
 show the results of running the parser:
 
 [source,clojure]
