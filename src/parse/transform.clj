@@ -176,7 +176,7 @@
     (tx-leaf-type-ident rpc-hid)))
 
 (s/defn rpc->api :- [s/Any]
-  [rpc-hid :- HID]
+  [rpc-hid :- tf/HID]
   (let [rpc-tree           (tf/hid->tree rpc-hid)
         rpc-name           (name (fetch-in rpc-tree [:attrs :name]))
         rpc-input-hid      (tf/find-hid rpc-hid [:rpc :input])
