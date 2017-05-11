@@ -5,6 +5,44 @@
 
 == Yang-Parser Overview
 
+YANG is defined by the IETF link:https://tools.ietf.org/html/rfc6020[in RFC 6020] and
+link:https://tools.ietf.org/html/rfc7950[in RFC 7950] as an Interface Definition Language (IDL) 
+to facilitate the interchange of data and to perform Remote Procedure Calls (RPC). YANG is a popular 
+tool for the configuation and control of computer network routers/switches.  Further information on 
+the history & use of YANG can be found link:http://www.yang-central.org[at YANG Central].
+
+== YANG Example
+
+Suppose we wished to create a simple Calculator service. We might choose to specify the semantics of
+or service in a YANG file:
+
+
+[source,yang]
+----
+module calculator {
+  namespace       "http://brocade.com/ns/calculator";
+  contact         "Alan Thompson <athomps@brocade.com>";
+  description     "YANG spec for a simple RPN calculator";
+  revision 2017-04-01 {
+    description "Prototype 1.0";
+  }
+
+  import calculator-types {
+    prefix ct;
+  }
+
+  rpc add {
+    description "Add 2 numbers";
+    input {
+      leaf x { 
+        type decimal64; }
+      leaf y { 
+        type decimal64; } }
+    output {
+      leaf result { 
+        type decimal64; } } } }
+----
+
 
 == Running Unit Tests
 
