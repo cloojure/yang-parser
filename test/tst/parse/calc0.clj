@@ -196,7 +196,7 @@
 (dotest
   (is= 2.0 (validate-parse-leaf leaf-schema-1 leaf-val-1))
   (is= 3.0 (validate-parse-leaf leaf-schema-2 leaf-val-2))
-  (let [rpc-result (tf/enlive->hiccup (validate-parse-rpc rpc-schema rpc-input-val))]
+  (let [rpc-result (tf/enlive->hiccup (validate-parse-rpc-enlive rpc-schema rpc-input-val))]
     (is= rpc-result
       [:rpc-reply
        {:message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}

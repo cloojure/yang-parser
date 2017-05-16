@@ -17,13 +17,13 @@
 
 (defn instaparse-failure? [arg] (instance? instaparse.gll.Failure arg))
 
-(def type-marshal-fn {:decimal64 str
-                      :int64     str
-                      :string    str})
+(def type-marshal-map {:decimal64 str
+                       :int64     str
+                       :string    str})
 
-(def type-unmarshal-fn {:decimal64 tp/parse-double
-                        :int64     tp/parse-long
-                        :string    str})
+(def type-unmarshal-map {:decimal64 tp/parse-double
+                         :int64     tp/parse-long
+                         :string    str})
 
 (def rpc-fn-map {:add  (fn fn-add [& args] (apply + args))
                  :mult (fn fn-mult [& args] (apply * args))
@@ -33,7 +33,7 @@
   [schema]
   (try
     (let [type      (te/get-leaf schema [:leaf :type :identifier]) ; eg "decimal64"
-          parser-fn (grab (str->kw type) type-unmarshal-fn)]
+          parser-fn (grab (str->kw type) type-unmarshal-map)]
       parser-fn)
     (catch Exception e
       (throw (RuntimeException. (str "leaf-schema->parser: failed for schema=" schema \newline
@@ -56,12 +56,43 @@
                                   "  leaf-val=" leaf-val \newline
                                   "  caused by=" (.getMessage e)))))))
 
-(defn validate-parse-rpc
+(defn validate-parse-rpc-enlive
   "Validate & parse a rpc msg valueue given an rpc rpc-schema (Enlive-format)."
   [rpc-schema rpc-msg]
   (try
     (assert (= :rpc (grab :tag rpc-schema) (grab :tag rpc-msg)))
-    (let [rpc-attrs       (grab :attrs rpc-msg)
+    (let            ; spy-let-pretty
+      [
+          rpc-attrs       (grab :attrs rpc-msg)
+          rpc-tag-schema  (keyword (te/get-leaf rpc-schema [:rpc :identifier]))
+          rpc-value       (te/get-leaf rpc-msg [:rpc])
+          rpc-value-tag   (grab :tag rpc-value)
+          rpc-value-attrs (grab :attrs rpc-value)
+          xx              (assert (= rpc-tag-schema rpc-value-tag))
+          ; #todo does not yet verify any attrs ;  what rules?
+          fn-args-schema  (grab :content (te/get-tree rpc-schema [:rpc :input]))
+          fn-args-value   (grab :content (te/get-tree rpc-msg [:rpc rpc-value-tag]))
+          parsed-args     (mapv validate-parse-leaf fn-args-schema fn-args-value)
+          rpc-fn          (grab rpc-value-tag rpc-fn-map)
+          rpc-fn-result   (apply rpc-fn parsed-args)
+          rpc-result      {:tag     :rpc-reply
+                           :attrs   rpc-attrs
+                           :content [{:tag     :data
+                                      :attrs   {}
+                                      :content [rpc-fn-result]}]}]
+      rpc-result)
+    (catch Exception e
+      (throw (RuntimeException. (str "validate-parse-rpc: failed for rpc-schema=" rpc-schema \newline
+                                  "  rpc-msg=" rpc-msg \newline
+                                  "  caused by=" (.getMessage e)))))))
+(defn validate-parse-rpc-tree
+  "Validate & parse a rpc msg valueue given an rpc rpc-schema (Enlive-format)."
+  [rpc-schema rpc-msg]
+  (try
+    (assert (= :rpc (grab :tag rpc-schema) (grab :tag rpc-msg)))
+    (let            ; spy-let
+      [
+          rpc-attrs       (grab :attrs rpc-msg)
           rpc-tag-schema  (keyword (te/get-leaf rpc-schema [:rpc :identifier]))
           rpc-value       (te/get-leaf rpc-msg [:rpc])
           rpc-value-tag   (grab :tag rpc-value)
@@ -278,7 +309,7 @@
                                    arg-name-kw (fetch-in arg-tree [:attrs :name])
                                    arg-name-sym (kw->sym arg-name-kw)
                                    arg-type (fetch-in arg-tree [:attrs :type])
-                                   marshal-fn (type-marshal-fn arg-type)
+                                   marshal-fn (type-marshal-map arg-type)
                                    marshalled-arg  [arg-name-kw (marshal-fn arg)]
                                   ]
                                marshalled-arg))

@@ -56,7 +56,7 @@
     (future         ; Simulate calling out to http server in another thread
       (try
         (Thread/sleep *rpc-delay-simulated-ms*) ; simulated network delay
-        (let [rpc-result        (validate-parse-rpc rpc-schema msg)
+        (let [rpc-result        (validate-parse-rpc-enlive rpc-schema msg)
               rpc-reply-msg-id  (fetch-in rpc-result [:attrs :message-id])
               fpc-reply-promise (grab rpc-reply-msg-id @rpc-msg-id-map)]
           (deliver fpc-reply-promise rpc-result))
@@ -84,7 +84,7 @@
     result))
 
 (dotest
-  (binding [*rpc-timeout-ms*         300
+  (binding [*rpc-timeout-ms*        200
             *rpc-delay-simulated-ms* 10]
     (reset! rpc-msg-id 100)
     (is (rel= 5 (add 2 3) :digits 9))))
