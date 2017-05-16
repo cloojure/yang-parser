@@ -73,11 +73,11 @@
                             [:add {:xmlns "my-own-ns/v1"}
                              [:x (str x)]
                              [:y (str y)]]]))
-        rpc-result     (deref result-promise *rpc-timeout-ms* :timeout-failure)
+        rpc-result     (deref result-promise *rpc-timeout-ms* :tst.parse.calc2/timeout-failure)
         _              (when (instance? Throwable rpc-result)
                          (throw (RuntimeException. (.getMessage rpc-result))))
         result         (te/get-leaf rpc-result [:rpc-reply :data])]
-    (when (= :timeout-failure rpc-result)
+    (when (= :tst.parse.calc2/timeout-failure rpc-result)
       (throw (TimeoutException. (format "Timeout Exceed=%s  add: %s %s; " *rpc-timeout-ms* x y))))
     result))
 

@@ -193,3 +193,4 @@
                                (append fn-name rpc-arg-syms)
                                (append (vec->list (prepend fn-name-impl rpc-arg-syms))))) ]
     fn-def ))
+

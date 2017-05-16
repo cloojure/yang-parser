@@ -32,32 +32,33 @@
 (def ^:dynamic *rpc-delay-simulated-ms* 30)
 
 (def rpc-schema
-  (tf/hiccup->enlive [:rpc
-                   [:identifier "add"]
-                   [:description [:string "Add 2 numbers"]]
-                   [:input
-                    [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
-                    [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
-                   [:output
-                    [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]))
+  (tf/hiccup->enlive
+    [:rpc
+     [:identifier "add"]
+     [:description [:string "Add 2 numbers"]]
+     [:input
+      [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+      [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
+     [:output
+      [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]))
 
 (def rpc-msg-id (atom 100))
-(def rpc-deliver-map (atom {}))
+(def rpc-msg-id-map (atom {}))
 
-(s/defn rpc-call-2 :- s/Any
+(s/defn rpc-call :- s/Any
   [msg :- tsk/KeyMap]
   (let [rpc-msg-id     (swap! rpc-msg-id inc)
-        msg            (glue msg {:attrs {:message-id rpc-msg-id
-                                          :xmlns      "urn:ietf:params:xml:ns:netconf:base:1.0"}})
+        msg            (update-in msg [:attrs] glue {:message-id rpc-msg-id
+                                                     :xmlns      "urn:ietf:params:xml:ns:netconf:base:1.0"})
         result-promise (promise)]
-    (swap! rpc-deliver-map glue {rpc-msg-id result-promise}) ;  #todo temp!
+    (swap! rpc-msg-id-map glue {rpc-msg-id result-promise})
 
     (future         ; Simulate calling out to http server in another thread
       (try
         (Thread/sleep *rpc-delay-simulated-ms*) ; simulated network delay
         (let [rpc-result        (validate-parse-rpc rpc-schema msg)
               rpc-reply-msg-id  (fetch-in rpc-result [:attrs :message-id])
-              fpc-reply-promise (grab rpc-reply-msg-id @rpc-deliver-map)]
+              fpc-reply-promise (grab rpc-reply-msg-id @rpc-msg-id-map)]
           (deliver fpc-reply-promise rpc-result))
         (catch Exception e
           (deliver result-promise ; deliver any exception to caller
@@ -67,18 +68,18 @@
     ; return promise to caller immediately
     result-promise ))
 
-(defn add-2 [x y]
-  (let [result-promise (rpc-call-2
+(defn add [x y]
+  (let [result-promise (rpc-call
                          (tf/hiccup->enlive
                            [:rpc
                             [:add {:xmlns "my-own-ns/v1"}
                              [:x (str x)]
                              [:y (str y)]]]))
-        rpc-result     (deref result-promise *rpc-timeout-ms* :timeout-failure)
+        rpc-result     (deref result-promise *rpc-timeout-ms* ::timeout-failure)
         _              (when (instance? Throwable rpc-result)
                          (throw (RuntimeException. (.getMessage rpc-result))))
         result         (te/get-leaf rpc-result [:rpc-reply :data])]
-    (when (= :timeout-failure rpc-result)
+    (when (= ::timeout-failure rpc-result)
       (throw (TimeoutException. (format "Timeout Exceed=%s  add: %s %s; " *rpc-timeout-ms* x y))))
     result))
 
@@ -86,5 +87,34 @@
   (binding [*rpc-timeout-ms*         300
             *rpc-delay-simulated-ms* 10]
     (reset! rpc-msg-id 100)
-    (is (rel= 5 (add-2 2 3) :digits 9))))
+    (is (rel= 5 (add 2 3) :digits 9))))
 
+
+;-----------------------------------------------------------------------------
+(dotest
+  (let [state       (atom {})
+        yang-forest (tf/with-forest (tf/new-forest)
+                      (let [abnf-src        (io/resource "yang3.abnf")
+                            yp              (create-abnf-parser abnf-src)
+                            yang-src        (slurp (io/resource "calc.yang"))
+                            yang-tree       (yp yang-src)
+                            yang-ast-hiccup (yang-transform yang-tree)
+                            yang-hid        (tf/add-tree-hiccup yang-ast-hiccup)
+                            ]
+                        (reset! state (vals->map yang-hid))))]
+    (tf/with-forest yang-forest
+      (with-map-vals @state [yang-hid]
+        (let [rpc-hid (tf/find-hid yang-hid [:module :rpc])]
+          (tx-rpc rpc-hid)
+          (is= (tf/hid->bush rpc-hid)
+            [{:tag :rpc, :name :add}
+             [{:tag :input}
+              [{:tag :leaf, :type :decimal64, :name :x}]
+              [{:tag :leaf, :type :decimal64, :name :y}]]
+             [{:tag :output} [{:tag :leaf, :type :decimal64, :name :result}]]])
+          (is= (rpc->api rpc-hid)
+            '(fn fn-add [x y] (fn-add-impl x y)))
+          (is= (rpc-marshall rpc-hid [2 3])
+            [:rpc [:add {:xmlns "my-own-ns/v1"} [:x "2"] [:y "3"]]] )
+
+        )))))

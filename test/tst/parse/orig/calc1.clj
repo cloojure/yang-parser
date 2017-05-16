@@ -44,8 +44,8 @@
 
 (defn add-1 [x y]
   (let [result-promise (rpc-call-1 (tf/hiccup->enlive [:add x y]))
-        rpc-result     (deref result-promise *rpc-timeout-ms* :timeout-failure)]
-    (when (= :timeout-failure rpc-result)
+        rpc-result     (deref result-promise *rpc-timeout-ms* :tst.parse.calc2/timeout-failure)]
+    (when (= :tst.parse.calc2/timeout-failure rpc-result)
       (throw (TimeoutException. (format "Timeout Exceed=%s  add: %s %s; " *rpc-timeout-ms* x y))))
     rpc-result))
 

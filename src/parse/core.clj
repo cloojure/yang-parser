@@ -7,6 +7,7 @@
     [instaparse.core :as insta]
     [schema.core :as s]
     [tupelo.core :as t]
+    [tupelo.x-forest :as tf]
     [tupelo.misc :as tm]
     [tupelo.parse :as tp]
     [tupelo.schema :as tsk]
@@ -16,9 +17,13 @@
 
 (defn instaparse-failure? [arg] (instance? instaparse.gll.Failure arg))
 
-(def parser-map {"decimal64"  tp/parse-double
-                 "int64"      tp/parse-long
-                 "string"     str })
+(def type-marshal-fn {:decimal64 str
+                      :int64     str
+                      :string    str})
+
+(def type-unmarshal-fn {:decimal64 tp/parse-double
+                        :int64     tp/parse-long
+                        :string    str})
 
 (def rpc-fn-map {:add  (fn fn-add [& args] (apply + args))
                  :mult (fn fn-mult [& args] (apply * args))
@@ -28,7 +33,7 @@
   [schema]
   (try
     (let [type      (te/get-leaf schema [:leaf :type :identifier]) ; eg "decimal64"
-          parser-fn (grab type parser-map)]
+          parser-fn (grab (str->kw type) type-unmarshal-fn)]
       parser-fn)
     (catch Exception e
       (throw (RuntimeException. (str "leaf-schema->parser: failed for schema=" schema \newline
@@ -259,3 +264,23 @@
       (printf "creating: %s \n" file-tx) (flush)
       (spit file-tx (t/pretty-str data-tx))
     )))
+
+(s/defn rpc-marshall :- s/Any
+  [rpc-hid :- tf/HID
+   args :- [s/Any] ]
+  (let [rpc-tree           (tf/hid->tree rpc-hid)
+        rpc-name           (fetch-in rpc-tree [:attrs :name])
+        rpc-input-hid      (tf/find-hid rpc-hid [:rpc :input])
+        rpc-input-arg-hids (grab :kids (tf/hid->node rpc-input-hid))
+        _ (assert (= (count args) (count rpc-input-arg-hids)))
+        marshalled-args       (forv [[hid arg] (mapv vector rpc-input-arg-hids args)]
+                             (let [arg-tree  (tf/hid->tree hid)
+                                   arg-name-kw (fetch-in arg-tree [:attrs :name])
+                                   arg-name-sym (kw->sym arg-name-kw)
+                                   arg-type (fetch-in arg-tree [:attrs :type])
+                                   marshal-fn (type-marshal-fn arg-type)
+                                   marshalled-arg  [arg-name-kw (marshal-fn arg)]
+                                  ]
+                               marshalled-arg))
+        msg-hiccup         [:rpc (glue [rpc-name {:xmlns "my-own-ns/v1"}] marshalled-args) ] ]
+    msg-hiccup))

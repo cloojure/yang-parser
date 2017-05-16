@@ -474,5 +474,4 @@ digits                  = 1*digit
           (is= (rpc->api rpc-hid)
             '(fn fn-add [x y] (fn-add-impl x y)))
 
-      )))
-  ))
+      )))))
