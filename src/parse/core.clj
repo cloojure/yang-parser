@@ -62,59 +62,126 @@
   (try
     (assert (= :rpc (grab :tag rpc-schema) (grab :tag rpc-msg)))
     (let            ; spy-let-pretty
-      [
-          rpc-attrs       (grab :attrs rpc-msg)
-          rpc-tag-schema  (keyword (te/get-leaf rpc-schema [:rpc :identifier]))
-          rpc-value       (te/get-leaf rpc-msg [:rpc])
-          rpc-value-tag   (grab :tag rpc-value)
-          rpc-value-attrs (grab :attrs rpc-value)
-          xx              (assert (= rpc-tag-schema rpc-value-tag))
-          ; #todo does not yet verify any attrs ;  what rules?
-          fn-args-schema  (grab :content (te/get-tree rpc-schema [:rpc :input]))
-          fn-args-value   (grab :content (te/get-tree rpc-msg [:rpc rpc-value-tag]))
-          parsed-args     (mapv validate-parse-leaf fn-args-schema fn-args-value)
-          rpc-fn          (grab rpc-value-tag rpc-fn-map)
-          rpc-fn-result   (apply rpc-fn parsed-args)
-          rpc-result      {:tag     :rpc-reply
-                           :attrs   rpc-attrs
-                           :content [{:tag     :data
-                                      :attrs   {}
-                                      :content [rpc-fn-result]}]}]
-      rpc-result)
-    (catch Exception e
-      (throw (RuntimeException. (str "validate-parse-rpc: failed for rpc-schema=" rpc-schema \newline
-                                  "  rpc-msg=" rpc-msg \newline
-                                  "  caused by=" (.getMessage e)))))))
-(defn validate-parse-rpc-tree
-  "Validate & parse a rpc msg valueue given an rpc rpc-schema (Enlive-format)."
-  [rpc-schema rpc-msg]
-  (try
-    (assert (= :rpc (grab :tag rpc-schema) (grab :tag rpc-msg)))
-    (let            ; spy-let
-      [
-          rpc-attrs       (grab :attrs rpc-msg)
-          rpc-tag-schema  (keyword (te/get-leaf rpc-schema [:rpc :identifier]))
-          rpc-value       (te/get-leaf rpc-msg [:rpc])
-          rpc-value-tag   (grab :tag rpc-value)
-          rpc-value-attrs (grab :attrs rpc-value)
-          xx              (assert (= rpc-tag-schema rpc-value-tag))
-          ; #todo does not yet verify any attrs ;  what rules?
-          fn-args-schema  (grab :content (te/get-tree rpc-schema [:rpc :input]))
-          fn-args-value   (grab :content (te/get-tree rpc-msg [:rpc rpc-value-tag]))
-          parsed-args     (mapv validate-parse-leaf fn-args-schema fn-args-value)
-          rpc-fn          (grab rpc-value-tag rpc-fn-map)
-          rpc-fn-result   (apply rpc-fn parsed-args)
-          rpc-result      {:tag     :rpc-reply
-                           :attrs   rpc-attrs
-                           :content [{:tag     :data
-                                      :attrs   {}
-                                      :content [rpc-fn-result]}]}]
+      [rpc-attrs       (grab :attrs rpc-msg)
+       rpc-tag-schema  (keyword (te/get-leaf rpc-schema [:rpc :identifier]))
+       rpc-value       (te/get-leaf rpc-msg [:rpc])
+       rpc-value-tag   (grab :tag rpc-value)
+       rpc-value-attrs (grab :attrs rpc-value)
+       xx              (assert (= rpc-tag-schema rpc-value-tag))
+       ; #todo does not yet verify any attrs ;  what rules?
+       fn-args-schema  (grab :content (te/get-tree rpc-schema [:rpc :input]))
+       fn-args-value   (grab :content (te/get-tree rpc-msg [:rpc rpc-value-tag]))
+       parsed-args     (mapv validate-parse-leaf fn-args-schema fn-args-value)
+       rpc-fn          (grab rpc-value-tag rpc-fn-map)
+       rpc-fn-result   (apply rpc-fn parsed-args)
+       rpc-result      {:tag     :rpc-reply
+                        :attrs   rpc-attrs
+                        :content [{:tag     :data
+                                   :attrs   {}
+                                   :content [rpc-fn-result]}]}]
       rpc-result)
     (catch Exception e
       (throw (RuntimeException. (str "validate-parse-rpc: failed for rpc-schema=" rpc-schema \newline
                                   "  rpc-msg=" rpc-msg \newline
                                   "  caused by=" (.getMessage e)))))))
 
+(defn validate-parse-rpc-tree
+  "Validate & parse a rpc msg valueue given an rpc rpc-schema (Enlive-format)."
+  [rpc-schema rpc-msg]
+  (check-spy-enabled :current
+    (try
+      ;(spyx-pretty rpc-schema)
+      ;(spyx-pretty rpc-msg)
+      (assert (= :rpc (grab :tag rpc-schema) (grab :tag rpc-msg)))
+      (let          ; spy-let-pretty
+        [rpc-attrs (grab :attrs rpc-msg)
+         rpc-tag-schema (keyword (te/get-leaf rpc-schema [:rpc :identifier]))
+         rpc-value (te/get-leaf rpc-msg [:rpc])
+         rpc-value-tag (grab :tag rpc-value)
+         rpc-value-attrs (grab :attrs rpc-value)
+         xx (assert (= rpc-tag-schema rpc-value-tag))
+         ; #todo does not yet verify any attrs ;  what rules?
+         fn-args-schema (grab :content (te/get-tree rpc-schema [:rpc :input]))
+         fn-args-value (grab :content (te/get-tree rpc-msg [:rpc rpc-value-tag]))
+         parsed-args (mapv validate-parse-leaf fn-args-schema fn-args-value)
+         rpc-fn (grab rpc-value-tag rpc-fn-map)
+         rpc-fn-result (apply rpc-fn parsed-args)
+         rpc-result {:tag     :rpc-reply
+                     :attrs   rpc-attrs
+                     :content [{:tag     :data
+                                :attrs   {}
+                                :content [rpc-fn-result]}]}]
+        rpc-result)
+      (catch Exception e
+        (throw (RuntimeException. (str "validate-parse-rpc: failed for rpc-schema=" rpc-schema \newline
+                                    "  rpc-msg=" rpc-msg \newline
+                                    "  caused by=" (.getMessage e))))))))
+
+(def yang-root-names ; #todo
+ [   "acme"
+     "toaster"
+     "turing-machine"
+     "ietf-netconf-acm"
+     "brocade-beacon"
+     "brocade-rbridge"
+     "brocade-terminal"
+     "yuma-proc"
+     "yuma-xsd"
+   ])
+
+(defn space-wrap [text] (str \space text \space))
+
+(defn create-abnf-parser-raw
+  "Given an ABNF syntax string, creates & returns a parser"
+  [abnf-str]
+  (let [root-parser    (insta/parser abnf-str :input-format :abnf)
+        wrapped-parser (fn fn-wrapped-parser [yang-src]
+                         (let [parse-result (try
+                                              (root-parser yang-src)
+                                              (catch Throwable e ; unlikely
+                                                (throw (RuntimeException.
+                                                         (str "root-parser: InstaParse failed for \n"
+                                                           "yang-src=[[" (clip-str 222 yang-src) "]] \n"
+                                                           "caused by=" (.getMessage e))))))]
+                           (if (instaparse-failure? parse-result) ; This is the normal failure path
+                             (throw (RuntimeException.
+                                      (str  "root-parser: InstaParse failed for \n "
+                                            "yang-src=[[" (clip-str 222 yang-src) "]] \n"
+                                            "caused by=[[" (pr-str parse-result) "]]" )))
+                             parse-result)))]
+    wrapped-parser))
+
+(defn create-abnf-parser
+  "Given an ABNF syntax string, creates & returns a parser that wraps the yang source
+  with a leading and trailing space."
+  [abnf-str]
+  (let [parser-raw           (create-abnf-parser-raw abnf-str)
+        space-wrapped-parser (fn fn-space-wrapped-parser [yang-src]
+                               (parser-raw (space-wrap yang-src)))]
+    space-wrapped-parser))
+
+(s/defn rpc-marshall :- s/Any
+  [rpc-hid :- tf/HID
+   args :- [s/Any] ]
+  (let [rpc-tree           (tf/hid->tree rpc-hid)
+        rpc-name           (fetch-in rpc-tree [:attrs :name])
+        rpc-input-hid      (tf/find-hid rpc-hid [:rpc :input])
+        rpc-input-arg-hids (grab :kids (tf/hid->node rpc-input-hid))
+        _ (assert (= (count args) (count rpc-input-arg-hids)))
+        marshalled-args       (forv [[hid arg] (mapv vector rpc-input-arg-hids args)]
+                             (let [arg-tree  (tf/hid->tree hid)
+                                   arg-name-kw (fetch-in arg-tree [:attrs :name])
+                                   arg-name-sym (kw->sym arg-name-kw)
+                                   arg-type (fetch-in arg-tree [:attrs :type])
+                                   marshal-fn (type-marshal-map arg-type)
+                                   marshalled-arg  [arg-name-kw (marshal-fn arg)]
+                                  ]
+                               marshalled-arg))
+        msg-hiccup         [:rpc (glue [rpc-name {:xmlns "my-own-ns/v1"}] marshalled-args) ] ]
+    msg-hiccup))
+
+
+; #todo kill this old stuff -> pre-parse to remove comments
 ;---------------------------------------------------------------------------------------------------
 ; #todo #awt add schema stuff
 ; #todo replace tsk/List -> [Character]
@@ -172,9 +239,9 @@
   (let [src             (grab :src ctx-map)
         result          (grab :result ctx-map)
         [chars-quoted chars-remaining]
-                        (t/split-using starts-with-dquote (rest src) )
+        (t/split-using starts-with-dquote (rest src) )
         new-result      (t/glue result ; existing result
-                            [\"] chars-quoted [\"] ) ; newly-found quoted str
+                          [\"] chars-quoted [\"] ) ; newly-found quoted str
         new-src         (rest chars-remaining) ; drop terminating quote
         new-ctx-map     {:result new-result
                          :src    new-src} ]
@@ -191,9 +258,9 @@
   [ctx-map :- tsk/KeyMap]
   (let [src             (grab :src ctx-map)
         [chars-quoted chars-remaining]
-                        (t/split-using starts-with-squote (rest src) )
+        (t/split-using starts-with-squote (rest src) )
         new-result      (t/glue (grab :result ctx-map) ; existing result
-                            [\'] chars-quoted [\'] ) ; newly-found quoted str
+                          [\'] chars-quoted [\'] ) ; newly-found quoted str
         new-src         (rest chars-remaining) ; drop terminating quote
         new-ctx-map     {:result new-result
                          :src    new-src} ]
@@ -210,71 +277,30 @@
       (let [src (grab :src @ctx)]
         (cond
           (found-comment-cpp-start src)
-              (let [new-src (consume-comment-cpp src) ]
-                (swap! ctx assoc :src new-src))
+          (let [new-src (consume-comment-cpp src) ]
+            (swap! ctx assoc :src new-src))
 
           (found-comment-c-start src)
-              (let [new-src (consume-comment-c src) ]
-                (swap! ctx assoc :src new-src))
+          (let [new-src (consume-comment-c src) ]
+            (swap! ctx assoc :src new-src))
 
           (starts-with-dquote src)
-              (let [new-ctx-map (save-dquote-string @ctx) ]
-                (reset! ctx new-ctx-map))
+          (let [new-ctx-map (save-dquote-string @ctx) ]
+            (reset! ctx new-ctx-map))
 
           (starts-with-squote src)
-              (let [new-ctx-map (save-squote-string @ctx) ]
-                (reset! ctx new-ctx-map))
+          (let [new-ctx-map (save-squote-string @ctx) ]
+            (reset! ctx new-ctx-map))
 
           :normal-text
-              (let [curr-char (first src)
-                    new-ctx-map {:result (t/append (grab :result @ctx) curr-char)
-                                 :src    (drop 1 src)}]
-                (reset! ctx new-ctx-map)))))
+          (let [curr-char (first src)
+                new-ctx-map {:result (t/append (grab :result @ctx) curr-char)
+                             :src    (drop 1 src)}]
+            (reset! ctx new-ctx-map)))))
     (str/join (grab :result @ctx))))
 
-(def yang-root-names ; #todo
- [   "acme"
-     "toaster"
-     "turing-machine"
-     "ietf-netconf-acm"
-     "brocade-beacon"
-     "brocade-rbridge"
-     "brocade-terminal"
-     "yuma-proc"
-     "yuma-xsd"
-   ])
-
-(defn space-wrap [text] (str \space text \space))
-
-(defn create-abnf-parser-raw
-  "Given an ABNF syntax string, creates & returns a parser"
-  [abnf-str]
-  (let [root-parser    (insta/parser abnf-str :input-format :abnf)
-        wrapped-parser (fn fn-wrapped-parser [yang-src]
-                         (let [parse-result (try
-                                              (root-parser yang-src)
-                                              (catch Throwable e ; unlikely
-                                                (throw (RuntimeException.
-                                                         (str "root-parser: InstaParse failed for \n"
-                                                           "yang-src=[[" (clip-str 222 yang-src) "]] \n"
-                                                           "caused by=" (.getMessage e))))))]
-                           (if (instaparse-failure? parse-result) ; This is the normal failure path
-                             (throw (RuntimeException.
-                                      (str  "root-parser: InstaParse failed for \n "
-                                            "yang-src=[[" (clip-str 222 yang-src) "]] \n"
-                                            "caused by=[[" (pr-str parse-result) "]]" )))
-                             parse-result)))]
-    wrapped-parser))
-
-(defn create-abnf-parser
-  "Given an ABNF syntax string, creates & returns a parser that wraps the yang source
-  with a leading and trailing space."
-  [abnf-str]
-  (let [parser-raw           (create-abnf-parser-raw abnf-str)
-        space-wrapped-parser (fn fn-space-wrapped-parser [yang-src]
-                               (parser-raw (space-wrap yang-src)))]
-    space-wrapped-parser))
-
+;-----------------------------------------------------------------------------
+; #todo kill or keep main?
 (defn -main
   [& args]
   (println "main - enter")
@@ -294,24 +320,6 @@
           ]
       (printf "creating: %s \n" file-tx) (flush)
       (spit file-tx (t/pretty-str data-tx))
-    )))
+      )))
 
-(s/defn rpc-marshall :- s/Any
-  [rpc-hid :- tf/HID
-   args :- [s/Any] ]
-  (let [rpc-tree           (tf/hid->tree rpc-hid)
-        rpc-name           (fetch-in rpc-tree [:attrs :name])
-        rpc-input-hid      (tf/find-hid rpc-hid [:rpc :input])
-        rpc-input-arg-hids (grab :kids (tf/hid->node rpc-input-hid))
-        _ (assert (= (count args) (count rpc-input-arg-hids)))
-        marshalled-args       (forv [[hid arg] (mapv vector rpc-input-arg-hids args)]
-                             (let [arg-tree  (tf/hid->tree hid)
-                                   arg-name-kw (fetch-in arg-tree [:attrs :name])
-                                   arg-name-sym (kw->sym arg-name-kw)
-                                   arg-type (fetch-in arg-tree [:attrs :type])
-                                   marshal-fn (type-marshal-map arg-type)
-                                   marshalled-arg  [arg-name-kw (marshal-fn arg)]
-                                  ]
-                               marshalled-arg))
-        msg-hiccup         [:rpc (glue [rpc-name {:xmlns "my-own-ns/v1"}] marshalled-args) ] ]
-    msg-hiccup))
+

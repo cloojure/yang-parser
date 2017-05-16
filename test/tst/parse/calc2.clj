@@ -8,17 +8,11 @@
     [clojure.java.io :as io]
     [clojure.set :as set]
     [clojure.string :as str]
-    [clojure.test.check :as tc]
-    [clojure.test.check.clojure-test :as tst]
-    [clojure.test.check.generators :as gen]
-    [clojure.test.check.properties :as prop]
-    [clojure.walk :as walk]
     [instaparse.core :as insta]
     [schema.core :as s]
     [tupelo.core :as t]
     [tupelo.enlive :as te]
     [tupelo.gen :as tgen]
-    [tupelo.misc :as tm]
     [tupelo.parse :as tp]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
@@ -31,16 +25,15 @@
 (def ^:dynamic *rpc-timeout-ms* 200)
 (def ^:dynamic *rpc-delay-simulated-ms* 30)
 
-(def rpc-schema
-  (tf/hiccup->enlive
-    [:rpc
-     [:identifier "add"]
-     [:description [:string "Add 2 numbers"]]
-     [:input
-      [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
-      [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
-     [:output
-      [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]))
+(def rpc-schema-hiccup
+  [:rpc
+   [:identifier "add"]
+   [:description [:string "Add 2 numbers"]]
+   [:input
+    [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+    [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
+   [:output
+    [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]])
 
 (def rpc-msg-id (atom 100))
 (def rpc-msg-id-map (atom {}))
@@ -52,21 +45,22 @@
                                                      :xmlns      "urn:ietf:params:xml:ns:netconf:base:1.0"})
         result-promise (promise)]
     (swap! rpc-msg-id-map glue {rpc-msg-id result-promise})
-
-    (future         ; Simulate calling out to http server in another thread
+    (future ; Simulate calling out to http server in another thread
       (try
         (Thread/sleep *rpc-delay-simulated-ms*) ; simulated network delay
-        (let [rpc-result        (validate-parse-rpc-enlive rpc-schema msg)
-              rpc-reply-msg-id  (fetch-in rpc-result [:attrs :message-id])
-              fpc-reply-promise (grab rpc-reply-msg-id @rpc-msg-id-map)]
-          (deliver fpc-reply-promise rpc-result))
+        (with-spy-enabled :current
+          (let
+            [rpc-result        (validate-parse-rpc-enlive (tf/hiccup->enlive rpc-schema-hiccup) msg)
+             ; rpc-result-tree   (spyx (validate-parse-rpc-tree (tf/hiccup->tree rpc-schema-hiccup)
+             ; (tf/enlive->tree msg)))
+
+             rpc-reply-msg-id  (fetch-in rpc-result [:attrs :message-id])
+             fpc-reply-promise (grab rpc-reply-msg-id @rpc-msg-id-map)]
+            (deliver fpc-reply-promise rpc-result)))
         (catch Exception e
           (deliver result-promise ; deliver any exception to caller
-            (RuntimeException. (str "rpc-call-2: failed  msg=" msg \newline
-                                 "  caused by=" (.getMessage e)))))))
-
-    ; return promise to caller immediately
-    result-promise ))
+            (RuntimeException. (str "rpc-call-2: failed  msg=" msg \newline "  caused by=" (.getMessage e)))))))
+    result-promise )) ; return promise to caller immediately
 
 (defn add [x y]
   (let [result-promise (rpc-call
@@ -114,7 +108,8 @@
              [{:tag :output} [{:tag :leaf, :type :decimal64, :name :result}]]])
           (is= (rpc->api rpc-hid)
             '(fn fn-add [x y] (fn-add-impl x y)))
-          (is= (rpc-marshall rpc-hid [2 3])
-            [:rpc [:add {:xmlns "my-own-ns/v1"} [:x "2"] [:y "3"]]] )
+          (with-spy-enabled :default
+            (is= (rpc-marshall rpc-hid [2 3])
+              [:rpc [:add {:xmlns "my-own-ns/v1"} [:x "2"] [:y "3"]]]))
 
-        )))))
+          )))))
