@@ -85,37 +85,62 @@
                                   "  rpc-msg=" rpc-msg \newline
                                   "  caused by=" (.getMessage e)))))))
 
+(defn validate-parse-leaf-tree
+  "Validate & parse a leaf msg value given a leaf arg-schema (Enlive-format)."
+  [arg-schema arg-val]
+  (spyx-pretty arg-schema)
+  (spyx-pretty arg-val)
+  (spy-let
+    [arg-name-schema (fetch-in arg-schema [:attrs :tag])
+     arg-type-schema (fetch-in arg-schema [:attrs :type])
+     arg-name-val    (fetch-in arg-val [:attrs :tag])
+     xx              (assert (= arg-name-schema arg-name-val))
+     ; #todo does not yet verify any attrs;  what rules?
+    parser-fn        (grab arg-type-schema type-unmarshal-map)
+    parsed-value    (parser-fn (only (grab :content arg-val)))]
+    parsed-value)
+
+  #_(try
+    (catch Exception e
+      (throw (RuntimeException. (str "validate-parse-arg-val: failed for arg-schema=" arg-schema \newline
+                                  "  arg-val=" arg-val \newline
+                                  "  caused by=" (.getMessage e))))))
+  )
+
 (defn validate-parse-rpc-tree
-  "Validate & parse a rpc msg valueue given an rpc rpc-schema (Enlive-format)."
-  [rpc-schema rpc-msg]
-  (check-spy-enabled :current
-    (try
-      ;(spyx-pretty rpc-schema)
-      ;(spyx-pretty rpc-msg)
-      (assert (= :rpc (grab :tag rpc-schema) (grab :tag rpc-msg)))
-      (let          ; spy-let-pretty
-        [rpc-attrs (grab :attrs rpc-msg)
-         rpc-tag-schema (keyword (te/get-leaf rpc-schema [:rpc :identifier]))
-         rpc-value (te/get-leaf rpc-msg [:rpc])
-         rpc-value-tag (grab :tag rpc-value)
-         rpc-value-attrs (grab :attrs rpc-value)
-         xx (assert (= rpc-tag-schema rpc-value-tag))
-         ; #todo does not yet verify any attrs ;  what rules?
-         fn-args-schema (grab :content (te/get-tree rpc-schema [:rpc :input]))
-         fn-args-value (grab :content (te/get-tree rpc-msg [:rpc rpc-value-tag]))
-         parsed-args (mapv validate-parse-leaf fn-args-schema fn-args-value)
-         rpc-fn (grab rpc-value-tag rpc-fn-map)
-         rpc-fn-result (apply rpc-fn parsed-args)
-         rpc-result {:tag     :rpc-reply
-                     :attrs   rpc-attrs
-                     :content [{:tag     :data
-                                :attrs   {}
-                                :content [rpc-fn-result]}]}]
-        rpc-result)
-      (catch Exception e
-        (throw (RuntimeException. (str "validate-parse-rpc: failed for rpc-schema=" rpc-schema \newline
-                                    "  rpc-msg=" rpc-msg \newline
-                                    "  caused by=" (.getMessage e))))))))
+  "Validate & parse a rpc msg valueue given an rpc schema-hid (Enlive-format)."
+  [schema-hid rpc-hid]
+  (spy-let-pretty
+    [rpc-tree (tf/hid->tree rpc-hid)
+     schema-tree (tf/hid->tree schema-hid)
+     _ (assert (= :rpc
+                 (fetch-in schema-tree [:attrs :tag])
+                 (fetch-in rpc-tree [:attrs :tag])))
+     rpc-attrs       (grab :attrs rpc-tree)
+     schema-tag   (only (tf/find-leaf-content schema-hid [:rpc :identifier]))
+     rpc-tag      (it-> rpc-tree
+                    (grab :kids it)
+                    (only it)
+                    (fetch-in it [:attrs :tag]))
+     _              (assert (= schema-tag rpc-tag))
+     ; #todo does not yet verify any attrs ;  what rules?
+
+     fn-args-schema  (grab :kids (tf/find-tree schema-hid [:rpc :input]))
+     fn-args-rpc   (grab :kids (tf/find-tree rpc-hid [:rpc rpc-tag]))
+
+     parsed-args     (mapv validate-parse-leaf-tree fn-args-schema fn-args-rpc)
+     rpc-fn          (grab rpc-tag rpc-fn-map)
+     rpc-fn-result   (apply rpc-fn parsed-args)
+     result-hid         (tf/add-node (glue rpc-attrs {:tag :rpc-reply})
+                          [(tf/add-leaf {:tag :data} rpc-fn-result)]) ]
+    result-hid )
+
+  #_(try
+    (catch Exception e
+      (throw (RuntimeException. (str "validate-parse-rpc: failed for schema-hid=" (pretty-str schema-hid) \newline
+                                  "  rpc-hid=" (pretty-str rpc-hid) \newline
+                                  "  caused by=" (.getMessage e))))))
+)
 
 (def yang-root-names ; #todo
  [   "acme"

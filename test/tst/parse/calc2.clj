@@ -5,12 +5,14 @@
         clojure.test)
   (:require
     [clojure.data :as cd]
+    [clojure.core.async :as async]
     [clojure.java.io :as io]
     [clojure.set :as set]
     [clojure.string :as str]
     [instaparse.core :as insta]
     [schema.core :as s]
     [tupelo.core :as t]
+    [tupelo.misc :as tm]
     [tupelo.enlive :as te]
     [tupelo.gen :as tgen]
     [tupelo.parse :as tp]
@@ -25,69 +27,58 @@
 (def ^:dynamic *rpc-timeout-ms* 200)
 (def ^:dynamic *rpc-delay-simulated-ms* 30)
 
-(def rpc-schema-hiccup
-  [:rpc
-   [:identifier "add"]
-   [:description [:string "Add 2 numbers"]]
-   [:input
-    [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
-    [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
-   [:output
-    [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]])
-
 (def rpc-msg-id (atom 100))
 (def rpc-msg-id-map (atom {}))
 
-(s/defn rpc-call :- s/Any
-  [msg :- tsk/KeyMap]
-  (let [rpc-msg-id     (swap! rpc-msg-id inc)
-        msg            (update-in msg [:attrs] glue {:message-id rpc-msg-id
-                                                     :xmlns      "urn:ietf:params:xml:ns:netconf:base:1.0"})
-        result-promise (promise)]
-    (swap! rpc-msg-id-map glue {rpc-msg-id result-promise})
-    (future ; Simulate calling out to http server in another thread
-      (try
-        (Thread/sleep *rpc-delay-simulated-ms*) ; simulated network delay
-        (with-spy-enabled :current
-          (let
-            [rpc-result        (validate-parse-rpc-enlive (tf/hiccup->enlive rpc-schema-hiccup) msg)
-             ; rpc-result-tree   (spyx (validate-parse-rpc-tree (tf/hiccup->tree rpc-schema-hiccup)
-             ; (tf/enlive->tree msg)))
-
-             rpc-reply-msg-id  (fetch-in rpc-result [:attrs :message-id])
-             fpc-reply-promise (grab rpc-reply-msg-id @rpc-msg-id-map)]
-            (deliver fpc-reply-promise rpc-result)))
-        (catch Exception e
-          (deliver result-promise ; deliver any exception to caller
-            (RuntimeException. (str "rpc-call-2: failed  msg=" msg \newline "  caused by=" (.getMessage e)))))))
-    result-promise )) ; return promise to caller immediately
 
 (defn add [x y]
-  (let [result-promise (rpc-call
-                         (tf/hiccup->enlive
+  (tf/with-forest (tf/new-forest)
+    ; #todo  keywordize all :identifier values
+    ; #todo  need to massage schema like below
+    (let [rpc-schema-hid (tf/add-tree-hiccup
+                           [:rpc
+                            [:identifier :add]
+                            [:description [:string "Add 2 numbers"]]
+                            [:input
+                             [:x {:type :decimal64}] ; #todo :identifier -> :tag
+                             [:y {:type :decimal64}] ]
+                            [:output
+                             [:leaf {:identifier :result :type :decimal64} ]]])
+
+          rpc-hid        (tf/add-tree-hiccup
                            [:rpc
                             [:add {:xmlns "my-own-ns/v1"}
                              [:x (str x)]
-                             [:y (str y)]]]))
-        rpc-result     (deref result-promise *rpc-timeout-ms* ::timeout-failure)
-        _              (when (instance? Throwable rpc-result)
-                         (throw (RuntimeException. (.getMessage rpc-result))))
-        result         (te/get-leaf rpc-result [:rpc-reply :data])]
-    (when (= ::timeout-failure rpc-result)
-      (throw (TimeoutException. (format "Timeout Exceed=%s  add: %s %s; " *rpc-timeout-ms* x y))))
-    result))
+                             [:y (str y)]]])
+
+          result-promise (promise)
+          rpc-msg-id     (swap! rpc-msg-id inc)
+          xx             (swap! rpc-msg-id-map glue {rpc-msg-id result-promise})
+          xx             (tf/update-attrs rpc-hid
+                           (fn [attrs] (glue attrs {:message-id rpc-msg-id
+                                                    :xmlns      "urn:ietf:params:xml:ns:netconf:base:1.0"})))
+          result-hid     (validate-parse-rpc-tree rpc-schema-hid rpc-hid)]
+      ; result-hid (deref result-promise *rpc-timeout-ms* ::timeout-failure)
+      ;(when (instance? Throwable result-hid)
+      ;  (throw (RuntimeException. (.getMessage result-hid))))
+      ;(when (= ::timeout-failure result)
+      ;  (throw (TimeoutException. (format "Timeout Exceed=%s  add: %s %s; " *rpc-timeout-ms* x y))))
+      (spyx :path-result (tf/hid->tree result-hid ))))
+  )
 
 (dotest
-  (binding [*rpc-timeout-ms*        200
+  (binding [*rpc-timeout-ms*        100
             *rpc-delay-simulated-ms* 10]
     (reset! rpc-msg-id 100)
-    (is (rel= 5 (add 2 3) :digits 9))))
+    (spyx (add 2 3))
+    ;(is (rel= 5 (add 2 3) :digits 9))
+    ))
 
 
 ;-----------------------------------------------------------------------------
 (dotest
   (let [state       (atom {})
-        yang-forest (tf/with-forest (tf/new-forest)
+        yang-forest (tf/with-forest-result (tf/new-forest)
                       (let [abnf-src        (io/resource "yang3.abnf")
                             yp              (create-abnf-parser abnf-src)
                             yang-src        (slurp (io/resource "calc.yang"))

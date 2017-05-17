@@ -402,7 +402,7 @@ digits                  = 1*digit
 
   (let [state (atom {})
         yang-forest
-          (tf/with-forest (tf/new-forest)
+          (tf/with-forest-result (tf/new-forest)
             (let [abnf-src        (io/resource "yang3.abnf")
                   yp              (create-abnf-parser abnf-src)
                   yang-src        (slurp (io/resource "calc.yang"))
