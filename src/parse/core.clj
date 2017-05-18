@@ -343,22 +343,20 @@
 (defn -main
   [& args]
   (println "main - enter")
-  (doseq [curr-file yang-root-names]
-    (newline)
-    (let [yang-parser (create-abnf-parser (io/resource "yang2.abnf"))
-          file-in     (str "resources/"       curr-file ".yang")
-          file-tx     (str "resources/tx/"    curr-file ".edn")
-          data-in     (slurp file-in)
-          _           (do (printf "read:     %s  (chars %d) \n" file-in (count data-in)) (flush))
-          _           (print "  removing comments:  ")
-          data-nocom  (time (remove-comments data-in))
-          _           (print "  parsing:            ")
-          data-parsed (time (yang-parser data-nocom))
-          _           (print "  transform:          ")
-          data-tx     (time (yang-transform data-parsed))
-          ]
-      (printf "creating: %s \n" file-tx) (flush)
-      (spit file-tx (t/pretty-str data-tx))
-      )))
+  (let [abnf-src            (io/resource "yang2.abnf")
+        parse-and-transform (create-parser-transformer abnf-src yang-tx-map)]
+    (doseq [curr-file yang-root-names]
+      (newline)
+      (let [file-in         (str "resources/" curr-file ".yang")
+            file-tx         (str "resources/tx/" curr-file ".edn")
+            data-in         (slurp file-in)
+            _               (do (printf "read:     %s  (chars %d) \n" file-in (count data-in)) (flush))
+            _               (print "  removing comments:  ")
+            data-nocom      (time (remove-comments data-in))
+            _               (print "  parsing:            ")
+            yang-ast-hiccup (parse-and-transform data-nocom)
+            ]
+        (printf "creating: %s \n" file-tx) (flush)
+        (spit file-tx (t/pretty-str yang-ast-hiccup))))))
 
 

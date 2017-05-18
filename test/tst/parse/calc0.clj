@@ -374,12 +374,12 @@ digits                  = 1*digit
 
 (dotest
   (let [iiinc-txt    "(fn fn-iiinc [x] (+ 3 x))"
-        iiinc-str-fn (eval (read-string iiinc-txt))]
-    (is= 5 (iiinc-str-fn 2)))
+        fn-iiinc-str (eval (read-string iiinc-txt))]
+    (is= 5 (fn-iiinc-str 2)))
 
   (let [iiinc-ast    '(fn fn-iiinc [x] (+ 3 x))
-        iiinc-ast-fn (eval iiinc-ast)]
-    (is= 5 (iiinc-ast-fn 2)))
+        fn-iiinc-ast (eval iiinc-ast)]
+    (is= 5 (fn-iiinc-ast 2)))
 
   (tf/with-forest (tf/new-forest)
     (let [abnf-src            (io/resource "yang3.abnf")
