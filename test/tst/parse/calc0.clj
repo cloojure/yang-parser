@@ -4,26 +4,14 @@
         tupelo.test
         clojure.test)
   (:require
-    [clojure.data :as cd]
     [clojure.java.io :as io]
-    [clojure.set :as set]
     [clojure.string :as str]
-    [clojure.test.check :as tc]
-    [clojure.test.check.clojure-test :as tst]
-    [clojure.test.check.generators :as gen]
-    [clojure.test.check.properties :as prop]
-    [clojure.walk :as walk]
-    [instaparse.core :as insta]
     [schema.core :as s]
     [tupelo.core :as t]
     [tupelo.enlive :as te]
-    [tupelo.gen :as tgen]
-    [tupelo.misc :as tm]
-    [tupelo.parse :as tp]
     [tupelo.schema :as tsk]
-    [tupelo.string :as ts]
     [tupelo.x-forest :as tf]
-    [tupelo.impl :as i]))
+  ))
 (t/refer-tupelo)
 
 (dotest
@@ -33,10 +21,8 @@
           parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
           yang-ast-hiccup     (parse-and-transform yang-src)
           yang-hid            (tf/add-tree-hiccup yang-ast-hiccup)
-          yang-tree           (tf/hid->tree yang-hid)
-          yang-ast-h2         (tf/tree->hiccup yang-tree)
-          ]
-      (is= yang-ast-hiccup yang-ast-h2
+          yang-tree           (tf/hid->tree yang-hid) ]
+      (is= yang-ast-hiccup
         [:module
          [:identifier "calculator"]
          [:namespace [:string "http://brocade.com/ns/calculator"]]
@@ -54,18 +40,18 @@
           [:output
            [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]])
 
-      (is= (tf/format-solns (tf/find-paths yang-hid [:module :rpc :identifier]))
+      (is= (tf/format-paths (tf/find-paths yang-hid [:module :rpc :identifier]))
         #{[{:tag :module}
            [{:tag :rpc}
             [{:tag :identifier} "add"]]]})
 
-      (is= (tf/format-solns (tf/find-paths yang-hid [:module :revision]))
+      (is= (tf/format-paths (tf/find-paths yang-hid [:module :revision]))
         #{[{:tag :module}
            [{:tag :revision}
             [{:tag :iso-date} "2017-04-01"]
             [{:tag :description} [{:tag :string} "Prototype 1.0"]]]]})
 
-      (is= (tf/format-solns (tf/find-paths yang-hid [:module :rpc :input]))
+      (is= (tf/format-paths (tf/find-paths yang-hid [:module :rpc :input]))
         #{[{:tag :module}
            [{:tag :rpc}
             [{:tag :input}
@@ -76,7 +62,7 @@
               [{:tag :identifier} "y"]
               [{:tag :type} [{:tag :identifier} "decimal64"]]]]]]})
 
-      (is= (tf/format-solns (tf/find-paths yang-hid [:module :rpc :output]))
+      (is= (tf/format-paths (tf/find-paths yang-hid [:module :rpc :output]))
         #{[{:tag :module}
            [{:tag :rpc}
             [{:tag :output}
@@ -86,7 +72,7 @@
 
       (let [solns (tf/find-paths yang-hid [:module :rpc :input :leaf])
             soln-elems (mapv last solns)]
-        (is= (tf/format-solns solns)
+        (is= (tf/format-paths solns)
           #{[{:tag :module}
              [{:tag :rpc}
               [{:tag :input}
@@ -405,12 +391,12 @@ digits                  = 1*digit
           [:output
            [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]])
 
-      (is= (tf/format-solns (tf/find-paths yang-hid [:module :rpc :identifier]))
+      (is= (tf/format-paths (tf/find-paths yang-hid [:module :rpc :identifier]))
         #{[{:tag :module}
            [{:tag :rpc}
             [{:tag :identifier} "add"]]]})
 
-      (let [rpc-hid    (tf/find-hid yang-hid [:module :rpc]) ]
+      (let [rpc-hid (tf/find-hid yang-hid [:module :rpc])]
         (is= (tf/hid->hiccup rpc-hid)
           [:rpc
            [:identifier "add"]

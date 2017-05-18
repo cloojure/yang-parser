@@ -4,18 +4,12 @@
         tupelo.test
         clojure.test)
   (:require
-    [clojure.data :as cd]
     [clojure.core.async :as async]
     [clojure.java.io :as io]
-    [clojure.set :as set]
     [clojure.string :as str]
-    [instaparse.core :as insta]
     [schema.core :as s]
     [tupelo.core :as t]
     [tupelo.misc :as tm]
-    [tupelo.enlive :as te]
-    [tupelo.gen :as tgen]
-    [tupelo.parse :as tp]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
     [tupelo.x-forest :as tf]

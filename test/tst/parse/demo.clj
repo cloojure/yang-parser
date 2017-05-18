@@ -5,27 +5,15 @@
         clojure.test
         tupelo.x-forest)
   (:require
-    [clojure.data :as cd]
     [clojure.java.io :as io]
-    [clojure.set :as set]
     [clojure.string :as str]
-    [clojure.test.check :as tc]
-    [clojure.test.check.clojure-test :as tst]
-    [clojure.test.check.generators :as gen]
-    [clojure.test.check.properties :as prop]
-    [clojure.walk :as walk]
-    [instaparse.core :as insta]
     [schema.core :as s]
     [tupelo.core :as t]
-    [tupelo.misc :as tm]
-    [tupelo.parse :as tp]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
-    [tupelo.enlive :as te])
-)
+  ))
 (t/refer-tupelo)
 
-;*****************************************************************************
 (dotest
   (let [abnf-src            "
 int           = <ws> digits <ws>  ; ex '123'
