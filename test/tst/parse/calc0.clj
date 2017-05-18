@@ -28,13 +28,13 @@
 
 (dotest
   (tf/with-forest (tf/new-forest)
-    (let [abnf-src        (io/resource "yang3.abnf")
-          yang-src        (slurp (io/resource "calc.yang"))
+    (let [abnf-src            (io/resource "yang3.abnf")
+          yang-src            (slurp (io/resource "calc.yang"))
           parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
-          yang-ast-hiccup (parse-and-transform yang-src)
-          yang-hid        (tf/add-tree-hiccup yang-ast-hiccup)
-          yang-tree       (tf/hid->tree yang-hid)
-          yang-ast-h2     (tf/tree->hiccup yang-tree)
+          yang-ast-hiccup     (parse-and-transform yang-src)
+          yang-hid            (tf/add-tree-hiccup yang-ast-hiccup)
+          yang-tree           (tf/hid->tree yang-hid)
+          yang-ast-h2         (tf/tree->hiccup yang-tree)
           ]
       (is= yang-ast-hiccup yang-ast-h2
         [:module
@@ -221,14 +221,12 @@
                {:tag :a, :attrs {}, :content [1]}
                {:tag :b, :attrs {}, :content [2]}]})
 
-  (let [abnf-src   (io/resource "yang3.abnf")
-        yang-src   (slurp (io/resource "calc3.yang"))
+  (let [abnf-src            (io/resource "yang3.abnf")
+        yang-src            (slurp (io/resource "calc3.yang"))
         parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
-        yang-ast-1 (parse-and-transform yang-src)
-        yang-ast-2 (tx-uses (tf/hiccup->enlive yang-ast-1))
-        yang-ast-2-hiccup (tf/enlive->hiccup yang-ast-2)
-        ]
-    ;(spyx-pretty yang-ast-2-hiccup)
+        yang-ast-1          (parse-and-transform yang-src)
+        yang-ast-2          (tx-uses (tf/hiccup->enlive yang-ast-1))
+        yang-ast-2-hiccup   (tf/enlive->hiccup yang-ast-2) ]
     (is= yang-ast-2-hiccup
       [:module
        [:identifier "calculator"]
@@ -282,20 +280,20 @@
     (if (empty? ast-children-import)
       ast
       (let [resolved-imports
-                         (apply glue
-                           (forv [subtree ast-children-import]
-                             (let [filename-root       (te/get-leaf subtree [:import :identifier])
-                                   filename            (str filename-root ".yang")
-                                   abnf-src            (io/resource "yang4.abnf")
-                                   yang-src            (slurp (io/resource filename))
-                                   parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
-                                   yang-ast-1          (parse-and-transform yang-src)
-                                   yang-ast-1-i        (resolve-imports (tf/hiccup->enlive yang-ast-1))
-                                   imp-typedefs        (forv [find-result (te/find-tree yang-ast-1-i [:module :typedef])]
-                                                         (grab :subtree find-result))
-                                   ]
-                               imp-typedefs)))
-            ast-resolved (update-in ast-no-import [:content] #(glue resolved-imports %))]
+              (apply glue
+                (forv [subtree ast-children-import]
+                  (let [filename-root       (te/get-leaf subtree [:import :identifier])
+                        filename            (str filename-root ".yang")
+                        abnf-src            (io/resource "yang4.abnf")
+                        yang-src            (slurp (io/resource filename))
+                        parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
+                        yang-ast-1          (parse-and-transform yang-src)
+                        yang-ast-1-i        (resolve-imports (tf/hiccup->enlive yang-ast-1))
+                        imp-typedefs        (forv [find-result (te/find-tree yang-ast-1-i [:module :typedef])]
+                                              (grab :subtree find-result)) ]
+                    imp-typedefs)))
+            ast-resolved
+              (update-in ast-no-import [:content] #(glue resolved-imports %))]
         ast-resolved))))
 
 (dotest
@@ -303,8 +301,7 @@
         yang-src            (slurp (io/resource "calc4.yang"))
         parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
         yang-ast-1          (parse-and-transform yang-src)
-        yang-ast-1-i        (resolve-imports
-                              (tf/hiccup->enlive yang-ast-1))
+        yang-ast-1-i        (resolve-imports (tf/hiccup->enlive yang-ast-1))
         yang-ast-2          (tx-uses yang-ast-1-i)
         yang-ast-2-hiccup   (tf/enlive->hiccup yang-ast-2)]
     (is= yang-ast-2-hiccup
@@ -344,8 +341,8 @@ digits                  = 1*digit
 (dotest
   (let [tx-map              {:digits  (fn fn-digits [& args] (str/join args))
                              :integer (fn fn-integer [& args] [:integer (Integer/parseInt (str/join args))])
-                            }
-        parse-and-transform (create-parser-transformer range-abnf tx-map) ]
+                             }
+        parse-and-transform (create-parser-transformer range-abnf tx-map)]
     (is= [:range [:integer 123] [:integer 456]] (parse-and-transform "123..456"))
     (is= [:range [:integer 123] [:integer 456]] (parse-and-transform "123 .. 456"))
     (is= [:range [:integer 123] [:integer 456]] (parse-and-transform " 123 .. 456  ")))
@@ -360,8 +357,8 @@ digits                  = 1*digit
                                           [:range {:low         low
                                                    :high        high
                                                    :fn-validate (fn [arg] (<= low arg high))}]
-                                          )) }
-        parse-and-transform (create-parser-transformer range-abnf tx-map) ]
+                                          ))}
+        parse-and-transform (create-parser-transformer range-abnf tx-map)]
     (is (wild-match? [:range {:low 123 :high 456 :fn-validate :*}]
           (parse-and-transform "123..456")
           (parse-and-transform "123 .. 456")
@@ -376,84 +373,70 @@ digits                  = 1*digit
 ;-----------------------------------------------------------------------------
 
 (dotest
-  (let [iiinc-txt "(fn fn-iiinc [x] (+ 3 x))"
-        iiinc-str-fn (eval (read-string iiinc-txt)) ]
+  (let [iiinc-txt    "(fn fn-iiinc [x] (+ 3 x))"
+        iiinc-str-fn (eval (read-string iiinc-txt))]
     (is= 5 (iiinc-str-fn 2)))
 
-  (let [iiinc-ast '(fn fn-iiinc [x] (+ 3 x))
-        iiinc-ast-fn (eval iiinc-ast) ]
+  (let [iiinc-ast    '(fn fn-iiinc [x] (+ 3 x))
+        iiinc-ast-fn (eval iiinc-ast)]
     (is= 5 (iiinc-ast-fn 2)))
 
-  (let [state (atom {})
-        yang-forest
-          (tf/with-forest-result (tf/new-forest)
-            (let [abnf-src        (io/resource "yang3.abnf")
-                  yang-src        (slurp (io/resource "calc.yang"))
-                  parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
-                  yang-ast-hiccup (parse-and-transform yang-src)
-                  yang-hid        (tf/add-tree-hiccup yang-ast-hiccup)
-                  yang-tree       (tf/hid->tree yang-hid)
-                  yang-ast-h2     (tf/tree->hiccup yang-tree)
-                  ]
-              (reset! state (vals->map yang-hid))
-              (is= yang-ast-hiccup yang-ast-h2
-                [:module
-                 [:identifier "calculator"]
-                 [:namespace [:string "http://brocade.com/ns/calculator"]]
-                 [:contact [:string "Alan Thompson <athomps@brocade.com>"]]
-                 [:description [:string "YANG spec for a simple RPN calculator"]]
-                 [:revision
-                  [:iso-date "2017-04-01"]
-                  [:description [:string "Prototype 1.0"]]]
-                 [:rpc
-                  [:identifier "add"]
-                  [:description [:string "Add 2 numbers"]]
-                  [:input
-                   [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
-                   [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
-                  [:output
-                   [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]])
+  (tf/with-forest (tf/new-forest)
+    (let [abnf-src            (io/resource "yang3.abnf")
+          yang-src            (slurp (io/resource "calc.yang"))
+          parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
+          yang-ast-hiccup     (parse-and-transform yang-src)
+          yang-hid            (tf/add-tree-hiccup yang-ast-hiccup) ]
+      (is= yang-ast-hiccup (tf/hid->hiccup yang-hid)
+        [:module
+         [:identifier "calculator"]
+         [:namespace [:string "http://brocade.com/ns/calculator"]]
+         [:contact [:string "Alan Thompson <athomps@brocade.com>"]]
+         [:description [:string "YANG spec for a simple RPN calculator"]]
+         [:revision
+          [:iso-date "2017-04-01"]
+          [:description [:string "Prototype 1.0"]]]
+         [:rpc
+          [:identifier "add"]
+          [:description [:string "Add 2 numbers"]]
+          [:input
+           [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+           [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
+          [:output
+           [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]])
 
-              (is= (tf/format-solns (tf/find-paths yang-hid [:module :rpc :identifier]))
-                #{[{:tag :module}
-                   [{:tag :rpc}
-                    [{:tag :identifier} "add"]]]}) ))]
+      (is= (tf/format-solns (tf/find-paths yang-hid [:module :rpc :identifier]))
+        #{[{:tag :module}
+           [{:tag :rpc}
+            [{:tag :identifier} "add"]]]})
 
-    (tf/with-forest yang-forest
-      (with-map-vals @state [yang-hid]
-        (let [rpc-hid (tf/find-hid yang-hid [:module :rpc])]
-          (let [rpc-hiccup (tf/hid->hiccup rpc-hid)
-                rpc-bush   (tf/hid->bush rpc-hid)
-                rpc-tree   (tf/hid->tree rpc-hid) ]
-            (is= rpc-hiccup
-              [:rpc
-               [:identifier "add"]
-               [:description [:string "Add 2 numbers"]]
-               [:input
-                [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
-                [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
-               [:output
-                [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]])
-           ;(spyx-pretty rpc-tree )
-           ;(spyx-pretty rpc-bush )
-          )
+      (let [rpc-hid    (tf/find-hid yang-hid [:module :rpc]) ]
+        (is= (tf/hid->hiccup rpc-hid)
+          [:rpc
+           [:identifier "add"]
+           [:description [:string "Add 2 numbers"]]
+           [:input
+            [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+            [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
+           [:output
+            [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]])
 
-          (tx-rpc rpc-hid)
-          (is= (tf/hid->bush rpc-hid)
-            [{:tag :rpc, :name :add}
-             [{:tag :input}
-              [{:tag :leaf, :type :decimal64, :name :x}]
-              [{:tag :leaf, :type :decimal64, :name :y}]]
-             [{:tag :output} [{:tag :leaf, :type :decimal64, :name :result}]]])
+        (tx-rpc rpc-hid)
+        (is= (tf/hid->bush rpc-hid)
+          [{:tag :rpc, :name :add}
+           [{:tag :input}
+            [{:tag :leaf, :type :decimal64, :name :x}]
+            [{:tag :leaf, :type :decimal64, :name :y}]]
+           [{:tag :output} [{:tag :leaf, :type :decimal64, :name :result}]]])
 
-          (is= (tf/hid->hiccup rpc-hid)
-            [:rpc {:name :add}
-             [:input
-              [:leaf {:type :decimal64, :name :x}]
-              [:leaf {:type :decimal64, :name :y}]]
-             [:output [:leaf {:type :decimal64, :name :result}]]])
+        (is= (tf/hid->hiccup rpc-hid)
+          [:rpc {:name :add}
+           [:input
+            [:leaf {:type :decimal64, :name :x}]
+            [:leaf {:type :decimal64, :name :y}]]
+           [:output [:leaf {:type :decimal64, :name :result}]]])
 
-          (is= (rpc->api rpc-hid)
-            '(fn fn-add [x y] (fn-add-impl x y)))
+        (is= (rpc->api rpc-hid)
+          '(fn fn-add [x y] (fn-add-impl x y))))))
 
-      )))))
+)
