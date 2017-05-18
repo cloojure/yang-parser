@@ -5,7 +5,6 @@
         clojure.test)
   (:require
     [clojure.string :as str]
-    [instaparse.core :as insta]
     [schema.core :as s]
     [tupelo.core :as t]
     [tupelo.parse :as tp]

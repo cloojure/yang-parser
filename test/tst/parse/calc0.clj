@@ -23,19 +23,15 @@
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
     [tupelo.x-forest :as tf]
-    [tupelo.impl :as i])
-  (:import [java.util.concurrent TimeoutException]
-           [java.util List]))
+    [tupelo.impl :as i]))
 (t/refer-tupelo)
 
 (dotest
   (tf/with-forest (tf/new-forest)
     (let [abnf-src        (io/resource "yang3.abnf")
-          yp              (create-abnf-parser abnf-src)
           yang-src        (slurp (io/resource "calc.yang"))
-
-          yang-tree       (yp yang-src)
-          yang-ast-hiccup (yang-transform yang-tree)
+          parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
+          yang-ast-hiccup (parse-and-transform yang-src)
           yang-hid        (tf/add-tree-hiccup yang-ast-hiccup)
           yang-tree       (tf/hid->tree yang-hid)
           yang-ast-h2     (tf/tree->hiccup yang-tree)
@@ -226,10 +222,9 @@
                {:tag :b, :attrs {}, :content [2]}]})
 
   (let [abnf-src   (io/resource "yang3.abnf")
-        yp         (create-abnf-parser abnf-src)
         yang-src   (slurp (io/resource "calc3.yang"))
-        yang-tree  (yp yang-src)
-        yang-ast-1 (yang-transform yang-tree)
+        parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
+        yang-ast-1 (parse-and-transform yang-src)
         yang-ast-2 (tx-uses (tf/hiccup->enlive yang-ast-1))
         yang-ast-2-hiccup (tf/enlive->hiccup yang-ast-2)
         ]
@@ -289,31 +284,29 @@
       (let [resolved-imports
                          (apply glue
                            (forv [subtree ast-children-import]
-                             (let [filename-root (te/get-leaf subtree [:import :identifier])
-                                   filename      (str filename-root ".yang")
-                                   abnf-src      (io/resource "yang4.abnf")
-                                   yp            (create-abnf-parser abnf-src)
-                                   yang-src      (slurp (io/resource filename))
-                                   yang-ast-0    (yp yang-src)
-                                   yang-ast-1    (yang-transform yang-ast-0)
-                                   yang-ast-1-i  (resolve-imports (tf/hiccup->enlive yang-ast-1))
-                                   imp-typedefs  (forv [find-result (te/find-tree yang-ast-1-i [:module :typedef])]
-                                                   (grab :subtree find-result))
+                             (let [filename-root       (te/get-leaf subtree [:import :identifier])
+                                   filename            (str filename-root ".yang")
+                                   abnf-src            (io/resource "yang4.abnf")
+                                   yang-src            (slurp (io/resource filename))
+                                   parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
+                                   yang-ast-1          (parse-and-transform yang-src)
+                                   yang-ast-1-i        (resolve-imports (tf/hiccup->enlive yang-ast-1))
+                                   imp-typedefs        (forv [find-result (te/find-tree yang-ast-1-i [:module :typedef])]
+                                                         (grab :subtree find-result))
                                    ]
                                imp-typedefs)))
             ast-resolved (update-in ast-no-import [:content] #(glue resolved-imports %))]
-         ast-resolved))))
+        ast-resolved))))
 
 (dotest
-  (let [abnf-src          (io/resource "yang4.abnf")
-        yp                (create-abnf-parser abnf-src)
-        yang-src          (slurp (io/resource "calc4.yang"))
-        yang-ast-0        (yp yang-src)
-        yang-ast-1        (yang-transform yang-ast-0)
-        yang-ast-1-i      (resolve-imports
-                            (tf/hiccup->enlive yang-ast-1))
-        yang-ast-2        (tx-uses yang-ast-1-i)
-        yang-ast-2-hiccup (tf/enlive->hiccup yang-ast-2) ]
+  (let [abnf-src            (io/resource "yang4.abnf")
+        yang-src            (slurp (io/resource "calc4.yang"))
+        parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
+        yang-ast-1          (parse-and-transform yang-src)
+        yang-ast-1-i        (resolve-imports
+                              (tf/hiccup->enlive yang-ast-1))
+        yang-ast-2          (tx-uses yang-ast-1-i)
+        yang-ast-2-hiccup   (tf/enlive->hiccup yang-ast-2)]
     (is= yang-ast-2-hiccup
       [:module
        [:typedef
@@ -352,11 +345,7 @@ digits                  = 1*digit
   (let [tx-map              {:digits  (fn fn-digits [& args] (str/join args))
                              :integer (fn fn-integer [& args] [:integer (Integer/parseInt (str/join args))])
                             }
-        parser              (create-abnf-parser range-abnf)
-        parse-and-transform (fn [src-text]
-                              (let [ast-parse (parser src-text)
-                                    ast-tx    (insta/transform tx-map ast-parse)]
-                                ast-tx))]
+        parse-and-transform (create-parser-transformer range-abnf tx-map) ]
     (is= [:range [:integer 123] [:integer 456]] (parse-and-transform "123..456"))
     (is= [:range [:integer 123] [:integer 456]] (parse-and-transform "123 .. 456"))
     (is= [:range [:integer 123] [:integer 456]] (parse-and-transform " 123 .. 456  ")))
@@ -372,12 +361,7 @@ digits                  = 1*digit
                                                    :high        high
                                                    :fn-validate (fn [arg] (<= low arg high))}]
                                           )) }
-        parser              (create-abnf-parser range-abnf)
-        parse-and-transform (fn [src-text]
-                              (let [ast-parse (parser src-text)
-                                    ast-tx    (insta/transform tx-map ast-parse)]
-                                ast-tx))
-        ]
+        parse-and-transform (create-parser-transformer range-abnf tx-map) ]
     (is (wild-match? [:range {:low 123 :high 456 :fn-validate :*}]
           (parse-and-transform "123..456")
           (parse-and-transform "123 .. 456")
@@ -404,11 +388,9 @@ digits                  = 1*digit
         yang-forest
           (tf/with-forest-result (tf/new-forest)
             (let [abnf-src        (io/resource "yang3.abnf")
-                  yp              (create-abnf-parser abnf-src)
                   yang-src        (slurp (io/resource "calc.yang"))
-
-                  yang-tree       (yp yang-src)
-                  yang-ast-hiccup (yang-transform yang-tree)
+                  parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
+                  yang-ast-hiccup (parse-and-transform yang-src)
                   yang-hid        (tf/add-tree-hiccup yang-ast-hiccup)
                   yang-tree       (tf/hid->tree yang-hid)
                   yang-ast-h2     (tf/tree->hiccup yang-tree)

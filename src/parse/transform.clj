@@ -93,49 +93,47 @@
 (defn fn-string [& args] [:string (ts/collapse-whitespace (str/join args))] )
 (defn fn-rpc [& args] (prepend :rpc args))
 
-(defn yang-transform
-  [parse-tree]
-  (insta/transform
-    {
-     :prefix         (fn fn-prefix [arg] [:prefix (second arg)])
-     :identifier     fn-identifier
-     :string         fn-string
-     :integer        (fn fn-integer [arg] [:integer (java.lang.Integer. arg)])
-     :boolean        (fn fn-boolean [arg] [:boolean (java.lang.Boolean. arg)])
-     :namespace      (fn fn-namespace [arg] [:namespace arg])
-     :organization   (fn fn-organization [arg] [:organization arg])
-     :contact        (fn fn-contact [arg] [:contact arg])
-     :description    (fn fn-description [arg] [:description arg])
-     :presence       (fn fn-presence [arg] [:presence arg])
-     :revision       (fn fn-revision [& args] (prepend :revision args))
-     :iso-date       (fn fn-iso-date [& args] [:iso-date (str/join args)])
-     :reference      (fn fn-reference [arg] [:reference arg])
-     :identity       (fn fn-identity [& args] (prepend :identity args))
-     :typedef        (fn fn-typedef [& args] (prepend :typedef args))
-     :container      (fn fn-container [& args] (prepend :container args))
-     ;:grouping          #todo make sure no cycles via uses, import, include
-     ;:import            #todo make sure no cycles via uses, import, include
-     :rpc            fn-rpc
-     :rpc-input      (fn fn-input [& args] (prepend :input args))
-     :rpc-output     (fn fn-input [& args] (prepend :output args))
+(def yang-tx-map
+  {:prefix         (fn fn-prefix [arg] [:prefix (second arg)])
+   :identifier     fn-identifier
+   :string         fn-string
+   :integer        (fn fn-integer [arg] [:integer (java.lang.Integer. arg)])
+   :boolean        (fn fn-boolean [arg] [:boolean (java.lang.Boolean. arg)])
+   :namespace      (fn fn-namespace [arg] [:namespace arg])
+   :organization   (fn fn-organization [arg] [:organization arg])
+   :contact        (fn fn-contact [arg] [:contact arg])
+   :description    (fn fn-description [arg] [:description arg])
+   :presence       (fn fn-presence [arg] [:presence arg])
+   :revision       (fn fn-revision [& args] (prepend :revision args))
+   :iso-date       (fn fn-iso-date [& args] [:iso-date (str/join args)])
+   :reference      (fn fn-reference [arg] [:reference arg])
+   :identity       (fn fn-identity [& args] (prepend :identity args))
+   :typedef        (fn fn-typedef [& args] (prepend :typedef args))
+   :container      (fn fn-container [& args] (prepend :container args))
+   ;:grouping          #todo make sure no cycles via uses, import, include
+   ;:import            #todo make sure no cycles via uses, import, include
+   :rpc            fn-rpc
+   :rpc-input      (fn fn-input [& args] (prepend :input args))
+   :rpc-output     (fn fn-input [& args] (prepend :output args))
 
+   :base           (fn fn-base [arg] [:base arg])
 
-     :base           (fn fn-base [arg] [:base arg])
+   :error-message  (fn fn-description [arg] [:error-message (ts/collapse-whitespace arg)])
+   :length         (fn fn-length [arg] [:length arg])
 
-     :error-message  (fn fn-description [arg] [:error-message (ts/collapse-whitespace arg)])
-     :length         (fn fn-length [arg] [:length arg])
+   :enum-simple    (fn fn-enum-simple [& args] [:enum [:name (first args)]])
+   :enum-composite (fn fn-enum-composite [& args]
+                     (let [name    (first args)
+                           content (rest args)]
+                       (t/prepend :enum [:name name] content)))
 
-     :enum-simple    (fn fn-enum-simple [& args] [:enum [:name (first args)]])
-     :enum-composite (fn fn-enum-composite [& args]
-                       (let [name    (first args)
-                             content (rest args)]
-                         (t/prepend :enum [:name name] content)))
+   :type-simple    (fn fn-type-simple [& args] (t/prepend :type args))
+   :type-composite (fn fn-type-composite [& args] (t/prepend :type args))
+   :leaf           (fn fn-leaf [& args] (t/prepend :leaf args))
+   })
 
-     :type-simple    (fn fn-type-simple [& args] (t/prepend :type args))
-     :type-composite (fn fn-type-composite [& args] (t/prepend :type args))
-     :leaf           (fn fn-leaf [& args] (t/prepend :leaf args))
-     } parse-tree))
-
+(defn yang-transform [parse-tree]
+  (insta/transform yang-tx-map parse-tree))
 
 (s/defn leaf-name->attrs
   [leaf-hid :- tf/HID]

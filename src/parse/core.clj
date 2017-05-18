@@ -88,9 +88,7 @@
 (defn validate-parse-leaf-tree
   "Validate & parse a leaf msg value given a leaf arg-schema (Enlive-format)."
   [arg-schema arg-val]
-  (spyx-pretty arg-schema)
-  (spyx-pretty arg-val)
-  (spy-let
+  (let
     [arg-name-schema (fetch-in arg-schema [:attrs :tag])
      arg-type-schema (fetch-in arg-schema [:attrs :type])
      arg-name-val    (fetch-in arg-val [:attrs :tag])
@@ -110,7 +108,7 @@
 (defn validate-parse-rpc-tree
   "Validate & parse a rpc msg valueue given an rpc schema-hid (Enlive-format)."
   [schema-hid rpc-hid]
-  (spy-let-pretty
+  (let
     [rpc-tree (tf/hid->tree rpc-hid)
      schema-tree (tf/hid->tree schema-hid)
      _ (assert (= :rpc
@@ -184,6 +182,22 @@
         space-wrapped-parser (fn fn-space-wrapped-parser [yang-src]
                                (parser-raw (space-wrap yang-src)))]
     space-wrapped-parser))
+
+(defn create-parser-transformer
+  "Given an ABNF syntax string, creates & returns a parser that wraps the yang source
+  with a leading and trailing space."
+  [abnf-str tx-map]
+  (let [parser-raw           (create-abnf-parser-raw abnf-str)
+        space-wrapped-parser (fn fn-space-wrapped-parser [yang-src]
+                               (parser-raw (space-wrap yang-src)))
+        parse-and-transform  (fn fn-parse-and-transform [src-text]
+                               (let [ast-parse (space-wrapped-parser src-text)
+                                     ast-tx    (insta/transform tx-map ast-parse)]
+                                 (when (instaparse-failure? ast-tx)
+                                   (throw (IllegalArgumentException. (str ast-tx))))
+                                 ast-tx))]
+    parse-and-transform))
+
 
 (s/defn rpc-marshall :- s/Any
   [rpc-hid :- tf/HID

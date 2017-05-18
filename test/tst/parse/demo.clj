@@ -3,8 +3,7 @@
         parse.transform
         tupelo.test
         clojure.test
-        tupelo.x-forest
-        )
+        tupelo.x-forest)
   (:require
     [clojure.data :as cd]
     [clojure.java.io :as io]
@@ -23,10 +22,8 @@
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
     [tupelo.enlive :as te])
-  (:import [java.util.concurrent TimeoutException]
-           [java.util List]))
+)
 (t/refer-tupelo)
-
 
 ;*****************************************************************************
 (dotest
@@ -39,11 +36,7 @@ digits        = 1*digit           ; 1 or more digits
         tx-map              {:int    (fn fn-int [arg] [:int (Integer/parseInt arg)])
                              :digits str
                              }
-
-        parser              (create-abnf-parser abnf-src)
-        parse-and-transform (fn [text]
-                              (insta/transform tx-map
-                                (parser text)))
+        parse-and-transform (create-parser-transformer abnf-src tx-map)
         ]
     (throws? (parse-and-transform "123xyz"))
     (with-forest (new-forest)
@@ -81,22 +74,19 @@ vis-char                = %x21-7E ; visible (printing) characters
                              :integer    (fn fn-integer [& args] [:integer (Integer/parseInt (str/join args))])
                              :identifier (fn fn-identifier [& args] [:identifier (str/join args)])
                              :string     (fn fn-string [& args] [:string (str/join args)])
-                            }
-        parser              (create-abnf-parser abnf-src)
-        parse-and-transform (fn [src-text]
-                              (let [ast-parse (parser src-text)
-                                    ast-tx    (insta/transform tx-map ast-parse) ]
-                                ast-tx)) ]
+                             }
+        parse-and-transform (create-parser-transformer abnf-src tx-map)
+        ]
     (with-forest (new-forest)
       (is= (hid->bush (add-tree-hiccup (parse-and-transform "girl")))
         [{:tag :tokens}
          [{:tag :token}
-          [{:tag :identifier} "girl"]]] )
+          [{:tag :identifier} "girl"]]])
 
       (is= (hid->bush (add-tree-hiccup (parse-and-transform (ts/quotes->double "'abc'"))))
         [{:tag :tokens}
          [{:tag :token}
-          [{:tag :string} "abc"]]] )
+          [{:tag :string} "abc"]]])
 
       (is= (hid->bush (add-tree-hiccup (parse-and-transform +123)))
         [{:tag :tokens}
@@ -146,22 +136,14 @@ vis-char                = %x21-7E ; visible (printing) characters
 <vis-char-no-dquote>    = %x21    / %x23-7E ; all visible chars without quote-double
 "
 
-        tx-map              {
-                             :digits     (fn fn-digits [& args] (str/join args))
+        tx-map              {:digits     (fn fn-digits [& args] (str/join args))
                              :sign       no-label
                              :integer    (fn fn-integer [& args] [:integer (Integer/parseInt (str/join args))])
                              :identifier (fn fn-identifier [& args] [:identifier (str/join args)])
                              :string     (fn fn-string [& args] [:string (str/join args)])
-                            }
-        parser              (create-abnf-parser abnf-src)
-        parse-and-transform (fn [src-text]
-                              (let [ast-parse (parser src-text)
-                                    ast-tx    (insta/transform tx-map ast-parse)
-                                    _         (if (instaparse-failure? ast-tx)
-                                                (throw (IllegalArgumentException. (str ast-tx)))
-                                                ast-tx)
-                                    ]
-                                ast-tx)) ]
+                             }
+        parse-and-transform (create-parser-transformer abnf-src tx-map)
+        ]
     (with-forest (new-forest)
       (is= (hid->bush (add-tree-hiccup (parse-and-transform "girl.2")))
         [{:tag :tokens}
