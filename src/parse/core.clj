@@ -295,18 +295,16 @@
 
 (defn rpc-unmarshall-args
   [schema-arg-trees msg-arg-trees]
-  (let [fn-unmarshall-arg
-        (fn [schema-tree msg-tree]
-          (let [schema-arg-name (fetch-in schema-tree [:attrs :name])
-                schema-arg-type (fetch-in schema-tree [:attrs :type])
-                schema-arg-parse-fn (grab schema-arg-type type-unmarshal-map)
-                msg-arg-name (fetch-in msg-tree [:attrs :tag])
-                _ (assert (= msg-arg-name schema-arg-name))
-                msg-arg-value-raw (only (grab :content msg-tree))
-                msg-arg-value (schema-arg-parse-fn msg-arg-value-raw)]
-            msg-arg-value))
-        args (mapv fn-unmarshall-arg schema-arg-trees msg-arg-trees )
-        ]
+  (let [args (map-with [schema-tree schema-arg-trees
+                        msg-tree msg-arg-trees]
+               (let [schema-arg-name (fetch-in schema-tree [:attrs :name])
+                     schema-arg-type (fetch-in schema-tree [:attrs :type])
+                     schema-arg-parse-fn (grab schema-arg-type type-unmarshal-map)
+                     msg-arg-name (fetch-in msg-tree [:attrs :tag])
+                     _ (assert (= msg-arg-name schema-arg-name))
+                     msg-arg-value-raw (only (grab :content msg-tree))
+                     msg-arg-value (schema-arg-parse-fn msg-arg-value-raw)]
+                 msg-arg-value))]
     args))
 
 (s/defn rpc-unmarshall :- s/Any
@@ -325,7 +323,6 @@
                 (only it))
      msg-fn-name (fetch-in msg-call [:attrs :tag])
      _ (assert (= schema-fn-name msg-fn-name))
-
      schema-input-hid (tf/find-hid schema-hid [:rpc :input])
      schema-input-hids (grab :kids (tf/hid->node schema-input-hid))
      schema-arg-trees (mapv tf/hid->tree schema-input-hids)
