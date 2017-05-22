@@ -74,7 +74,6 @@
                                  (uses-replace groupings-map x)
                                  x))
         ast-postwalk        (walk/postwalk uses-replace-wrapper ast-enlive) ]
-    ; (spyx-pretty (enlive->hiccup ast-postwalk))
     ast-postwalk ))
 
 (defn no-label [arg] arg) ; aka identity
@@ -131,64 +130,4 @@
    :type-composite (fn fn-type-composite [& args] (t/prepend :type args))
    :leaf           (fn fn-leaf [& args] (t/prepend :leaf args))
    })
-
-(defn yang-transform [parse-tree]
-  (insta/transform yang-tx-map parse-tree))
-
-(s/defn leaf-name->attrs
-  [leaf-hid :- tf/HID]
-  (let [
-        name-leaf (tf/find-leaf leaf-hid [:leaf :identifier] :*)
-        name-kw   (keyword (only (grab :content name-leaf)))]
-    (tf/merge-attrs leaf-hid {:name name-kw})))
-
-(s/defn leaf-type->attrs
-  [leaf-hid :- tf/HID]
-  (let [
-        type-leaf (tf/find-leaf leaf-hid [:leaf :type :identifier] :*)
-        type-kw   (keyword (only (grab :content type-leaf)))]
-    (tf/merge-attrs leaf-hid {:type type-kw})))
-
-(s/defn tx-leaf-type-ident
-  "Wihtin a [:leaf ...] node, convert [:type [:identifier 'decimal64']] ->
-    {:type :decimal64} "
-  [rpc-hid :- tf/HID]
-  (tf/validate-hid rpc-hid)
-  (let [rpc-leaf-paths (tf/find-paths rpc-hid [:rpc :* :leaf])
-        rpc-leaf-hids  (mapv last rpc-leaf-paths) ]
-    (run! leaf-type->attrs rpc-leaf-hids)
-    (run! leaf-name->attrs rpc-leaf-hids)
-    (doseq [hid rpc-leaf-hids]
-      (tf/remove-all-kids hid))))
-
-(s/defn tx-rpc
-  [rpc-hid]
-  (tf/validate-hid rpc-hid)
-  (let [name-leaf (tf/find-leaf rpc-hid [:rpc :identifier] :*)
-        name-kw    (keyword (only (grab :content name-leaf)))
-        name-attrs {:name name-kw} ]
-    (tf/merge-attrs rpc-hid name-attrs))
-  (let [hids-to-remove #{(tf/find-hid rpc-hid [:rpc :identifier])
-                         (tf/find-hid rpc-hid [:rpc :description])}]
-    (tf/remove-kids rpc-hid hids-to-remove)
-    (tx-leaf-type-ident rpc-hid)))
-
-(s/defn rpc->api :- [s/Any]
-  [rpc-hid :- tf/HID]
-  (let [rpc-tree           (tf/hid->tree rpc-hid)
-        rpc-name           (kw->str (fetch-in rpc-tree [:attrs :name]))
-        rpc-input-hid      (tf/find-hid rpc-hid [:rpc :input])
-        rpc-input-arg-hids (grab :kids (tf/hid->node rpc-input-hid))
-        rpc-arg-syms       (forv [hid rpc-input-arg-hids]
-                             (it-> hid
-                               (tf/hid->tree it)
-                               (fetch-in it [:attrs :name])
-                               (kw->sym it)))
-        fn-name            (symbol (str "fn-" rpc-name))
-        fn-name-impl       (symbol (str fn-name "-impl"))
-        fn-def             (vec->list
-                             (-> '(fn)
-                               (append fn-name rpc-arg-syms)
-                               (append (vec->list (prepend fn-name-impl rpc-arg-syms))))) ]
-    fn-def ))
 

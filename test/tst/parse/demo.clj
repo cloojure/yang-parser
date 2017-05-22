@@ -62,9 +62,8 @@ vis-char                = %x21-7E ; visible (printing) characters
                              :integer    (fn fn-integer [& args] [:integer (Integer/parseInt (str/join args))])
                              :identifier (fn fn-identifier [& args] [:identifier (str/join args)])
                              :string     (fn fn-string [& args] [:string (str/join args)])
-                             }
-        parse-and-transform (create-parser-transformer abnf-src tx-map)
-        ]
+                            }
+        parse-and-transform (create-parser-transformer abnf-src tx-map) ]
     (with-forest (new-forest)
       (is= (hid->bush (add-tree-hiccup (parse-and-transform "girl")))
         [{:tag :tokens}

@@ -95,6 +95,7 @@
                  :kids  [{:attrs {:tag :identifier}, :content ["x"]}
                          {:attrs {:tag :type},
                           :kids  [{:attrs {:tag :identifier}, :content ["decimal64"]}]}]}])) )
+
       (let [soln-hid (last (only (tf/find-paths yang-hid [:module :rpc :input])))]
         (is= (tf/hid->bush soln-hid)
           [{:tag :input}
@@ -115,66 +116,53 @@
            [:leaf
             [:identifier "y"]
             [:type
-             [:identifier "decimal64"]]]])
-        )
-      )))
+             [:identifier "decimal64"]]]]) ) )))
 
 (dotest
-  (let [rpc-call         [:rpc {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+  (tf/with-forest (tf/new-forest)
+    (let [rpc-call-hid (tf/add-tree-hiccup
+                         [:rpc {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
                           [:add {:xmlns "my-own-ns/v1"}
                            [:x 2]
-                           [:y 3]]]
-        rpc-reply        [:rpc-reply {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
-                          [:result 5]]
-        rpc-call-enlive  (tf/hiccup->enlive rpc-call)
-        rpc-reply-enlive (tf/hiccup->enlive rpc-reply)
-        add-call         (grab :subtree (only (te/find-tree rpc-call-enlive [:rpc :add])))
-        add-params       (grab :content add-call) ]
-    (is= rpc-call-enlive
-      {:tag   :rpc,
-       :attrs {:message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
-       :content
-              [{:tag   :add,
-                :attrs {:xmlns "my-own-ns/v1"},
-                :content
-                       [{:tag :x, :attrs {}, :content [2]}
-                        {:tag :y, :attrs {}, :content [3]}]}]})
-    (is= rpc-reply-enlive
-      {:tag :rpc-reply, :attrs {:message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
-       :content
-            [{:tag :result, :attrs {}, :content [5]}]})
-    (is= add-call
-      {:tag     :add,
-       :attrs   {:xmlns "my-own-ns/v1"},
-       :content [{:tag :x, :attrs {}, :content [2]}
-                 {:tag :y, :attrs {}, :content [3]}]})
-    (is= add-params [{:tag :x, :attrs {}, :content [2]}
-                     {:tag :y, :attrs {}, :content [3]}]) ))
+                           [:y 3]]])
+
+          rpc-reply-hid (tf/add-tree-hiccup
+                          [:rpc-reply {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+                           [:result 5]])
+
+          add-hid (tf/find-hid rpc-call-hid [:rpc :add])
+          add-kids (grab :kids (tf/hid->node add-hid))]
+      (is= (tf/hid->hiccup add-hid)
+        [:add {:xmlns "my-own-ns/v1"} [:x 2] [:y 3]])
+      (is (submatch? (mapv tf/hid->leaf add-kids)
+            [{:attrs {:tag :x}, :content [2]}
+             {:attrs {:tag :y}, :content [3]}])))))
 
 ;                               ---------type-------------------   -------pattern------- (or reverse)
 ; #todo need function (conforms [:type [:identifier "decimal64"]] [:type [:identifier :*]]
 ; #todo need function (conforms [:type [:identifier "decimal64"]] [:type [:identifier <string>]]
 
 ;-----------------------------------------------------------------------------
-
 (def leaf-schema-1 (tf/hiccup->enlive [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]))
 (def leaf-schema-2 (tf/hiccup->enlive [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]))
 (def leaf-val-1 {:tag :x, :attrs {}, :content ["2"]})
 (def leaf-val-2 {:tag :y, :attrs {}, :content ["3"]})
 (def rpc-schema
-  (tf/hiccup->enlive [:rpc
-                   [:identifier "add"]
-                   [:description [:string "Add 2 numbers"]]
-                   [:input
-                    [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
-                    [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
-                   [:output
-                    [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]))
+  (tf/hiccup->enlive
+    [:rpc
+     [:identifier "add"]
+     [:description [:string "Add 2 numbers"]]
+     [:input
+      [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+      [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
+     [:output
+      [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]))
 (def rpc-input-val
-  (tf/hiccup->enlive [:rpc {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
-                   [:add {:xmlns "my-own-ns/v1"}
-                    [:x "2"]
-                    [:y "3"]]]))
+  (tf/hiccup->enlive
+    [:rpc {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+     [:add {:xmlns "my-own-ns/v1"}
+      [:x "2"]
+      [:y "3"]]]))
 (dotest
   (is= 2.0 (validate-parse-leaf leaf-schema-1 leaf-val-1))
   (is= 3.0 (validate-parse-leaf leaf-schema-2 leaf-val-2))
@@ -359,14 +347,6 @@ digits                  = 1*digit
 ;-----------------------------------------------------------------------------
 
 (dotest
-  (let [iiinc-txt    "(fn fn-iiinc [x] (+ 3 x))"
-        fn-iiinc-str (eval (read-string iiinc-txt))]
-    (is= 5 (fn-iiinc-str 2)))
-
-  (let [iiinc-ast    '(fn fn-iiinc [x] (+ 3 x))
-        fn-iiinc-ast (eval iiinc-ast)]
-    (is= 5 (fn-iiinc-ast 2)))
-
   (tf/with-forest (tf/new-forest)
     (let [abnf-src            (io/resource "yang3.abnf")
           yang-src            (slurp (io/resource "calc.yang"))
@@ -423,6 +403,5 @@ digits                  = 1*digit
            [:output [:leaf {:type :decimal64, :name :result}]]])
 
         (is= (rpc->api rpc-hid)
-          '(fn fn-add [x y] (fn-add-impl x y))))))
+          '(fn fn-add [x y] (fn-add-impl x y)))))))
 
-)

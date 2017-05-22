@@ -39,6 +39,23 @@
       (throw (RuntimeException. (str "leaf-schema->parser: failed for schema=" schema \newline
                                   "  caused by=" (.getMessage e)))))))
 
+#_(s/defn validate-parse-leaf-hid
+  "Validate & parse a leaf msg value given a leaf leaf-schema (Enlive-format)."
+  [schema-hid  :- tf/HID
+   leaf-hid :- tf/HID ]
+  (try
+    (assert (= (grab :tag leaf-schema) :leaf))
+    (let [leaf-name-schema (keyword (te/get-leaf leaf-schema [:leaf :identifier]))
+          leaf-name-val    (grab :tag leaf-val)
+          xx              (assert (= leaf-name-schema leaf-name-val))
+          ; #todo does not yet verify any attrs;  what rules?
+          parser-fn       (leaf-schema->parser leaf-schema)
+          parsed-value    (parser-fn (only (grab :content leaf-val)))]
+      parsed-value)
+    (catch Exception e
+      (throw (RuntimeException. (str "validate-parse-leaf-val: failed for leaf-schema=" leaf-schema \newline
+                                  "  leaf-val=" leaf-val \newline
+                                  "  caused by=" (.getMessage e)))))))
 (defn validate-parse-leaf
   "Validate & parse a leaf msg value given a leaf leaf-schema (Enlive-format)."
   [leaf-schema leaf-val]
@@ -198,26 +215,127 @@
                                  ast-tx))]
     parse-and-transform))
 
+(s/defn leaf-name->attrs
+  [leaf-hid :- tf/HID]
+  (let [name-kw (keyword (only (tf/find-leaf-content leaf-hid [:leaf :identifier])))
+        hid-remove (tf/find-hids leaf-hid [:leaf :identifier])]
+    (tf/merge-attrs leaf-hid {:name name-kw})
+    (tf/remove-kids leaf-hid hid-remove)))
+
+(s/defn leaf-type->attrs
+  [leaf-hid :- tf/HID]
+  (tf/hid->tree leaf-hid)
+  (let [type-kw (keyword (only (tf/find-leaf-content leaf-hid [:leaf :type :identifier])))
+        hid-remove (tf/find-hids leaf-hid [:leaf :type])]
+    (tf/merge-attrs leaf-hid {:type type-kw})
+    (tf/remove-kids leaf-hid hid-remove)))
+
+(s/defn tx-leaf-type-ident
+  "Within a [:leaf ...] node, convert [:type [:identifier 'decimal64']] ->
+    {:type :decimal64} "
+  [rpc-hid :- tf/HID]
+  (tf/validate-hid rpc-hid)
+  (let [rpc-leaf-paths (tf/find-paths rpc-hid [:rpc :* :leaf])
+        rpc-leaf-hids  (mapv last rpc-leaf-paths) ]
+    (run! leaf-type->attrs rpc-leaf-hids)
+    (run! leaf-name->attrs rpc-leaf-hids)
+    (doseq [hid rpc-leaf-hids]
+      (tf/remove-all-kids hid))))
+
+(s/defn tx-rpc
+  [rpc-hid]
+  (tf/validate-hid rpc-hid)
+  (tx-leaf-type-ident rpc-hid)
+  (let [id-hid (tf/find-hid rpc-hid [:rpc :identifier])
+        desc-hid (tf/find-hid rpc-hid [:rpc :description])
+        rpc-name (keyword (only (tf/leaf->content id-hid)))]
+    (tf/merge-attrs rpc-hid {:name rpc-name})
+    (tf/remove-kids rpc-hid [id-hid desc-hid]))
+  )
+
+(s/defn rpc->api :- [s/Any]
+  [rpc-hid :- tf/HID]
+  (let [rpc-tree           (tf/hid->tree rpc-hid)
+        rpc-name           (kw->str (fetch-in rpc-tree [:attrs :name]))
+        rpc-input-hid      (tf/find-hid rpc-hid [:rpc :input])
+        rpc-input-arg-hids (grab :kids (tf/hid->node rpc-input-hid))
+        rpc-arg-syms       (forv [hid rpc-input-arg-hids]
+                             (it-> hid
+                               (tf/hid->tree it)
+                               (fetch-in it [:attrs :name])
+                               (kw->sym it)))
+        fn-name            (symbol (str "fn-" rpc-name))
+        fn-name-impl       (symbol (str fn-name "-impl"))
+        fn-def             (vec->list
+                             (-> '(fn)
+                               (append fn-name rpc-arg-syms)
+                               (append (vec->list (prepend fn-name-impl rpc-arg-syms))))) ]
+    fn-def ))
+
 
 (s/defn rpc-marshall :- s/Any
   [rpc-hid :- tf/HID
-   args :- [s/Any] ]
-  (let [rpc-tree           (tf/hid->tree rpc-hid)
-        rpc-name           (fetch-in rpc-tree [:attrs :name])
-        rpc-input-hid      (tf/find-hid rpc-hid [:rpc :input])
+   args :- [s/Any]]
+  (let [rpc-tree (tf/hid->tree rpc-hid)
+        rpc-name (fetch-in rpc-tree [:attrs :name])
+        rpc-input-hid (tf/find-hid rpc-hid [:rpc :input])
         rpc-input-arg-hids (grab :kids (tf/hid->node rpc-input-hid))
         _ (assert (= (count args) (count rpc-input-arg-hids)))
-        marshalled-args       (forv [[hid arg] (mapv vector rpc-input-arg-hids args)]
-                             (let [arg-tree  (tf/hid->tree hid)
-                                   arg-name-kw (fetch-in arg-tree [:attrs :name])
-                                   arg-name-sym (kw->sym arg-name-kw)
-                                   arg-type (fetch-in arg-tree [:attrs :type])
-                                   marshal-fn (type-marshal-map arg-type)
-                                   marshalled-arg  [arg-name-kw (marshal-fn arg)]
-                                  ]
-                               marshalled-arg))
-        msg-hiccup         [:rpc (glue [rpc-name {:xmlns "my-own-ns/v1"}] marshalled-args) ] ]
+        marshalled-args (forv [[hid arg] (mapv vector rpc-input-arg-hids args)]
+                          (let [arg-tree (tf/hid->tree hid)
+                                arg-name-kw (fetch-in arg-tree [:attrs :name])
+                                arg-name-sym (kw->sym arg-name-kw)
+                                arg-type (fetch-in arg-tree [:attrs :type])
+                                marshal-fn (type-marshal-map arg-type)
+                                marshalled-arg [arg-name-kw (marshal-fn arg)]
+                                ]
+                            marshalled-arg))
+        msg-hiccup [:rpc (glue [rpc-name {:xmlns "my-own-ns/v1"}] marshalled-args)]]
     msg-hiccup))
+
+(s/defn rpc-unmarshall :- s/Any
+  [schema-hid
+   msg :- [s/Any] ]
+  (let
+    [msg-hid (tf/add-tree-hiccup msg)
+     msg-tree (tf/hid->tree msg-hid)
+     schema-tree (tf/hid->tree schema-hid)
+     _ (assert (= :rpc
+                 (fetch-in schema-tree [:attrs :tag])
+                 (fetch-in msg-tree [:attrs :tag])))
+     schema-fn-name (fetch-in schema-tree [:attrs :name])
+     msg-call (it-> msg-tree
+                (grab :kids it)
+                (only it))
+     msg-fn-name (fetch-in msg-call [:attrs :tag])
+     _ (assert (= schema-fn-name msg-fn-name))
+
+     schema-input-hid (tf/find-hid schema-hid [:rpc :input])
+     schema-input-hids (grab :kids (tf/hid->node schema-input-hid))
+     schema-arg-trees (mapv tf/hid->tree schema-input-hids)
+     msg-arg-trees (grab :kids msg-call)
+     _ (assert (= (count schema-arg-trees) (count msg-arg-trees) ))
+     args (mapv
+            (fn [schema-tree msg-tree]
+              (let [schema-arg-name (fetch-in schema-tree [:attrs :name])
+                    schema-arg-type (fetch-in schema-tree [:attrs :type])
+                    schema-arg-parse-fn (grab schema-arg-type type-unmarshal-map)
+                    msg-arg-name (fetch-in msg-tree [:attrs :tag])
+                    _ (assert (= msg-arg-name schema-arg-name))
+                    msg-arg-value-raw (only (grab :content msg-tree))
+                    msg-arg-value (schema-arg-parse-fn msg-arg-value-raw)]
+                msg-arg-value))
+            schema-arg-trees msg-arg-trees)
+     rpc-fn (grab msg-fn-name rpc-fn-map)
+     rpc-unmarshalled-map {:rpc-fn rpc-fn
+                           :args args} ]
+    rpc-unmarshalled-map))
+
+(defn invoke-rpc [rpc-unmarshalled-map]
+  (let [rpc-fn (grab :rpc-fn rpc-unmarshalled-map)
+        args (grab :args rpc-unmarshalled-map)
+        rpc-result (apply rpc-fn args) ]
+    rpc-result) )
 
 
 ; #todo kill this old stuff -> pre-parse to remove comments

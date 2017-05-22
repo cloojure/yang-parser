@@ -18,33 +18,10 @@
 
 (def ^:dynamic *rpc-timeout-ms* 200)
 (def ^:dynamic *rpc-delay-simulated-ms* 30)
-
-(dotest
-  (tf/with-forest (tf/new-forest)
-    (let [abnf-src            (io/resource "yang3.abnf")
-          yang-src            (slurp (io/resource "calc.yang"))
-          parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
-          yang-ast-hiccup     (parse-and-transform yang-src)
-          yang-hid            (tf/add-tree-hiccup yang-ast-hiccup)
-          rpc-hid             (tf/find-hid yang-hid [:module :rpc])]
-      (tx-rpc rpc-hid)
-      (is= (tf/hid->bush rpc-hid)
-        [{:tag :rpc, :name :add}
-         [{:tag :input}
-          [{:tag :leaf, :type :decimal64, :name :x}]
-          [{:tag :leaf, :type :decimal64, :name :y}]]
-         [{:tag :output} [{:tag :leaf, :type :decimal64, :name :result}]]])
-
-      (is= (rpc->api rpc-hid)
-        '(fn fn-add [x y] (fn-add-impl x y)))
-      (is= (rpc-marshall rpc-hid [2 3])
-        [:rpc [:add {:xmlns "my-own-ns/v1"} [:x "2"] [:y "3"]]])
-)))
-
-;-----------------------------------------------------------------------------
 (def rpc-msg-id (atom 100))
 (def rpc-msg-id-map (atom {}))
 
+;-----------------------------------------------------------------------------
 (defn add [x y]
   (tf/with-forest (tf/new-forest)
     ; #todo  keywordize all :identifier values
@@ -90,4 +67,53 @@
     (reset! rpc-msg-id 100)
     (is (rel= 5 (add 2 3) :digits 9)) ))
 
+;-----------------------------------------------------------------------------
+(dotest
+  (let [abnf-src (io/resource "yang3.abnf")
+        yang-src (slurp (io/resource "calc.yang"))
+        parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
+        yang-ast-hiccup (parse-and-transform yang-src)]
+    (tf/with-forest (tf/new-forest)
+      (let [yang-hid (tf/add-tree-hiccup yang-ast-hiccup)
+            rpc-hid (tf/find-hid yang-hid [:module :rpc])
+
+            leaf-hids (tf/find-hids rpc-hid [:rpc :* :leaf])
+            leaves-before (set (forv [leaf-hid leaf-hids]
+                                 (tf/hid->hiccup leaf-hid)))
+
+            xx (doseq [leaf-hid leaf-hids]
+                 (leaf-name->attrs leaf-hid)
+                 (leaf-type->attrs leaf-hid))
+            leaves-after (set (forv [leaf-hid leaf-hids]
+                                (tf/hid->hiccup leaf-hid)))]
+        (is= leaves-before
+          #{[:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+            [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]
+            [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]})
+        (is= leaves-after
+          #{[:leaf {:name :x, :type :decimal64}]
+            [:leaf {:name :y, :type :decimal64}]
+            [:leaf {:name :result, :type :decimal64}]})))
+
+    (tf/with-forest (tf/new-forest)
+      (let
+        [yang-hid (tf/add-tree-hiccup yang-ast-hiccup)
+         rpc-hid (tf/find-hid yang-hid [:module :rpc])
+         xx (tx-rpc rpc-hid)
+         rpc-bush (tf/hid->bush rpc-hid)
+         rpc-api (rpc->api rpc-hid)
+         rpc-marshalled (rpc-marshall rpc-hid [2 3])
+         rpc-unmarshalled (rpc-unmarshall rpc-hid rpc-marshalled)
+         rpc-result (invoke-rpc rpc-unmarshalled) ]
+        (is= rpc-bush
+          [{:tag :rpc, :name :add}
+           [{:tag :input}
+            [{:tag :leaf, :type :decimal64, :name :x}]
+            [{:tag :leaf, :type :decimal64, :name :y}]]
+           [{:tag :output} [{:tag :leaf, :type :decimal64, :name :result}]]])
+        (is= rpc-api '(fn fn-add [x y] (fn-add-impl x y)))
+        (is= rpc-marshalled [:rpc [:add {:xmlns "my-own-ns/v1"} [:x "2"] [:y "3"]]])
+        (is= rpc-result 5.0)
+
+      ))))
 
