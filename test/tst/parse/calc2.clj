@@ -18,8 +18,6 @@
 
 (def ^:dynamic *rpc-timeout-ms* 200)
 (def ^:dynamic *rpc-delay-simulated-ms* 30)
-(def rpc-msg-id (atom 100))
-(def rpc-msg-id-map (atom {}))
 
 ;-----------------------------------------------------------------------------
 (defn add [x y]
@@ -96,15 +94,21 @@
             [:leaf {:name :result, :type :decimal64}]})))
 
     (tf/with-forest (tf/new-forest)
-      (let
+      (reset! rpc-msg-id 100)
+      (let-spy-pretty
         [yang-hid (tf/add-tree-hiccup yang-ast-hiccup)
-         rpc-hid (tf/find-hid yang-hid [:module :rpc])
-         xx (tx-rpc rpc-hid)
-         rpc-bush (tf/hid->bush rpc-hid)
-         rpc-api (rpc->api rpc-hid)
-         rpc-marshalled (rpc-marshall rpc-hid [2 3])
-         rpc-unmarshalled (rpc-unmarshall rpc-hid rpc-marshalled)
-         rpc-result (invoke-rpc rpc-unmarshalled) ]
+         schema-hid (tf/find-hid yang-hid [:module :rpc])
+         xx (tx-rpc schema-hid)
+         rpc-bush (tf/hid->bush schema-hid)
+         rpc-api (rpc->api schema-hid)
+         rpc-marshalled (rpc-marshall schema-hid [2 3])
+         msg-marshalled-hid (tf/add-tree-hiccup rpc-marshalled)
+         unmarshalled-call (rpc-unmarshall schema-hid msg-marshalled-hid)
+         call-result (invoke-rpc unmarshalled-call)
+         reply-msg (rpc-reply-marshall schema-hid msg-marshalled-hid call-result)
+         reply-hid (tf/add-tree-hiccup reply-msg)
+         reply-result (reply-unmarshall schema-hid reply-hid)
+         ]
         (is= rpc-bush
           [{:tag :rpc, :name :add}
            [{:tag :input}
@@ -112,9 +116,15 @@
             [{:tag :leaf, :type :decimal64, :name :y}]]
            [{:tag :output} [{:tag :leaf, :type :decimal64, :name :result}]]])
         (is= rpc-api '(fn fn-add [x y] (fn-add-impl x y)))
-        (is= rpc-marshalled [:rpc [:add {:xmlns "my-own-ns/v1"} [:x "2"] [:y "3"]]])
-        (is (wild-match? {:rpc-fn :*, :args [2.0 3.0]}) rpc-unmarshalled)
-        (is= rpc-result 5.0)
+        (is= rpc-marshalled [:rpc [:add {:xmlns "my-own-ns/v1"  :message-id 101}
+                                   [:x "2"] [:y "3"]]])
+        (is (wild-match? {:rpc-fn :*, :args [2.0 3.0]}) unmarshalled-call)
+        (is= call-result 5.0)
+        (is= reply-msg
+          [:rpc-reply {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+           [:result "5.0"]])
+        (is (rel= 5 reply-result :digits 9))
 
-      ))))
+        ))))
+
 

@@ -15,13 +15,16 @@
     [tupelo.enlive :as te]))
 (t/refer-tupelo)
 
+(def rpc-msg-id (atom 100))
+(def rpc-msg-id-map (atom {}))
+
 (defn instaparse-failure? [arg] (instance? instaparse.gll.Failure arg))
 
-(def type-marshal-map {:decimal64 str
+(def type-marshall-map {:decimal64 str
                        :int64     str
                        :string    str})
 
-(def type-unmarshal-map {:decimal64 tp/parse-double
+(def type-unmarshall-map {:decimal64 tp/parse-double
                          :int64     tp/parse-long
                          :string    str})
 
@@ -33,7 +36,7 @@
   [schema]
   (try
     (let [type      (te/get-leaf schema [:leaf :type :identifier]) ; eg "decimal64"
-          parser-fn (grab (str->kw type) type-unmarshal-map)]
+          parser-fn (grab (str->kw type) type-unmarshall-map)]
       parser-fn)
     (catch Exception e
       (throw (RuntimeException. (str "leaf-schema->parser: failed for schema=" schema \newline
@@ -111,7 +114,7 @@
      arg-name-val    (fetch-in arg-val [:attrs :tag])
      xx              (assert (= arg-name-schema arg-name-val))
      ; #todo does not yet verify any attrs;  what rules?
-    parser-fn        (grab arg-type-schema type-unmarshal-map)
+    parser-fn        (grab arg-type-schema type-unmarshall-map)
     parsed-value    (parser-fn (only (grab :content arg-val)))]
     parsed-value)
 
@@ -286,20 +289,24 @@
                                 arg-name-kw (fetch-in arg-tree [:attrs :name])
                                 arg-name-sym (kw->sym arg-name-kw)
                                 arg-type (fetch-in arg-tree [:attrs :type])
-                                marshal-fn (type-marshal-map arg-type)
-                                marshalled-arg [arg-name-kw (marshal-fn arg)]
+                                marshall-fn (fetch type-marshall-map arg-type)
+                                marshalled-arg [arg-name-kw (marshall-fn arg)]
                                 ]
                             marshalled-arg))
-        msg-hiccup [:rpc (glue [rpc-name {:xmlns "my-own-ns/v1"}] marshalled-args)]]
+
+        rpc-msg-id     (swap! rpc-msg-id inc)
+        msg-hiccup [:rpc (glue [rpc-name {:xmlns "my-own-ns/v1"  :message-id rpc-msg-id }]
+                           marshalled-args)]]
     msg-hiccup))
 
-(defn rpc-unmarshall-args
-  [schema-arg-trees msg-arg-trees]
+(s/defn rpc-unmarshall-args
+  [schema-arg-trees :- [tsk/KeyMap]
+   msg-arg-trees  :- [tsk/KeyMap]]
   (let [args (map-with [schema-tree schema-arg-trees
                         msg-tree msg-arg-trees]
                (let [schema-arg-name (fetch-in schema-tree [:attrs :name])
                      schema-arg-type (fetch-in schema-tree [:attrs :type])
-                     schema-arg-parse-fn (grab schema-arg-type type-unmarshal-map)
+                     schema-arg-parse-fn (grab schema-arg-type type-unmarshall-map)
                      msg-arg-name (fetch-in msg-tree [:attrs :tag])
                      _ (assert (= msg-arg-name schema-arg-name))
                      msg-arg-value-raw (only (grab :content msg-tree))
@@ -308,11 +315,10 @@
     args))
 
 (s/defn rpc-unmarshall :- s/Any
-  [schema-hid
-   msg :- [s/Any] ]
+  [schema-hid :- tf/HID
+   msg-hid :- tf/HID ]
   (let
-    [msg-hid (tf/add-tree-hiccup msg)
-     msg-tree (tf/hid->tree msg-hid)
+    [msg-tree (tf/hid->tree msg-hid)
      schema-tree (tf/hid->tree schema-hid)
      _ (assert (= :rpc
                  (fetch-in schema-tree [:attrs :tag])
@@ -334,6 +340,24 @@
                            :args args} ]
     rpc-unmarshalled-map))
 
+(s/defn rpc-reply-marshall :- s/Any
+  [schema-hid :- tf/HID
+   msg-hid :- tf/HID
+   result :- s/Any]
+  (let
+    [rpc-tree (tf/hid->tree schema-hid)
+     msg-tree (tf/hid->tree msg-hid)
+     msg-attrs (it-> (grab :kids msg-tree)
+                 (only it)
+                 (grab :attrs it))
+     reply-attrs (glue {:xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+                   (submap-by-keys msg-attrs #{:message-id}))
+     schema-reply-tree (tf/find-tree schema-hid [:rpc :output :leaf])
+     reply-type (fetch-in schema-reply-tree [:attrs :type])
+     marshall-fn (fetch type-marshall-map reply-type)
+     reply-hiccup [:rpc-reply reply-attrs [:result (marshall-fn result)]]]
+    reply-hiccup))
+
 (s/defn invoke-rpc  :- s/Any
   [rpc-unmarshalled-map :- tsk/Map]
   (let [rpc-fn (grab :rpc-fn rpc-unmarshalled-map)
@@ -342,3 +366,21 @@
     rpc-result))
 
 
+(s/defn reply-unmarshall :- s/Any
+  [schema-hid :- tf/HID
+   reply-hid :- tf/HID ]
+  (let-spy-pretty
+    [schema-tree (tf/hid->tree schema-hid)
+     reply-tree (tf/hid->tree reply-hid)
+     _ (assert (= :rpc-reply (fetch-in reply-tree [:attrs :tag])))
+     result-tree (it-> reply-tree
+                (grab :kids it)
+                (only it))
+     result-unparsed (only (grab :content result-tree))
+
+     schema-reply-tree (tf/find-tree schema-hid [:rpc :output :leaf])
+     reply-type (fetch-in schema-reply-tree [:attrs :type])
+     unmarshall-fn (fetch type-unmarshall-map reply-type)
+     result-parsed (unmarshall-fn result-unparsed)
+]
+    (spyxx result-parsed)))
