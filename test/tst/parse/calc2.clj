@@ -108,12 +108,14 @@
             reply-hid (tf/add-tree-hiccup reply-msg)
             reply-val (reply-unmarshall schema-hid reply-hid)
             ]
+        (spyx-pretty (tf/hid->bush yang-hid))
         (is= schema-bush
           [{:tag :rpc, :name :add}
            [{:tag :input}
-            [{:tag :leaf, :type :decimal64, :name :x}]
-            [{:tag :leaf, :type :decimal64, :name :y}]]
-           [{:tag :output} [{:tag :leaf, :type :decimal64, :name :result}]]])
+            [{:type :decimal64, :name :x}]
+            [{:type :decimal64, :name :y}]]
+           [{:tag :output}
+            [{:type :decimal64, :name :result}]]])
         (is= rpc-api-clj '(fn fn-add [x y] (fn-add-impl x y)))
         (is= call-msg [:rpc [:add {:xmlns "my-own-ns/v1" :message-id 101}
                                    [:x "2"] [:y "3"]]])

@@ -391,16 +391,10 @@ digits                  = 1*digit
         (is= (tf/hid->bush rpc-hid)
           [{:tag :rpc, :name :add}
            [{:tag :input}
-            [{:tag :leaf, :type :decimal64, :name :x}]
-            [{:tag :leaf, :type :decimal64, :name :y}]]
-           [{:tag :output} [{:tag :leaf, :type :decimal64, :name :result}]]])
-
-        (is= (tf/hid->hiccup rpc-hid)
-          [:rpc {:name :add}
-           [:input
-            [:leaf {:type :decimal64, :name :x}]
-            [:leaf {:type :decimal64, :name :y}]]
-           [:output [:leaf {:type :decimal64, :name :result}]]])
+            [{:type :decimal64, :name :x}]
+            [{:type :decimal64, :name :y}]]
+           [{:tag :output}
+            [{:type :decimal64, :name :result}]]])
 
         (is= (rpc->api rpc-hid)
           '(fn fn-add [x y] (fn-add-impl x y)))))))

@@ -243,6 +243,7 @@
     (run! leaf-type->attrs rpc-leaf-hids)
     (run! leaf-name->attrs rpc-leaf-hids)
     (doseq [hid rpc-leaf-hids]
+      (tf/remove-attr hid :tag)
       (tf/remove-all-kids hid))))
 
 (s/defn tx-rpc
@@ -352,7 +353,7 @@
                  (grab :attrs it))
      reply-attrs (glue {:xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
                    (submap-by-keys msg-attrs #{:message-id}))
-     schema-reply-tree (tf/find-tree schema-hid [:rpc :output :leaf])
+     schema-reply-tree (only (grab :kids (tf/find-tree schema-hid [:rpc :output])))
      reply-type (fetch-in schema-reply-tree [:attrs :type])
      marshall-fn (fetch type-marshall-map reply-type)
      reply-hiccup [:rpc-reply reply-attrs [:result (marshall-fn result)]]]
@@ -377,7 +378,7 @@
                       (only it))
         result-unparsed (only (grab :content result-tree))
 
-        schema-reply-tree (tf/find-tree schema-hid [:rpc :output :leaf])
+        schema-reply-tree (only (grab :kids (tf/find-tree schema-hid [:rpc :output])))
         reply-type (fetch-in schema-reply-tree [:attrs :type])
         unmarshall-fn (fetch type-unmarshall-map reply-type)
         result-parsed (unmarshall-fn result-unparsed)]
