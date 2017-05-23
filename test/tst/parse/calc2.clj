@@ -113,6 +113,7 @@
            [{:tag :output} [{:tag :leaf, :type :decimal64, :name :result}]]])
         (is= rpc-api '(fn fn-add [x y] (fn-add-impl x y)))
         (is= rpc-marshalled [:rpc [:add {:xmlns "my-own-ns/v1"} [:x "2"] [:y "3"]]])
+        (is (wild-match? {:rpc-fn :*, :args [2.0 3.0]}) rpc-unmarshalled)
         (is= rpc-result 5.0)
 
       ))))
