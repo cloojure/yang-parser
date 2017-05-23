@@ -95,36 +95,33 @@
 
     (tf/with-forest (tf/new-forest)
       (reset! rpc-msg-id 100)
-      (let-spy-pretty
-        [yang-hid (tf/add-tree-hiccup yang-ast-hiccup)
-         schema-hid (tf/find-hid yang-hid [:module :rpc])
-         xx (tx-rpc schema-hid)
-         rpc-bush (tf/hid->bush schema-hid)
-         rpc-api (rpc->api schema-hid)
-         rpc-marshalled (rpc-marshall schema-hid [2 3])
-         msg-marshalled-hid (tf/add-tree-hiccup rpc-marshalled)
-         unmarshalled-call (rpc-unmarshall schema-hid msg-marshalled-hid)
-         call-result (invoke-rpc unmarshalled-call)
-         reply-msg (rpc-reply-marshall schema-hid msg-marshalled-hid call-result)
-         reply-hid (tf/add-tree-hiccup reply-msg)
-         reply-result (reply-unmarshall schema-hid reply-hid)
-         ]
-        (is= rpc-bush
+      (let [yang-hid (tf/add-tree-hiccup yang-ast-hiccup)
+            schema-hid (tf/find-hid yang-hid [:module :rpc])
+            _ (tx-rpc schema-hid)
+            schema-bush (tf/hid->bush schema-hid)
+            rpc-api-clj (rpc->api schema-hid)
+            call-msg (rpc-call-marshall schema-hid [2 3])
+            msg-marshalled-hid (tf/add-tree-hiccup call-msg)
+            call-unmarshalled (rpc-call-unmarshall schema-hid msg-marshalled-hid)
+            call-result (invoke-rpc call-unmarshalled)
+            reply-msg (rpc-reply-marshall schema-hid msg-marshalled-hid call-result)
+            reply-hid (tf/add-tree-hiccup reply-msg)
+            reply-val (reply-unmarshall schema-hid reply-hid)
+            ]
+        (is= schema-bush
           [{:tag :rpc, :name :add}
            [{:tag :input}
             [{:tag :leaf, :type :decimal64, :name :x}]
             [{:tag :leaf, :type :decimal64, :name :y}]]
            [{:tag :output} [{:tag :leaf, :type :decimal64, :name :result}]]])
-        (is= rpc-api '(fn fn-add [x y] (fn-add-impl x y)))
-        (is= rpc-marshalled [:rpc [:add {:xmlns "my-own-ns/v1"  :message-id 101}
+        (is= rpc-api-clj '(fn fn-add [x y] (fn-add-impl x y)))
+        (is= call-msg [:rpc [:add {:xmlns "my-own-ns/v1" :message-id 101}
                                    [:x "2"] [:y "3"]]])
-        (is (wild-match? {:rpc-fn :*, :args [2.0 3.0]}) unmarshalled-call)
+        (is (wild-match? {:rpc-fn :*, :args [2.0 3.0]}) call-unmarshalled)
         (is= call-result 5.0)
         (is= reply-msg
           [:rpc-reply {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
            [:result "5.0"]])
-        (is (rel= 5 reply-result :digits 9))
-
-        ))))
+        (is (rel= 5 reply-val :digits 9))))))
 
 

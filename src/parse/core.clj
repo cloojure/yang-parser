@@ -276,15 +276,15 @@
     fn-def ))
 
 
-(s/defn rpc-marshall :- s/Any
-  [rpc-hid :- tf/HID
+(s/defn rpc-call-marshall :- s/Any
+  [schema-hid :- tf/HID
    args :- [s/Any]]
-  (let [rpc-tree (tf/hid->tree rpc-hid)
-        rpc-name (fetch-in rpc-tree [:attrs :name])
-        rpc-input-hid (tf/find-hid rpc-hid [:rpc :input])
-        rpc-input-arg-hids (grab :kids (tf/hid->node rpc-input-hid))
-        _ (assert (= (count args) (count rpc-input-arg-hids)))
-        marshalled-args (forv [[hid arg] (mapv vector rpc-input-arg-hids args)]
+  (let [schema-tree (tf/hid->tree schema-hid)
+        schema-fn-name (fetch-in schema-tree [:attrs :name])
+        schema-input-hid (tf/find-hid schema-hid [:rpc :input])
+        schema-input-arg-hids (grab :kids (tf/hid->node schema-input-hid))
+        _ (assert (= (count args) (count schema-input-arg-hids)))
+        marshalled-args (forv [[hid arg] (mapv vector schema-input-arg-hids args)]
                           (let [arg-tree (tf/hid->tree hid)
                                 arg-name-kw (fetch-in arg-tree [:attrs :name])
                                 arg-name-sym (kw->sym arg-name-kw)
@@ -295,11 +295,11 @@
                             marshalled-arg))
 
         rpc-msg-id     (swap! rpc-msg-id inc)
-        msg-hiccup [:rpc (glue [rpc-name {:xmlns "my-own-ns/v1"  :message-id rpc-msg-id }]
+        msg-hiccup [:rpc (glue [schema-fn-name {:xmlns "my-own-ns/v1"  :message-id rpc-msg-id }]
                            marshalled-args)]]
     msg-hiccup))
 
-(s/defn rpc-unmarshall-args
+(s/defn rpc-call-unmarshall-args
   [schema-arg-trees :- [tsk/KeyMap]
    msg-arg-trees  :- [tsk/KeyMap]]
   (let [args (map-with [schema-tree schema-arg-trees
@@ -314,7 +314,7 @@
                  msg-arg-value))]
     args))
 
-(s/defn rpc-unmarshall :- s/Any
+(s/defn rpc-call-unmarshall :- s/Any
   [schema-hid :- tf/HID
    msg-hid :- tf/HID ]
   (let
@@ -334,11 +334,11 @@
      schema-arg-trees (mapv tf/hid->tree schema-input-hids)
      msg-arg-trees (grab :kids msg-call)
      _ (assert (= (count schema-arg-trees) (count msg-arg-trees) ))
-     args (rpc-unmarshall-args schema-arg-trees msg-arg-trees)
+     args (rpc-call-unmarshall-args schema-arg-trees msg-arg-trees)
      rpc-fn (grab msg-fn-name rpc-fn-map)
-     rpc-unmarshalled-map {:rpc-fn rpc-fn
+     rpc-call-unmarshalled-map {:rpc-fn rpc-fn
                            :args args} ]
-    rpc-unmarshalled-map))
+    rpc-call-unmarshalled-map))
 
 (s/defn rpc-reply-marshall :- s/Any
   [schema-hid :- tf/HID
@@ -359,9 +359,9 @@
     reply-hiccup))
 
 (s/defn invoke-rpc  :- s/Any
-  [rpc-unmarshalled-map :- tsk/Map]
-  (let [rpc-fn (grab :rpc-fn rpc-unmarshalled-map)
-        args (grab :args rpc-unmarshalled-map)
+  [rpc-call-unmarshalled-map :- tsk/Map]
+  (let [rpc-fn (grab :rpc-fn rpc-call-unmarshalled-map)
+        args (grab :args rpc-call-unmarshalled-map)
         rpc-result (apply rpc-fn args)]
     rpc-result))
 
@@ -369,18 +369,16 @@
 (s/defn reply-unmarshall :- s/Any
   [schema-hid :- tf/HID
    reply-hid :- tf/HID ]
-  (let-spy-pretty
-    [schema-tree (tf/hid->tree schema-hid)
-     reply-tree (tf/hid->tree reply-hid)
-     _ (assert (= :rpc-reply (fetch-in reply-tree [:attrs :tag])))
-     result-tree (it-> reply-tree
-                (grab :kids it)
-                (only it))
-     result-unparsed (only (grab :content result-tree))
+  (let [schema-tree (tf/hid->tree schema-hid)
+        reply-tree (tf/hid->tree reply-hid)
+        _ (assert (= :rpc-reply (fetch-in reply-tree [:attrs :tag])))
+        result-tree (it-> reply-tree
+                      (grab :kids it)
+                      (only it))
+        result-unparsed (only (grab :content result-tree))
 
-     schema-reply-tree (tf/find-tree schema-hid [:rpc :output :leaf])
-     reply-type (fetch-in schema-reply-tree [:attrs :type])
-     unmarshall-fn (fetch type-unmarshall-map reply-type)
-     result-parsed (unmarshall-fn result-unparsed)
-]
-    (spyxx result-parsed)))
+        schema-reply-tree (tf/find-tree schema-hid [:rpc :output :leaf])
+        reply-type (fetch-in schema-reply-tree [:attrs :type])
+        unmarshall-fn (fetch type-unmarshall-map reply-type)
+        result-parsed (unmarshall-fn result-unparsed)]
+    result-parsed))
