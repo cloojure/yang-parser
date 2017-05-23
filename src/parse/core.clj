@@ -21,12 +21,12 @@
 (defn instaparse-failure? [arg] (instance? instaparse.gll.Failure arg))
 
 (def type-marshall-map {:decimal64 str
-                       :int64     str
-                       :string    str})
+                        :int64     str
+                        :string    str})
 
 (def type-unmarshall-map {:decimal64 tp/parse-double
-                         :int64     tp/parse-long
-                         :string    str})
+                          :int64     tp/parse-long
+                          :string    str})
 
 (def rpc-fn-map {:add  (fn fn-add [& args] (apply + args))
                  :mult (fn fn-mult [& args] (apply * args))
