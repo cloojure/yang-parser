@@ -41,9 +41,9 @@
           result-promise (promise)
           rpc-msg-id     (swap! rpc-msg-id inc)
           xx             (swap! rpc-msg-id-map glue {rpc-msg-id result-promise})
-          xx             (tf/update-attrs rpc-hid
-                           (fn [attrs] (glue attrs {:message-id rpc-msg-id
-                                                    :xmlns      "urn:ietf:params:xml:ns:netconf:base:1.0"})))
+          xx             (tf/attrs-merge rpc-hid
+                           {:message-id rpc-msg-id
+                            :xmlns      "urn:ietf:params:xml:ns:netconf:base:1.0"} )
           result-hid     (validate-parse-rpc-tree rpc-schema-hid rpc-hid)
               ;(tf/hid->tree result-hid)
               ;    {:attrs {:tag :rpc-reply, :message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"},

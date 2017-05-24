@@ -140,16 +140,16 @@
   [leaf-hid :- tf/HID]
   (let [name-kw (keyword (tf/find-leaf-value leaf-hid [:leaf :identifier]))
         hid-remove (tf/find-hids leaf-hid [:leaf :identifier])]
-    (tf/merge-attrs leaf-hid {:name name-kw})
-    (tf/remove-kids leaf-hid hid-remove)))
+    (tf/attrs-merge leaf-hid {:name name-kw})
+    (tf/kids-remove leaf-hid hid-remove)))
 
 (s/defn leaf-type->attrs
   [leaf-hid :- tf/HID]
   (tf/hid->tree leaf-hid)
   (let [type-kw (keyword (tf/find-leaf-value leaf-hid [:leaf :type :identifier]))
         hid-remove (tf/find-hids leaf-hid [:leaf :type])]
-    (tf/merge-attrs leaf-hid {:type type-kw})
-    (tf/remove-kids leaf-hid hid-remove)))
+    (tf/attrs-merge leaf-hid {:type type-kw})
+    (tf/kids-remove leaf-hid hid-remove)))
 
 (s/defn tx-leaf-type-ident
   "Within a [:leaf ...] node, convert [:type [:identifier 'decimal64']] ->
@@ -161,8 +161,8 @@
     (run! leaf-type->attrs rpc-leaf-hids)
     (run! leaf-name->attrs rpc-leaf-hids)
     (doseq [hid rpc-leaf-hids]
-      (tf/remove-attr hid :tag)
-      (tf/remove-all-kids hid))))
+      (tf/attr-remove hid :tag)
+      (tf/kids-remove-all hid))))
 
 (s/defn tx-rpc
   [rpc-hid]
@@ -171,8 +171,8 @@
   (let [id-hid (tf/find-hid rpc-hid [:rpc :identifier])
         desc-hid (tf/find-hid rpc-hid [:rpc :description])
         rpc-name (keyword (tf/leaf->value id-hid))]
-    (tf/merge-attrs rpc-hid {:name rpc-name})
-    (tf/remove-kids rpc-hid [id-hid desc-hid])))
+    (tf/attrs-merge rpc-hid {:name rpc-name})
+    (tf/kids-remove rpc-hid [id-hid desc-hid])))
 
 (s/defn rpc->api :- [s/Any]
   [rpc-hid :- tf/HID]
