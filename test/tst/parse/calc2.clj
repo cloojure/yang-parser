@@ -124,8 +124,7 @@
            [{:tag :input}
             [{:type :decimal64, :name :x}]
             [{:type :decimal64, :name :y}]]
-           [{:tag :output}
-            [{:type :decimal64, :name :result}]]])
+           [{:tag :output} [{:type :decimal64, :name :result}]]])
         (is= rpc-api-clj '(fn fn-add [x y] (fn-add-impl x y)))
         (is= call-msg [:rpc [:add {:xmlns "my-own-ns/v1" :message-id 101}
                                    [:x "2"] [:y "3"]]])

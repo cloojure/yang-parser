@@ -130,4 +130,3 @@
    :type-composite (fn fn-type-composite [& args] (t/prepend :type args))
    :leaf           (fn fn-leaf [& args] (t/prepend :leaf args))
    })
-
