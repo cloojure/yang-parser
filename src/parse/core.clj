@@ -237,8 +237,7 @@
         desc-hid (tf/find-hid rpc-hid [:rpc :description])
         rpc-name (keyword (tf/leaf->value id-hid))]
     (tf/merge-attrs rpc-hid {:name rpc-name})
-    (tf/remove-kids rpc-hid [id-hid desc-hid]))
-  )
+    (tf/remove-kids rpc-hid [id-hid desc-hid])))
 
 (s/defn rpc->api :- [s/Any]
   [rpc-hid :- tf/HID]

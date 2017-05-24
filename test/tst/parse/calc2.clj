@@ -33,13 +33,11 @@
                              [:y {:type :decimal64}] ]
                             [:output
                              [:leaf {:identifier :result :type :decimal64} ]]])
-
           rpc-hid        (tf/add-tree-hiccup
                            [:rpc
                             [:add {:xmlns "my-own-ns/v1"}
                              [:x (str x)]
                              [:y (str y)]]])
-
           result-promise (promise)
           rpc-msg-id     (swap! rpc-msg-id inc)
           xx             (swap! rpc-msg-id-map glue {rpc-msg-id result-promise})
@@ -50,8 +48,7 @@
               ;(tf/hid->tree result-hid)
               ;    {:attrs {:tag :rpc-reply, :message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"},
               ;     :kids  [{:attrs {:tag :data}, :value 5.0}]}
-          result-value    (tf/find-leaf-value result-hid [:rpc-reply :data])
-          ]
+          result-value    (tf/find-leaf-value result-hid [:rpc-reply :data]) ]
       ; result-hid (deref result-promise *rpc-timeout-ms* ::timeout-failure)
       ;(when (instance? Throwable result-hid)
       ;  (throw (RuntimeException. (.getMessage result-hid))))
@@ -72,13 +69,12 @@
         parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
         yang-ast-hiccup (parse-and-transform yang-src)]
     (tf/with-forest (tf/new-forest)
-      (let [yang-hid (tf/add-tree-hiccup yang-ast-hiccup)
-            rpc-hid (tf/find-hid yang-hid [:module :rpc])
+      (let [module-hid  (tf/add-tree-hiccup yang-ast-hiccup)
+            rpc-hid     (tf/find-hid module-hid [:module :rpc])
 
-            leaf-hids (tf/find-hids rpc-hid [:rpc :* :leaf])
+            leaf-hids   (tf/find-hids rpc-hid [:rpc :* :leaf])
             leaves-before (set (forv [leaf-hid leaf-hids]
                                  (tf/hid->hiccup leaf-hid)))
-
             xx (doseq [leaf-hid leaf-hids]
                  (leaf-name->attrs leaf-hid)
                  (leaf-type->attrs leaf-hid))
@@ -97,8 +93,9 @@
       (reset! rpc-msg-id 100)
       (let [module-hid (tf/add-tree-hiccup yang-ast-hiccup)
             schema-hid (tf/find-hid module-hid [:module :rpc])
+            schema-bush-before (tf/hid->bush schema-hid)
             _ (tx-rpc schema-hid)
-            schema-bush (tf/hid->bush schema-hid)
+            schema-bush-after (tf/hid->bush schema-hid)
             rpc-api-clj (rpc->api schema-hid)
             call-msg (rpc-call-marshall schema-hid [2 3])
             msg-marshalled-hid (tf/add-tree-hiccup call-msg)
@@ -106,10 +103,23 @@
             call-result (invoke-rpc call-unmarshalled)
             reply-msg (rpc-reply-marshall schema-hid msg-marshalled-hid call-result)
             reply-hid (tf/add-tree-hiccup reply-msg)
-            reply-val (reply-unmarshall schema-hid reply-hid)
-            ]
-        (spyx-pretty (tf/hid->bush module-hid))
-        (is= schema-bush
+            reply-val (reply-unmarshall schema-hid reply-hid) ]
+        (is= schema-bush-before
+          [{:tag :rpc}
+           [{:tag :identifier} "add"]
+           [{:tag :description} [{:tag :string} "Add 2 numbers"]]
+           [{:tag :input}
+            [{:tag :leaf}
+             [{:tag :identifier} "x"]
+             [{:tag :type} [{:tag :identifier} "decimal64"]]]
+            [{:tag :leaf}
+             [{:tag :identifier} "y"]
+             [{:tag :type} [{:tag :identifier} "decimal64"]]]]
+           [{:tag :output}
+            [{:tag :leaf}
+             [{:tag :identifier} "result"]
+             [{:tag :type} [{:tag :identifier} "decimal64"]]]]])
+        (is= schema-bush-after
           [{:tag :rpc, :name :add}
            [{:tag :input}
             [{:type :decimal64, :name :x}]
