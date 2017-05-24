@@ -122,7 +122,7 @@
   (tf/with-forest (tf/new-forest)
     (let [rpc-call-hid (tf/add-tree-hiccup
                          [:rpc {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
-                          [:add {:xmlns "my-own-ns/v1"}
+                          [:add
                            [:x 2]
                            [:y 3]]])
 
@@ -133,7 +133,7 @@
           add-hid (tf/find-hid rpc-call-hid [:rpc :add])
           add-kids (grab :kids (tf/hid->node add-hid))]
       (is= (tf/hid->hiccup add-hid)
-        [:add {:xmlns "my-own-ns/v1"} [:x 2] [:y 3]])
+        [:add [:x 2] [:y 3]])
       (is (submatch? (mapv tf/hid->leaf add-kids)
             [{:attrs {:tag :x}, :value 2}
              {:attrs {:tag :y}, :value 3}])))))

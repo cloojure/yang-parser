@@ -35,7 +35,7 @@
                              [:leaf {:identifier :result :type :decimal64} ]]])
           rpc-hid        (tf/add-tree-hiccup
                            [:rpc
-                            [:add {:xmlns "my-own-ns/v1"}
+                            [:add
                              [:x (str x)]
                              [:y (str y)]]])
           result-promise (promise)
@@ -68,6 +68,7 @@
         yang-src (slurp (io/resource "calc.yang"))
         parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
         yang-ast-hiccup (parse-and-transform yang-src)]
+
     (tf/with-forest (tf/new-forest)
       (let [module-hid  (tf/add-tree-hiccup yang-ast-hiccup)
             rpc-hid     (tf/find-hid module-hid [:module :rpc])
@@ -88,6 +89,7 @@
           #{[:leaf {:name :x, :type :decimal64}]
             [:leaf {:name :y, :type :decimal64}]
             [:leaf {:name :result, :type :decimal64}]})))
+
 
     (tf/with-forest (tf/new-forest)
       (reset! rpc-msg-id 100)
@@ -126,13 +128,62 @@
             [{:type :decimal64, :name :y}]]
            [{:tag :output} [{:type :decimal64, :name :result}]]])
         (is= rpc-api-clj '(fn fn-add [x y] (fn-add-impl x y)))
-        (is= call-msg [:rpc [:add {:xmlns "my-own-ns/v1" :message-id 101}
-                                   [:x "2"] [:y "3"]]])
+        (is= call-msg [:rpc [:add {:message-id 101}
+                             [:x "2"] [:y "3"]]])
         (is (wild-match? {:rpc-fn :*, :args [2.0 3.0]}) call-unmarshalled)
         (is= call-result 5.0)
         (is= reply-msg
           [:rpc-reply {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
            [:result "5.0"]])
-        (is (rel= 5 reply-val :digits 9))))))
+        (is (rel= 5 reply-val :digits 9))))
+
+    (tf/with-forest (tf/new-forest)
+      (reset! rpc-msg-id 100)
+      (let [module-hid (tf/add-tree-hiccup yang-ast-hiccup)
+            module-bush-before (tf/hid->bush module-hid)
+
+            _ (tx-module module-hid)
+            module-bush-after (tf/hid->bush module-hid)
+           ]
+        (is= module-bush-before
+          [{:tag :module}
+           [{:tag :identifier} "calculator"]
+           [{:tag :namespace}
+            [{:tag :string} "http://brocade.com/ns/calculator"]]
+           [{:tag :contact}
+            [{:tag :string} "Alan Thompson <athomps@brocade.com>"]]
+           [{:tag :description}
+            [{:tag :string} "YANG spec for a simple RPN calculator"]]
+           [{:tag :revision}
+            [{:tag :iso-date} "2017-04-01"]
+            [{:tag :description} [{:tag :string} "Prototype 1.0"]]]
+           [{:tag :rpc}
+            [{:tag :identifier} "add"]
+            [{:tag :description} [{:tag :string} "Add 2 numbers"]]
+            [{:tag :input}
+             [{:tag :leaf}
+              [{:tag :identifier} "x"]
+              [{:tag :type} [{:tag :identifier} "decimal64"]]]
+             [{:tag :leaf}
+              [{:tag :identifier} "y"]
+              [{:tag :type} [{:tag :identifier} "decimal64"]]]]
+            [{:tag :output}
+             [{:tag :leaf}
+              [{:tag :identifier} "result"]
+              [{:tag :type} [{:tag :identifier} "decimal64"]]]]]])
+        (is= module-bush-after
+          [{:tag         :module,
+            :name        :calculator,
+            :namespace   "http://brocade.com/ns/calculator",
+            :contact     "Alan Thompson <athomps@brocade.com>",
+            :description "YANG spec for a simple RPN calculator",
+            :revision    "2017-04-01"}
+           [{:tag :rpc, :name :add}
+            [{:tag :input}
+             [{:type :decimal64, :name :x}]
+             [{:type :decimal64, :name :y}]]
+            [{:tag :output} [{:type :decimal64, :name :result}]]]])))
+
+  ))
 
 

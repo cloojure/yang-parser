@@ -174,6 +174,51 @@
     (tf/attrs-merge rpc-hid {:name rpc-name})
     (tf/kids-remove rpc-hid [id-hid desc-hid])))
 
+(s/defn tx-module-ns
+  [module-hid :- tf/HID]
+  (let [hids (tf/find-hids module-hid [:module :namespace]) ]
+    (when (not-empty? hids)
+      (let [ns-hid (only hids)]
+        (tf/attrs-merge module-hid {:namespace (tf/find-leaf-value ns-hid [:namespace :string])})
+        (tf/kids-remove module-hid [ns-hid])))))
+
+(s/defn tx-module-contact
+  [module-hid :- tf/HID]
+  (let [hids (tf/find-hids module-hid [:module :contact]) ]
+    (when (not-empty? hids)
+      (let [hid (only hids)]
+        (tf/attrs-merge module-hid {:contact (tf/find-leaf-value hid [:contact :string])})
+        (tf/kids-remove module-hid [hid])))))
+
+(s/defn tx-module-description
+  [module-hid :- tf/HID]
+  (let [hids (tf/find-hids module-hid [:module :description]) ]
+    (when (not-empty? hids)
+      (let [hid (only hids)]
+        (tf/attrs-merge module-hid {:description (tf/find-leaf-value hid [:description :string])})
+        (tf/kids-remove module-hid [hid])))))
+
+(s/defn tx-module-revision
+  [module-hid :- tf/HID]
+  (let [hids (tf/find-hids module-hid [:module :revision]) ]
+    (when (not-empty? hids)
+      (let [hid (only hids)]
+        (tf/attrs-merge module-hid {:revision (tf/find-leaf-value hid [:revision :iso-date])})
+        (tf/kids-remove module-hid [hid])))))
+
+(s/defn tx-module ; #todo need Tree datatype for schema
+  [module-hid :- tf/HID]
+  (let [ident-hid (tf/find-hid module-hid [:module :identifier])
+        ident-value (str->kw (tf/leaf->value ident-hid))
+        schema-hid (tf/find-hid module-hid [:module :rpc]) ]
+    (tf/attrs-merge module-hid {:name ident-value})
+    (tf/kids-remove module-hid [ident-hid])
+    (tx-module-ns module-hid)
+    (tx-module-contact module-hid)
+    (tx-module-description module-hid)
+    (tx-module-revision module-hid)
+    (tx-rpc schema-hid)))
+
 (s/defn rpc->api :- [s/Any]
   [rpc-hid :- tf/HID]
   (let [rpc-tree           (tf/hid->tree rpc-hid)
@@ -213,7 +258,7 @@
                             marshalled-arg))
 
         rpc-msg-id     (swap! rpc-msg-id inc)
-        msg-hiccup [:rpc (glue [schema-fn-name {:xmlns "my-own-ns/v1"  :message-id rpc-msg-id }]
+        msg-hiccup [:rpc (glue [schema-fn-name {:message-id rpc-msg-id }]
                            marshalled-args)]]
     msg-hiccup))
 
