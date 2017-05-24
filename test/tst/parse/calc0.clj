@@ -88,13 +88,13 @@
         (is= (set (forv [elem soln-elems]
                     (tf/hid->tree elem)))
           (set [{:attrs {:tag :leaf},
-                 :kids  [{:attrs {:tag :identifier}, :content ["y"]}
+                 :kids  [{:attrs {:tag :identifier}, :value "y"}
                          {:attrs {:tag :type},
-                          :kids  [{:attrs {:tag :identifier}, :content ["decimal64"]}]}]}
+                          :kids  [{:attrs {:tag :identifier}, :value "decimal64"}]}]}
                 {:attrs {:tag :leaf},
-                 :kids  [{:attrs {:tag :identifier}, :content ["x"]}
+                 :kids  [{:attrs {:tag :identifier}, :value "x"}
                          {:attrs {:tag :type},
-                          :kids  [{:attrs {:tag :identifier}, :content ["decimal64"]}]}]}])) )
+                          :kids  [{:attrs {:tag :identifier}, :value "decimal64"}]}]}])) )
 
       (let [soln-hid (last (only (tf/find-paths yang-hid [:module :rpc :input])))]
         (is= (tf/hid->bush soln-hid)
@@ -135,42 +135,12 @@
       (is= (tf/hid->hiccup add-hid)
         [:add {:xmlns "my-own-ns/v1"} [:x 2] [:y 3]])
       (is (submatch? (mapv tf/hid->leaf add-kids)
-            [{:attrs {:tag :x}, :content [2]}
-             {:attrs {:tag :y}, :content [3]}])))))
+            [{:attrs {:tag :x}, :value 2}
+             {:attrs {:tag :y}, :value 3}])))))
 
 ;                               ---------type-------------------   -------pattern------- (or reverse)
 ; #todo need function (conforms [:type [:identifier "decimal64"]] [:type [:identifier :*]]
 ; #todo need function (conforms [:type [:identifier "decimal64"]] [:type [:identifier <string>]]
-
-;-----------------------------------------------------------------------------
-(def leaf-schema-1 (tf/hiccup->enlive [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]))
-(def leaf-schema-2 (tf/hiccup->enlive [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]))
-(def leaf-val-1 {:tag :x, :attrs {}, :content ["2"]})
-(def leaf-val-2 {:tag :y, :attrs {}, :content ["3"]})
-(def rpc-schema
-  (tf/hiccup->enlive
-    [:rpc
-     [:identifier "add"]
-     [:description [:string "Add 2 numbers"]]
-     [:input
-      [:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
-      [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]]
-     [:output
-      [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]))
-(def rpc-input-val
-  (tf/hiccup->enlive
-    [:rpc {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
-     [:add {:xmlns "my-own-ns/v1"}
-      [:x "2"]
-      [:y "3"]]]))
-(dotest
-  (is= 2.0 (validate-parse-leaf leaf-schema-1 leaf-val-1))
-  (is= 3.0 (validate-parse-leaf leaf-schema-2 leaf-val-2))
-  (let [rpc-result (tf/enlive->hiccup (validate-parse-rpc-enlive rpc-schema rpc-input-val))]
-    (is= rpc-result
-      [:rpc-reply
-       {:message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
-       [:data 5.0]])))
 
 ;-----------------------------------------------------------------------------
 (dotest

@@ -31,7 +31,7 @@ digits        = 1*digit           ; 1 or more digits
       (is=
         (hid->tree (add-tree-hiccup (parse-and-transform "123")))
         (hid->tree (add-tree-hiccup (parse-and-transform "  123 ")))
-        {:attrs {:tag :int}, :content [123]}))))
+        {:attrs {:tag :int}, :value 123}))))
 
 ; If we use the InstaParse built-in ability to perform simple "pre-transforms" on the AST, we can greatly
 ; simplify out manual transformations.  Compare how simple tx-map is below with the previous example. Also,

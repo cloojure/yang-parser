@@ -49,8 +49,8 @@
           result-hid     (validate-parse-rpc-tree rpc-schema-hid rpc-hid)
               ;(tf/hid->tree result-hid)
               ;    {:attrs {:tag :rpc-reply, :message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"},
-              ;     :kids  [{:attrs {:tag :data}, :content [5.0]}]}
-          result-value   (only (tf/find-leaf-content result-hid [:rpc-reply :data]))
+              ;     :kids  [{:attrs {:tag :data}, :value 5.0}]}
+          result-value    (tf/find-leaf-value result-hid [:rpc-reply :data])
           ]
       ; result-hid (deref result-promise *rpc-timeout-ms* ::timeout-failure)
       ;(when (instance? Throwable result-hid)
@@ -95,8 +95,8 @@
 
     (tf/with-forest (tf/new-forest)
       (reset! rpc-msg-id 100)
-      (let [yang-hid (tf/add-tree-hiccup yang-ast-hiccup)
-            schema-hid (tf/find-hid yang-hid [:module :rpc])
+      (let [module-hid (tf/add-tree-hiccup yang-ast-hiccup)
+            schema-hid (tf/find-hid module-hid [:module :rpc])
             _ (tx-rpc schema-hid)
             schema-bush (tf/hid->bush schema-hid)
             rpc-api-clj (rpc->api schema-hid)
@@ -108,7 +108,7 @@
             reply-hid (tf/add-tree-hiccup reply-msg)
             reply-val (reply-unmarshall schema-hid reply-hid)
             ]
-        (spyx-pretty (tf/hid->bush yang-hid))
+        (spyx-pretty (tf/hid->bush module-hid))
         (is= schema-bush
           [{:tag :rpc, :name :add}
            [{:tag :input}

@@ -42,23 +42,6 @@
       (throw (RuntimeException. (str "leaf-schema->parser: failed for schema=" schema \newline
                                   "  caused by=" (.getMessage e)))))))
 
-#_(s/defn validate-parse-leaf-hid
-  "Validate & parse a leaf msg value given a leaf leaf-schema (Enlive-format)."
-  [schema-hid  :- tf/HID
-   leaf-hid :- tf/HID ]
-  (try
-    (assert (= (grab :tag leaf-schema) :leaf))
-    (let [leaf-name-schema (keyword (te/get-leaf leaf-schema [:leaf :identifier]))
-          leaf-name-val    (grab :tag leaf-val)
-          xx              (assert (= leaf-name-schema leaf-name-val))
-          ; #todo does not yet verify any attrs;  what rules?
-          parser-fn       (leaf-schema->parser leaf-schema)
-          parsed-value    (parser-fn (only (grab :content leaf-val)))]
-      parsed-value)
-    (catch Exception e
-      (throw (RuntimeException. (str "validate-parse-leaf-val: failed for leaf-schema=" leaf-schema \newline
-                                  "  leaf-val=" leaf-val \newline
-                                  "  caused by=" (.getMessage e)))))))
 (defn validate-parse-leaf
   "Validate & parse a leaf msg value given a leaf leaf-schema (Enlive-format)."
   [leaf-schema leaf-val]
@@ -69,7 +52,7 @@
           xx              (assert (= leaf-name-schema leaf-name-val))
           ; #todo does not yet verify any attrs;  what rules?
           parser-fn       (leaf-schema->parser leaf-schema)
-          parsed-value    (parser-fn (only (grab :content leaf-val)))]
+          parsed-value    (parser-fn (only (grab :value leaf-val)))]
       parsed-value)
     (catch Exception e
       (throw (RuntimeException. (str "validate-parse-leaf-val: failed for leaf-schema=" leaf-schema \newline
@@ -81,7 +64,7 @@
   [rpc-schema rpc-msg]
   (try
     (assert (= :rpc (grab :tag rpc-schema) (grab :tag rpc-msg)))
-    (let            ; spy-let-pretty
+    (let
       [rpc-attrs       (grab :attrs rpc-msg)
        rpc-tag-schema  (keyword (te/get-leaf rpc-schema [:rpc :identifier]))
        rpc-value       (te/get-leaf rpc-msg [:rpc])
@@ -115,7 +98,7 @@
      xx              (assert (= arg-name-schema arg-name-val))
      ; #todo does not yet verify any attrs;  what rules?
     parser-fn        (grab arg-type-schema type-unmarshall-map)
-    parsed-value    (parser-fn (only (grab :content arg-val)))]
+    parsed-value    (parser-fn (grab :value arg-val))]
     parsed-value)
 
   #_(try
@@ -135,7 +118,7 @@
                  (fetch-in schema-tree [:attrs :tag])
                  (fetch-in rpc-tree [:attrs :tag])))
      rpc-attrs       (grab :attrs rpc-tree)
-     schema-tag   (only (tf/find-leaf-content schema-hid [:rpc :identifier]))
+     schema-tag     (tf/find-leaf-value schema-hid [:rpc :identifier])
      rpc-tag      (it-> rpc-tree
                     (grab :kids it)
                     (only it)
@@ -220,7 +203,7 @@
 
 (s/defn leaf-name->attrs
   [leaf-hid :- tf/HID]
-  (let [name-kw (keyword (only (tf/find-leaf-content leaf-hid [:leaf :identifier])))
+  (let [name-kw (keyword (tf/find-leaf-value leaf-hid [:leaf :identifier]))
         hid-remove (tf/find-hids leaf-hid [:leaf :identifier])]
     (tf/merge-attrs leaf-hid {:name name-kw})
     (tf/remove-kids leaf-hid hid-remove)))
@@ -228,7 +211,7 @@
 (s/defn leaf-type->attrs
   [leaf-hid :- tf/HID]
   (tf/hid->tree leaf-hid)
-  (let [type-kw (keyword (only (tf/find-leaf-content leaf-hid [:leaf :type :identifier])))
+  (let [type-kw (keyword (tf/find-leaf-value leaf-hid [:leaf :type :identifier]))
         hid-remove (tf/find-hids leaf-hid [:leaf :type])]
     (tf/merge-attrs leaf-hid {:type type-kw})
     (tf/remove-kids leaf-hid hid-remove)))
@@ -252,7 +235,7 @@
   (tx-leaf-type-ident rpc-hid)
   (let [id-hid (tf/find-hid rpc-hid [:rpc :identifier])
         desc-hid (tf/find-hid rpc-hid [:rpc :description])
-        rpc-name (keyword (only (tf/leaf->content id-hid)))]
+        rpc-name (keyword (tf/leaf->value id-hid))]
     (tf/merge-attrs rpc-hid {:name rpc-name})
     (tf/remove-kids rpc-hid [id-hid desc-hid]))
   )
@@ -310,7 +293,7 @@
                      schema-arg-parse-fn (grab schema-arg-type type-unmarshall-map)
                      msg-arg-name (fetch-in msg-tree [:attrs :tag])
                      _ (assert (= msg-arg-name schema-arg-name))
-                     msg-arg-value-raw (only (grab :content msg-tree))
+                     msg-arg-value-raw (grab :value msg-tree)
                      msg-arg-value (schema-arg-parse-fn msg-arg-value-raw)]
                  msg-arg-value))]
     args))
@@ -376,7 +359,7 @@
         result-tree (it-> reply-tree
                       (grab :kids it)
                       (only it))
-        result-unparsed (only (grab :content result-tree))
+        result-unparsed (grab :value result-tree)
 
         schema-reply-tree (only (grab :kids (tf/find-tree schema-hid [:rpc :output])))
         reply-type (fetch-in schema-reply-tree [:attrs :type])
