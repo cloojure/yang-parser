@@ -48,7 +48,7 @@
               ;(tf/hid->tree result-hid)
               ;    {:attrs {:tag :rpc-reply, :message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"},
               ;     :kids  [{:attrs {:tag :data}, :value 5.0}]}
-          result-value    (tf/find-leaf-value result-hid [:rpc-reply :data]) ]
+          result-value    (tf/find-value result-hid [:rpc-reply :data]) ]
       ; result-hid (deref result-promise *rpc-timeout-ms* ::timeout-failure)
       ;(when (instance? Throwable result-hid)
       ;  (throw (RuntimeException. (.getMessage result-hid))))
