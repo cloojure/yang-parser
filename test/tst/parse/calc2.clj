@@ -141,8 +141,7 @@
       (reset! rpc-msg-id 100)
       (let [module-hid (tf/add-tree-hiccup yang-ast-hiccup)
             module-bush-before (tf/hid->bush module-hid)
-
-            _ (tx-module module-hid)
+            >> (tx-module module-hid)
             module-bush-after (tf/hid->bush module-hid)
            ]
         (is= module-bush-before
