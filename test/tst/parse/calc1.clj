@@ -1,8 +1,7 @@
 (ns tst.parse.calc1
   (:use parse.core
         parse.transform
-        tupelo.test
-        clojure.test)
+        tupelo.test )
   (:require
     [clojure.string :as str]
     [schema.core :as s]

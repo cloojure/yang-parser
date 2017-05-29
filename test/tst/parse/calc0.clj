@@ -1,8 +1,7 @@
 (ns tst.parse.calc0
   (:use parse.core
         parse.transform
-        tupelo.test
-        clojure.test)
+        tupelo.test )
   (:require
     [clojure.java.io :as io]
     [clojure.string :as str]

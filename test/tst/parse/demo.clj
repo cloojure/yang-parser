@@ -2,7 +2,6 @@
   (:use parse.core
         parse.transform
         tupelo.test
-        clojure.test
         tupelo.x-forest)
   (:require
     [clojure.java.io :as io]

@@ -1,8 +1,7 @@
 (ns tst.parse.core-old
   (:use parse.core-old
         parse.transform
-        tupelo.test
-        clojure.test)
+        tupelo.test)
   (:require
     [clojure.string :as str]
     [instaparse.core :as insta]
@@ -19,7 +18,6 @@
     [clojure.set :as set]
     ))
 (t/refer-tupelo)
-
 
 (dotest
   (check 99

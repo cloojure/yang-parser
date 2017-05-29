@@ -1,8 +1,7 @@
 (ns tst.parse.calc2
   (:use parse.core
         parse.transform
-        tupelo.test
-        clojure.test)
+        tupelo.test )
   (:require
     [clojure.core.async :as async]
     [clojure.java.io :as io]

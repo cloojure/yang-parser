@@ -9,7 +9,7 @@
    [org.clojure/test.check "0.9.0"]
    [org.clojure/core.async           "0.2.395"]
    [prismatic/schema                 "1.1.3"]
-   [tupelo "0.9.39"]
+   [tupelo "0.9.41"]
  ]
   :profiles { :dev      {:dependencies [[org.clojure/test.check "0.9.0"]] }
               :uberjar  {:aot :all}}
