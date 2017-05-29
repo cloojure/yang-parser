@@ -129,7 +129,7 @@
         (is= rpc-api-clj '(fn fn-add [x y] (fn-add-impl x y)))
         (is= call-msg [:rpc [:add {:message-id 101}
                              [:x "2"] [:y "3"]]])
-        (is (wild-match? {:rpc-fn :*, :args [2.0 3.0]}) call-unmarshalled)
+        (is (wild-match? {:rpc-fn :*, :args [2.0 3.0]} call-unmarshalled))
         (is= call-result 5.0)
         (is= reply-msg
           [:rpc-reply {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}

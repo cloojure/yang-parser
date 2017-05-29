@@ -133,7 +133,7 @@
           add-kids (grab :kids (tf/hid->node add-hid))]
       (is= (tf/hid->hiccup add-hid)
         [:add [:x 2] [:y 3]])
-      (is (submatch? (mapv tf/hid->leaf add-kids)
+      (is (val= (mapv tf/hid->leaf add-kids)
             [{:attrs {:tag :x}, :value 2}
              {:attrs {:tag :y}, :value 3}])))))
 
