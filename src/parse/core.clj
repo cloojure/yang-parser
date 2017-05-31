@@ -251,14 +251,14 @@
 
 (s/defn rpc-call-unmarshall-args
   [schema-arg-hids :- [tf/HID]
-   msg-arg-hids    :- [tf/HID]]
-  (let [args (map-with [schema-hid   schema-arg-hids
-                        msg-hid      msg-arg-hids]
-               (assert (= (tf/hid->attr schema-hid :name) (tf/hid->attr msg-hid :tag)))
-               (let [schema-arg-parse-fn (fetch type-unmarshall-map (tf/hid->attr schema-hid :type))
-                     msg-arg-value       (schema-arg-parse-fn (tf/hid->value msg-hid))]
-                 msg-arg-value))]
-    args))
+   msg-arg-hids :- [tf/HID]]
+  (map-with [schema-hid schema-arg-hids
+             msg-hid msg-arg-hids]
+    (assert (= (tf/hid->attr schema-hid :name) (tf/hid->attr msg-hid :tag)))
+    (let [schema-arg-parse-fn (fetch type-unmarshall-map (tf/hid->attr schema-hid :type))
+          msg-arg-raw         (tf/hid->value msg-hid)
+          msg-arg-parsed      (schema-arg-parse-fn msg-arg-raw)]
+      msg-arg-parsed)))
 
 (s/defn rpc-call-unmarshall :- s/Any
   [schema-hid :- tf/HID
@@ -270,9 +270,9 @@
         schema-arg-hids       (tf/find-hids schema-hid [:rpc :input :*])
         msg-arg-hids          (tf/find-hids msg-hid [:rpc :* :*])
         >>                    (assert (= (count schema-arg-hids) (count msg-arg-hids)))
-        args                  (rpc-call-unmarshall-args schema-arg-hids msg-arg-hids)
+        rpc-args              (rpc-call-unmarshall-args schema-arg-hids msg-arg-hids)
         rpc-fn                (fetch rpc-fn-map msg-fn-name)
-        rpc-call-unmarshalled {:rpc-fn rpc-fn :args args}]
+        rpc-call-unmarshalled {:rpc-fn rpc-fn :args rpc-args}]
     rpc-call-unmarshalled))
 
 (s/defn rpc-reply-marshall :- s/Any
@@ -290,8 +290,8 @@
 (s/defn invoke-rpc :- s/Any
   [rpc-call-unmarshalled-map :- tsk/Map]
   (let [rpc-fn     (grab :rpc-fn rpc-call-unmarshalled-map)
-        args       (grab :args rpc-call-unmarshalled-map)
-        rpc-result (apply rpc-fn args)]
+        rpc-args   (grab :args rpc-call-unmarshalled-map)
+        rpc-result (apply rpc-fn rpc-args)]
     rpc-result))
 
 (s/defn reply-unmarshall :- s/Any
