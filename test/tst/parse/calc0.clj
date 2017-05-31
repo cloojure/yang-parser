@@ -39,51 +39,51 @@
           [:output
            [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]])
 
-      (is= (tf/format-paths (tf/find-paths yang-hid [:module :rpc :identifier]))
-        #{[{:tag :module}
-           [{:tag :rpc}
-            [{:tag :identifier} "add"]]]})
+      (is= (only (tf/format-paths (tf/find-paths yang-hid [:module :rpc :identifier])))
+        [{:tag :module}
+         [{:tag :rpc}
+          [{:tag :identifier} "add"]]])
 
-      (is= (tf/format-paths (tf/find-paths yang-hid [:module :revision]))
-        #{[{:tag :module}
-           [{:tag :revision}
-            [{:tag :iso-date} "2017-04-01"]
-            [{:tag :description} [{:tag :string} "Prototype 1.0"]]]]})
+      (is= (only (tf/format-paths (tf/find-paths yang-hid [:module :revision])))
+        [{:tag :module}
+         [{:tag :revision}
+          [{:tag :iso-date} "2017-04-01"]
+          [{:tag :description} [{:tag :string} "Prototype 1.0"]]]])
 
-      (is= (tf/format-paths (tf/find-paths yang-hid [:module :rpc :input]))
-        #{[{:tag :module}
-           [{:tag :rpc}
-            [{:tag :input}
-             [{:tag :leaf}
-              [{:tag :identifier} "x"]
-              [{:tag :type} [{:tag :identifier} "decimal64"]]]
-             [{:tag :leaf}
-              [{:tag :identifier} "y"]
-              [{:tag :type} [{:tag :identifier} "decimal64"]]]]]]})
+      (is= (only (tf/format-paths (tf/find-paths yang-hid [:module :rpc :input])))
+        [{:tag :module}
+         [{:tag :rpc}
+          [{:tag :input}
+           [{:tag :leaf}
+            [{:tag :identifier} "x"]
+            [{:tag :type} [{:tag :identifier} "decimal64"]]]
+           [{:tag :leaf}
+            [{:tag :identifier} "y"]
+            [{:tag :type} [{:tag :identifier} "decimal64"]]]]]])
 
-      (is= (tf/format-paths (tf/find-paths yang-hid [:module :rpc :output]))
-        #{[{:tag :module}
-           [{:tag :rpc}
-            [{:tag :output}
-             [{:tag :leaf}
-              [{:tag :identifier} "result"]
-              [{:tag :type} [{:tag :identifier} "decimal64"]]]]]]})
+      (is= (only (tf/format-paths (tf/find-paths yang-hid [:module :rpc :output])))
+        [{:tag :module}
+         [{:tag :rpc}
+          [{:tag :output}
+           [{:tag :leaf}
+            [{:tag :identifier} "result"]
+            [{:tag :type} [{:tag :identifier} "decimal64"]]]]]])
 
       (let [solns (tf/find-paths yang-hid [:module :rpc :input :leaf])
             soln-elems (mapv last solns)]
         (is= (tf/format-paths solns)
-          #{[{:tag :module}
-             [{:tag :rpc}
-              [{:tag :input}
-               [{:tag :leaf}
-                [{:tag :identifier} "x"]
-                [{:tag :type} [{:tag :identifier} "decimal64"]]]]]]
-            [{:tag :module}
-             [{:tag :rpc}
-              [{:tag :input}
-               [{:tag :leaf}
-                [{:tag :identifier} "y"]
-                [{:tag :type} [{:tag :identifier} "decimal64"]]]]]]})
+          [[{:tag :module}
+            [{:tag :rpc}
+             [{:tag :input}
+              [{:tag :leaf}
+               [{:tag :identifier} "x"]
+               [{:tag :type} [{:tag :identifier} "decimal64"]]]]]]
+           [{:tag :module}
+            [{:tag :rpc}
+             [{:tag :input}
+              [{:tag :leaf}
+               [{:tag :identifier} "y"]
+               [{:tag :type} [{:tag :identifier} "decimal64"]]]]]]])
         (is= (set (forv [elem soln-elems]
                     (tf/hid->tree elem)))
           (set [{:attrs {:tag :leaf},
@@ -341,9 +341,9 @@ digits                  = 1*digit
            [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]]]])
 
       (is= (tf/format-paths (tf/find-paths yang-hid [:module :rpc :identifier]))
-        #{[{:tag :module}
-           [{:tag :rpc}
-            [{:tag :identifier} "add"]]]})
+        [[{:tag :module}
+          [{:tag :rpc}
+           [{:tag :identifier} "add"]]]])
 
       (let [rpc-hid (tf/find-hid yang-hid [:module :rpc])]
         (is= (tf/hid->hiccup rpc-hid)
