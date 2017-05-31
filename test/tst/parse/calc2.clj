@@ -69,17 +69,17 @@
         yang-ast-hiccup (parse-and-transform yang-src)]
 
     (tf/with-forest (tf/new-forest)
-      (let [module-hid  (tf/add-tree-hiccup yang-ast-hiccup)
-            rpc-hid     (tf/find-hid module-hid [:module :rpc])
+      (let [module-hid    (tf/add-tree-hiccup yang-ast-hiccup)
+            rpc-hid       (tf/find-hid module-hid [:module :rpc])
 
-            leaf-hids   (tf/find-hids rpc-hid [:rpc :* :leaf])
+            leaf-hids     (tf/find-hids rpc-hid [:rpc :* :leaf])
             leaves-before (forv [leaf-hid leaf-hids]
-                                  (tf/hid->hiccup leaf-hid))
-            xx (doseq [leaf-hid leaf-hids]
-                 (leaf-name->attrs leaf-hid)
-                 (leaf-type->attrs leaf-hid))
-            leaves-after (forv [leaf-hid leaf-hids]
-                                 (tf/hid->hiccup leaf-hid))]
+                            (tf/hid->hiccup leaf-hid))
+            xx            (doseq [leaf-hid leaf-hids]
+                            (leaf-name->attrs leaf-hid)
+                            (leaf-type->attrs leaf-hid))
+            leaves-after  (forv [leaf-hid leaf-hids]
+                            (tf/hid->hiccup leaf-hid))]
         (is= leaves-before
           [[:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
            [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]
@@ -91,19 +91,19 @@
 
     (tf/with-forest (tf/new-forest)
       (reset! rpc-msg-id 100)
-      (let [module-hid (tf/add-tree-hiccup yang-ast-hiccup)
-            schema-hid (tf/find-hid module-hid [:module :rpc])
+      (let [module-hid         (tf/add-tree-hiccup yang-ast-hiccup)
+            schema-hid         (tf/find-hid module-hid [:module :rpc])
             schema-bush-before (tf/hid->bush schema-hid)
-            >> (tx-rpc schema-hid)
-            schema-bush-after (tf/hid->bush schema-hid)
-            rpc-api-clj (rpc->api schema-hid)
-            call-msg (rpc-call-marshall schema-hid [2 3])
+            >>                 (tx-rpc schema-hid)
+            schema-bush-after  (tf/hid->bush schema-hid)
+            rpc-api-clj        (rpc->api schema-hid)
+            call-msg           (rpc-call-marshall schema-hid [2 3])
             msg-marshalled-hid (tf/add-tree-hiccup call-msg)
-            call-unmarshalled (rpc-call-unmarshall schema-hid msg-marshalled-hid)
-            call-result (invoke-rpc call-unmarshalled)
-            reply-msg (rpc-reply-marshall schema-hid msg-marshalled-hid call-result)
-            reply-hid (tf/add-tree-hiccup reply-msg)
-            reply-val (reply-unmarshall schema-hid reply-hid)]
+            call-unmarshalled  (rpc-call-unmarshall schema-hid msg-marshalled-hid)
+            call-result        (invoke-rpc call-unmarshalled)
+            reply-msg          (rpc-reply-marshall schema-hid msg-marshalled-hid call-result)
+            reply-hid          (tf/add-tree-hiccup reply-msg)
+            reply-val          (reply-unmarshall schema-hid reply-hid)]
         (is= schema-bush-before
           [{:tag :rpc}
            [{:tag :identifier} "add"]
@@ -137,11 +137,11 @@
 
     (tf/with-forest (tf/new-forest)
       (reset! rpc-msg-id 100)
-      (let [module-hid (tf/add-tree-hiccup yang-ast-hiccup)
+      (let [module-hid         (tf/add-tree-hiccup yang-ast-hiccup)
             module-bush-before (tf/hid->bush module-hid)
-            >> (tx-module module-hid)
-            module-bush-after (tf/hid->bush module-hid)
-           ]
+            >>                 (tx-module module-hid)
+            module-bush-after  (tf/hid->bush module-hid)
+            ]
         (is= module-bush-before
           [{:tag :module}
            [{:tag :identifier} "calculator"]
@@ -180,7 +180,5 @@
              [{:type :decimal64, :name :x}]
              [{:type :decimal64, :name :y}]]
             [{:tag :output} [{:type :decimal64, :name :result}]]]])))
-
   ))
-
 
