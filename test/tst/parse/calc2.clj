@@ -73,29 +73,28 @@
             rpc-hid     (tf/find-hid module-hid [:module :rpc])
 
             leaf-hids   (tf/find-hids rpc-hid [:rpc :* :leaf])
-            leaves-before (set (forv [leaf-hid leaf-hids]
-                                 (tf/hid->hiccup leaf-hid)))
+            leaves-before (forv [leaf-hid leaf-hids]
+                                  (tf/hid->hiccup leaf-hid))
             xx (doseq [leaf-hid leaf-hids]
                  (leaf-name->attrs leaf-hid)
                  (leaf-type->attrs leaf-hid))
-            leaves-after (set (forv [leaf-hid leaf-hids]
-                                (tf/hid->hiccup leaf-hid)))]
+            leaves-after (forv [leaf-hid leaf-hids]
+                                 (tf/hid->hiccup leaf-hid))]
         (is= leaves-before
-          #{[:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
-            [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]
-            [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]})
+          [[:leaf [:identifier "x"] [:type [:identifier "decimal64"]]]
+           [:leaf [:identifier "y"] [:type [:identifier "decimal64"]]]
+           [:leaf [:identifier "result"] [:type [:identifier "decimal64"]]]])
         (is= leaves-after
-          #{[:leaf {:name :x, :type :decimal64}]
-            [:leaf {:name :y, :type :decimal64}]
-            [:leaf {:name :result, :type :decimal64}]})))
-
+          [[:leaf {:name :x, :type :decimal64}]
+           [:leaf {:name :y, :type :decimal64}]
+           [:leaf {:name :result, :type :decimal64}]])))
 
     (tf/with-forest (tf/new-forest)
       (reset! rpc-msg-id 100)
       (let [module-hid (tf/add-tree-hiccup yang-ast-hiccup)
             schema-hid (tf/find-hid module-hid [:module :rpc])
             schema-bush-before (tf/hid->bush schema-hid)
-            _ (tx-rpc schema-hid)
+            >> (tx-rpc schema-hid)
             schema-bush-after (tf/hid->bush schema-hid)
             rpc-api-clj (rpc->api schema-hid)
             call-msg (rpc-call-marshall schema-hid [2 3])
@@ -104,7 +103,7 @@
             call-result (invoke-rpc call-unmarshalled)
             reply-msg (rpc-reply-marshall schema-hid msg-marshalled-hid call-result)
             reply-hid (tf/add-tree-hiccup reply-msg)
-            reply-val (reply-unmarshall schema-hid reply-hid) ]
+            reply-val (reply-unmarshall schema-hid reply-hid)]
         (is= schema-bush-before
           [{:tag :rpc}
            [{:tag :identifier} "add"]

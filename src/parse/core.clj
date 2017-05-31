@@ -221,7 +221,9 @@
 
 (s/defn rpc->api :- [s/Any]
   [rpc-hid :- tf/HID]
-  (let [rpc-tree           (tf/hid->tree rpc-hid)
+  (let-spy-pretty
+    [
+        rpc-tree           (tf/hid->tree rpc-hid)
         rpc-name           (kw->str (fetch-in rpc-tree [:attrs :name]))
         rpc-input-hid      (tf/find-hid rpc-hid [:rpc :input])
         rpc-input-arg-hids (grab :kids (tf/hid->node rpc-input-hid))
@@ -230,6 +232,9 @@
                                (tf/hid->tree it)
                                (fetch-in it [:attrs :name])
                                (kw->sym it)))
+
+     rpc-arg-syms-2       ( )
+
         fn-name            (symbol (str "fn-" rpc-name))
         fn-name-impl       (symbol (str fn-name "-impl"))
         fn-def             (vec->list
