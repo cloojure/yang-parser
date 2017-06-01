@@ -17,8 +17,9 @@
 
 (def rpc-msg-id-map (atom {}))
 (def rpc-msg-id (atom 100))
-(defn next-rpc-msg-id []
-  (swap! rpc-msg-id inc))
+
+(defn reset-rpc-msg-id [val] (reset! rpc-msg-id val))
+(defn next-rpc-msg-id [] (swap! rpc-msg-id inc))
 
 (defn instaparse-failure? [arg] (instance? instaparse.gll.Failure arg))
 
@@ -275,6 +276,11 @@
         rpc-call-unmarshalled {:rpc-fn rpc-fn :args rpc-args}]
     rpc-call-unmarshalled))
 
+(s/defn invoke-rpc :- s/Any
+  [rpc-call-unmarshalled-map :- tsk/Map]
+  (with-map-vals rpc-call-unmarshalled-map [rpc-fn args]
+    (apply rpc-fn args)))
+
 (s/defn rpc-reply-marshall :- s/Any
   [schema-hid :- tf/HID
    msg-hid :- tf/HID
@@ -286,13 +292,6 @@
         marshall-fn  (fetch type-marshall-map reply-type)
         reply-hiccup [:rpc-reply reply-attrs [:result (marshall-fn result)]]]
     reply-hiccup))
-
-(s/defn invoke-rpc :- s/Any
-  [rpc-call-unmarshalled-map :- tsk/Map]
-  (let [rpc-fn     (grab :rpc-fn rpc-call-unmarshalled-map)
-        rpc-args   (grab :args rpc-call-unmarshalled-map)
-        rpc-result (apply rpc-fn rpc-args)]
-    rpc-result))
 
 (s/defn reply-unmarshall :- s/Any
   [schema-hid :- tf/HID

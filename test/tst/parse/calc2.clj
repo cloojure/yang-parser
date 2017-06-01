@@ -1,7 +1,7 @@
 (ns tst.parse.calc2
   (:use parse.core
         parse.transform
-        tupelo.test )
+        tupelo.test)
   (:require
     [clojure.core.async :as async]
     [clojure.java.io :as io]
@@ -12,54 +12,11 @@
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
     [tupelo.x-forest :as tf]
-  ))
+    ))
 (t/refer-tupelo)
 
-(def ^:dynamic *rpc-timeout-ms* 200)
-(def ^:dynamic *rpc-delay-simulated-ms* 30)
-
-;-----------------------------------------------------------------------------
-(defn add [x y]
-  (tf/with-forest (tf/new-forest)
-    ; #todo  keywordize all :identifier values
-    ; #todo  need to massage schema like below
-    (let [rpc-schema-hid (tf/add-tree-hiccup
-                           [:rpc
-                            [:identifier :add]
-                            [:description [:string "Add 2 numbers"]]
-                            [:input
-                             [:x {:type :decimal64}] ; #todo :identifier -> :tag
-                             [:y {:type :decimal64}] ]
-                            [:output
-                             [:leaf {:identifier :result :type :decimal64} ]]])
-          rpc-hid        (tf/add-tree-hiccup
-                           [:rpc
-                            [:add
-                             [:x (str x)]
-                             [:y (str y)]]])
-          result-promise (promise)
-          rpc-msg-id     (swap! rpc-msg-id inc)
-          xx             (swap! rpc-msg-id-map glue {rpc-msg-id result-promise})
-          xx             (tf/attrs-merge rpc-hid
-                           {:message-id rpc-msg-id
-                            :xmlns      "urn:ietf:params:xml:ns:netconf:base:1.0"} )
-          result-hid     (validate-parse-rpc-tree rpc-schema-hid rpc-hid)
-              ;(tf/hid->tree result-hid)
-              ;    {:attrs {:tag :rpc-reply, :message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"},
-              ;     :kids  [{:attrs {:tag :data}, :value 5.0}]}
-          result-value    (tf/find-value result-hid [:rpc-reply :data]) ]
-      ; result-hid (deref result-promise *rpc-timeout-ms* ::timeout-failure)
-      ;(when (instance? Throwable result-hid)
-      ;  (throw (RuntimeException. (.getMessage result-hid))))
-      ;(when (= ::timeout-failure result)
-      ;  (throw (TimeoutException. (format "Timeout Exceed=%s  add: %s %s; " *rpc-timeout-ms* x y))))
-      result-value )))
-
-(dotest
-  (binding [*rpc-timeout-ms*        100
-            *rpc-delay-simulated-ms* 10]
-    (reset! rpc-msg-id 100)
-    (is (rel= 5 (add 2 3) :digits 9)) ))
+(def ^:dynamic *rpc-timeout-ms* 100)
+(def ^:dynamic *rpc-delay-simulated-ms* 10)
 
 ;-----------------------------------------------------------------------------
 (dotest
@@ -90,7 +47,7 @@
            [:leaf {:name :result, :type :decimal64}]])))
 
     (tf/with-forest (tf/new-forest)
-      (reset! rpc-msg-id 100)
+      (reset-rpc-msg-id 100)
       (let [module-hid         (tf/add-tree-hiccup yang-ast-hiccup)
             schema-hid         (tf/find-hid module-hid [:module :rpc])
             schema-bush-before (tf/hid->bush schema-hid)
@@ -136,7 +93,7 @@
         (is (rel= 5 reply-val :digits 9))))
 
     (tf/with-forest (tf/new-forest)
-      (reset! rpc-msg-id 100)
+      (reset-rpc-msg-id 100)
       (let [module-hid         (tf/add-tree-hiccup yang-ast-hiccup)
             module-bush-before (tf/hid->bush module-hid)
             >>                 (tx-module module-hid)
@@ -181,4 +138,47 @@
              [{:type :decimal64, :name :y}]]
             [{:tag :output} [{:type :decimal64, :name :result}]]]])))
   ))
+
+;-----------------------------------------------------------------------------
+(defn add [x y]
+  (tf/with-forest (tf/new-forest)
+    ; #todo  keywordize all :identifier values
+    ; #todo  need to massage schema like below
+    (let [rpc-schema-hid (tf/add-tree-hiccup
+                           [:rpc
+                            [:identifier :add]
+                            [:description [:string "Add 2 numbers"]]
+                            [:input
+                             [:x {:type :decimal64}] ; #todo :identifier -> :tag
+                             [:y {:type :decimal64}]]
+                            [:output
+                             [:leaf {:identifier :result :type :decimal64}]]])
+          msg-hid        (tf/add-tree-hiccup
+                           [:rpc
+                            [:add
+                             [:x (str x)]
+                             [:y (str y)]]])
+          result-promise (promise)
+          msg-id         (next-rpc-msg-id)
+          ; >>             (swap! rpc-msg-id-map glue {msg-id result-promise})
+          >>             (tf/attrs-merge msg-hid
+                           {:message-id msg-id
+                            :xmlns      "urn:ietf:params:xml:ns:netconf:base:1.0"})
+          result-hid     (validate-parse-rpc-tree rpc-schema-hid msg-hid)
+          ;(tf/hid->tree result-hid)
+          ;    {:attrs {:tag :rpc-reply, :message-id 101, :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"},
+          ;     :kids  [{:attrs {:tag :data}, :value 5.0}]}
+          result-value   (tf/find-value result-hid [:rpc-reply :data])]
+         ; result-hid (deref result-promise *rpc-timeout-ms* ::timeout-failure)
+         ;(when (instance? Throwable result-hid)
+         ;  (throw (RuntimeException. (.getMessage result-hid))))
+         ;(when (= ::timeout-failure result)
+         ;  (throw (TimeoutException. (format "Timeout Exceed=%s  add: %s %s; " *rpc-timeout-ms* x y))))
+         result-value)))
+
+(dotest
+  (binding [*rpc-timeout-ms*        100
+            *rpc-delay-simulated-ms* 10]
+    (reset-rpc-msg-id 100)
+    (is (rel= 5 (add 2 3) :digits 9)) ))
 
