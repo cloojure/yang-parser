@@ -33,6 +33,7 @@
 
 (def rpc-fn-map {:add  (fn fn-add [& args] (apply + args))
                  :mult (fn fn-mult [& args] (apply * args))
+                 :mul3 (fn fn-mul3 [& args] (apply * args))
                  :pow  (fn fn-power [x y] (Math/pow x y))})
 
 (defn validate-parse-leaf-tree
@@ -212,14 +213,14 @@
   [module-hid :- tf/HID]
   (let [ident-hid   (tf/find-hid module-hid [:module :identifier])
         ident-value (str->kw (tf/leaf->value ident-hid))
-        schema-hid  (tf/find-hid module-hid [:module :rpc])]
+        rpc-hid     (tf/find-hid module-hid [:module :rpc])]
     (tf/attrs-merge module-hid {:name ident-value})
     (tf/kids-remove module-hid [ident-hid])
     (tx-module-ns module-hid)
     (tx-module-contact module-hid)
     (tx-module-description module-hid)
     (tx-module-revision module-hid)
-    (tx-rpc schema-hid)))
+    (tx-rpc rpc-hid)))
 
 (s/defn rpc->api :- [s/Any]
   [rpc-hid :- tf/HID]

@@ -97,8 +97,7 @@
       (let [module-hid         (tf/add-tree-hiccup yang-ast-hiccup)
             module-bush-before (tf/hid->bush module-hid)
             >>                 (tx-module module-hid)
-            module-bush-after  (tf/hid->bush module-hid)
-            ]
+            module-bush-after  (tf/hid->bush module-hid) ]
         (is= module-bush-before
           [{:tag :module}
            [{:tag :identifier} "calculator"]
@@ -182,3 +181,37 @@
     (reset-rpc-msg-id 100)
     (is (rel= 5 (add 2 3) :digits 9)) ))
 
+;-----------------------------------------------------------------------------
+(dotest
+  (let [abnf-src            (io/resource "yang3.abnf")
+        yang-src            (slurp (io/resource "mul3.yang"))
+        parse-and-transform (create-parser-transformer abnf-src yang-tx-map)
+        yang-ast-hiccup     (parse-and-transform yang-src)]
+       (tf/with-forest (tf/new-forest)
+         (reset-rpc-msg-id 100)
+         (let [module-hid         (tf/add-tree-hiccup yang-ast-hiccup)
+               module-bush-before (tf/hid->bush module-hid)
+               >>                 (tx-module module-hid)
+               module-bush-after  (tf/hid->bush module-hid)
+               schema-hid         (tf/find-hid module-hid [:module :rpc])
+               rpc-api-clj        (rpc->api schema-hid)
+               call-msg           (rpc-call-marshall schema-hid [2 3 4])
+               msg-marshalled-hid (tf/add-tree-hiccup call-msg)
+               call-unmarshalled  (rpc-call-unmarshall schema-hid msg-marshalled-hid)
+               call-result        (invoke-rpc call-unmarshalled)
+               reply-msg          (rpc-reply-marshall schema-hid msg-marshalled-hid call-result)
+               reply-hid          (tf/add-tree-hiccup reply-msg)
+               reply-val          (reply-unmarshall schema-hid reply-hid) ]
+          ;(spyx-pretty module-bush-before)
+          ;(spyx-pretty module-bush-after)
+           (is= rpc-api-clj '(fn fn-mul3 [x y z] (fn-mul3-impl x y z)))
+           (is= call-msg [:rpc [:mul3 {:message-id 101}
+                                [:x "2"] [:y "3"] [:z "4"]]])
+           (is (wild-match? {:rpc-fn :*, :args [2.0 3.0 4.000]} call-unmarshalled))
+           (is= call-result 24.0)
+           (is= reply-msg
+             [:rpc-reply {:message-id 101 :xmlns "urn:ietf:params:xml:ns:netconf:base:1.0"}
+              [:result "24.0"]])
+           (is (rel= 24 reply-val :digits 9))
+
+           ))))
