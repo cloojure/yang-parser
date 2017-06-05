@@ -239,8 +239,8 @@
   (let [schema-fn-name  (tf/hid->attr schema-hid :name)
         schema-arg-hids (tf/find-hids schema-hid [:rpc :input :*])
         >>              (assert (= (count args) (count schema-arg-hids)))
-        marshalled-args (map-with [hid schema-arg-hids
-                                   arg args]
+        marshalled-args (map-let [hid schema-arg-hids
+                                  arg args]
                           (let [arg-name       (tf/hid->attr hid :name)
                                 arg-type       (tf/hid->attr hid :type)
                                 marshall-fn    (fetch type-marshall-map arg-type)
@@ -253,8 +253,8 @@
 (s/defn rpc-call-unmarshall-args
   [schema-arg-hids :- [tf/HID]
    msg-arg-hids :- [tf/HID]]
-  (map-with [schema-hid schema-arg-hids
-             msg-hid msg-arg-hids]
+  (map-let [schema-hid schema-arg-hids
+            msg-hid msg-arg-hids]
     (assert (= (tf/hid->attr schema-hid :name) (tf/hid->attr msg-hid :tag)))
     (let [schema-arg-parse-fn (fetch type-unmarshall-map (tf/hid->attr schema-hid :type))
           msg-arg-raw         (tf/hid->value msg-hid)
