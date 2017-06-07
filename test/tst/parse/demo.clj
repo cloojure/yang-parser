@@ -4,11 +4,8 @@
         tupelo.test
         tupelo.x-forest)
   (:require
-    [clojure.java.io :as io]
     [clojure.string :as str]
-    [schema.core :as s]
     [tupelo.core :as t]
-    [tupelo.schema :as tsk]
     [tupelo.string :as ts]
   ))
 (t/refer-tupelo)

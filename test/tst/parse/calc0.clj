@@ -5,10 +5,8 @@
   (:require
     [clojure.java.io :as io]
     [clojure.string :as str]
-    [schema.core :as s]
     [tupelo.core :as t]
     [tupelo.enlive :as te]
-    [tupelo.schema :as tsk]
     [tupelo.x-forest :as tf]
   ))
 (t/refer-tupelo)

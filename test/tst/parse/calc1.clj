@@ -3,18 +3,11 @@
         parse.transform
         tupelo.test )
   (:require
-    [clojure.string :as str]
-    [schema.core :as s]
     [tupelo.core :as t]
-    [tupelo.parse :as tp]
-    [tupelo.schema :as tsk]
-    [tupelo.string :as ts]
     [tupelo.x-forest :as tf]
     )
-  (:import [java.util.concurrent TimeoutException]
-           [java.util List]))
+  (:import [java.util.concurrent TimeoutException] ))
 (t/refer-tupelo)
-
 
 (def ^:dynamic *rpc-timeout-ms* 200)
 (def ^:dynamic *rpc-delay-simulated-ms* 30)

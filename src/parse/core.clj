@@ -1,18 +1,12 @@
 (ns parse.core
   (use parse.transform)
   (:require
-    [clojure.java.io :as io]
-    [clojure.set :as set]
-    [clojure.string :as str]
     [instaparse.core :as insta]
     [schema.core :as s]
     [tupelo.core :as t]
     [tupelo.x-forest :as tf]
-    [tupelo.misc :as tm]
     [tupelo.parse :as tp]
-    [tupelo.schema :as tsk]
-    [tupelo.string :as ts]
-    [tupelo.enlive :as te]))
+    [tupelo.schema :as tsk] ))
 (t/refer-tupelo)
 
 (def rpc-msg-id-map (atom {}))
@@ -27,6 +21,10 @@
                         :int64     str
                         :string    str})
 
+; #todo maybe use ns & vars like:
+; #todo:   parse.unmarshall/decimal64
+; #todo:   parse.unmarshall/int64
+; #todo:   parse.unmarshall/string
 (def type-unmarshall-map {:decimal64 tp/parse-double
                           :int64     tp/parse-long
                           :string    str})
@@ -43,7 +41,7 @@
     [arg-name-schema (fetch-in arg-schema [:attrs :tag])
      arg-type-schema (fetch-in arg-schema [:attrs :type])
      arg-name-val    (fetch-in arg-val [:attrs :tag])
-     xx              (assert (= arg-name-schema arg-name-val))
+     >>              (assert (= arg-name-schema arg-name-val))
      ; #todo does not yet verify any attrs;  what rules?
      parser-fn       (grab arg-type-schema type-unmarshall-map)
      parsed-value    (parser-fn (grab :value arg-val))]

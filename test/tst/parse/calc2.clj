@@ -3,16 +3,9 @@
         parse.transform
         tupelo.test)
   (:require
-    [clojure.core.async :as async]
     [clojure.java.io :as io]
-    [clojure.string :as str]
-    [schema.core :as s]
     [tupelo.core :as t]
-    [tupelo.misc :as tm]
-    [tupelo.schema :as tsk]
-    [tupelo.string :as ts]
-    [tupelo.x-forest :as tf]
-    ))
+    [tupelo.x-forest :as tf] ))
 (t/refer-tupelo)
 
 (def ^:dynamic *rpc-timeout-ms* 100)
@@ -32,7 +25,7 @@
             leaf-hids     (tf/find-hids rpc-hid [:rpc :* :leaf])
             leaves-before (forv [leaf-hid leaf-hids]
                             (tf/hid->hiccup leaf-hid))
-            xx            (doseq [leaf-hid leaf-hids]
+            >>            (doseq [leaf-hid leaf-hids]
                             (leaf-name->attrs leaf-hid)
                             (leaf-type->attrs leaf-hid))
             leaves-after  (forv [leaf-hid leaf-hids]
@@ -203,7 +196,19 @@
                reply-hid          (tf/add-tree-hiccup reply-msg)
                reply-val          (reply-unmarshall schema-hid reply-hid) ]
           ;(spyx-pretty module-bush-before)
-          ;(spyx-pretty module-bush-after)
+           (is= module-bush-after
+             [{:tag :module,
+               :name :calculator,
+               :namespace "http://brocade.com/ns/calculator",
+               :contact "Alan Thompson <athomps@brocade.com>",
+               :description "YANG spec for a simple RPN calculator",
+               :revision "2017-04-01"}
+              [{:tag :rpc, :name :mul3}
+               [{:tag :input}
+                [{:type :decimal64, :name :x}]
+                [{:type :decimal64, :name :y}]
+                [{:type :decimal64, :name :z}]]
+               [{:tag :output} [{:type :decimal64, :name :result}]]]] )
            (is= rpc-api-clj '(fn fn-mul3 [x y z] (fn-mul3-impl x y z)))
            (is= call-msg [:rpc [:mul3 {:message-id 101}
                                 [:x "2"] [:y "3"] [:z "4"]]])
