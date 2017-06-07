@@ -11,10 +11,11 @@
    [prismatic/schema       "1.1.3"]
    [tupelo "0.9.48"]
  ]
-  :profiles { :dev      {:dependencies [[org.clojure/test.check "0.9.0"]] }
-              :uberjar  {:aot :all}}
-  :global-vars { *warn-on-reflection* false }
+ :profiles {:dev     {:dependencies [[org.clojure/test.check "0.9.0"]
+                                     [enlive "1.1.6"]]}
+            :uberjar {:aot :all}}
 
+  :global-vars { *warn-on-reflection* false }
   :plugins  [ [lein-codox "0.9.4"] ]
   :codox {:src-dir-uri "http://github.com/cloojure/tupelo/blob/master/"
           :src-linenum-anchor-prefix "L"}

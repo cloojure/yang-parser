@@ -142,15 +142,14 @@
   (let [name-kw    (keyword (tf/find-value leaf-hid [:leaf :identifier]))
         hid-remove (tf/find-hids leaf-hid [:leaf :identifier])]
     (tf/attrs-merge leaf-hid {:name name-kw})
-    (tf/remove-kid leaf-hid hid-remove)))
+    (tf/remove-kids leaf-hid hid-remove)))
 
 (s/defn leaf-type->attrs
   [leaf-hid :- tf/HID]
-  (tf/hid->tree leaf-hid)
   (let [type-kw    (keyword (tf/find-value leaf-hid [:leaf :type :identifier]))
         hid-remove (tf/find-hids leaf-hid [:leaf :type])]
     (tf/attrs-merge leaf-hid {:type type-kw})
-    (tf/remove-kid leaf-hid hid-remove)))
+    (tf/remove-kids leaf-hid hid-remove)))
 
 (s/defn tx-leaf-type-ident
   "Within a [:leaf ...] node, convert [:type [:identifier 'decimal64']] ->
@@ -171,7 +170,7 @@
     (when (not-empty? hids)
       (let [ns-hid (only hids)]
         (tf/attrs-merge module-hid {:namespace (tf/find-value ns-hid [:namespace :string])})
-        (tf/remove-kid module-hid [ns-hid])))))
+        (tf/remove-kids module-hid [ns-hid])))))
 
 (s/defn tx-module-contact
   [module-hid :- tf/HID]
@@ -179,7 +178,7 @@
     (when (not-empty? hids)
       (let [hid (only hids)]
         (tf/attrs-merge module-hid {:contact (tf/find-value hid [:contact :string])})
-        (tf/remove-kid module-hid [hid])))))
+        (tf/remove-kids module-hid [hid])))))
 
 (s/defn tx-module-description
   [module-hid :- tf/HID]
@@ -187,7 +186,7 @@
     (when (not-empty? hids)
       (let [hid (only hids)]
         (tf/attrs-merge module-hid {:description (tf/find-value hid [:description :string])})
-        (tf/remove-kid module-hid [hid])))))
+        (tf/remove-kids module-hid [hid])))))
 
 (s/defn tx-module-revision
   [module-hid :- tf/HID]
@@ -195,7 +194,7 @@
     (when (not-empty? hids)
       (let [hid (only hids)]
         (tf/attrs-merge module-hid {:revision (tf/find-value hid [:revision :iso-date])})
-        (tf/remove-kid module-hid [hid])))))
+        (tf/remove-kids module-hid [hid])))))
 
 (s/defn tx-rpc
   [rpc-hid]
@@ -203,17 +202,17 @@
   (tx-leaf-type-ident rpc-hid)
   (let [id-hid   (tf/find-hid rpc-hid [:rpc :identifier])
         desc-hid (tf/find-hid rpc-hid [:rpc :description])
-        rpc-name (keyword (tf/leaf->value id-hid))]
+        rpc-name (keyword (tf/hid->value id-hid))]
     (tf/attrs-merge rpc-hid {:name rpc-name})
-    (tf/remove-kid rpc-hid [id-hid desc-hid])))
+    (tf/remove-kids rpc-hid [id-hid desc-hid])))
 
 (s/defn tx-module   ; #todo need Tree datatype for schema
   [module-hid :- tf/HID]
   (let [ident-hid   (tf/find-hid module-hid [:module :identifier])
-        ident-value (str->kw (tf/leaf->value ident-hid))
+        ident-value (str->kw (tf/hid->value ident-hid))
         rpc-hid     (tf/find-hid module-hid [:module :rpc])]
     (tf/attrs-merge module-hid {:name ident-value})
-    (tf/remove-kid module-hid [ident-hid])
+    (tf/remove-kids module-hid [ident-hid])
     (tx-module-ns module-hid)
     (tx-module-contact module-hid)
     (tx-module-description module-hid)
