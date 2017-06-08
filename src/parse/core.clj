@@ -4,7 +4,7 @@
     [instaparse.core :as insta]
     [schema.core :as s]
     [tupelo.core :as t]
-    [tupelo.x-forest :as tf]
+    [tupelo.forest :as tf]
     [tupelo.parse :as tp]
     [tupelo.schema :as tsk] ))
 (t/refer-tupelo)

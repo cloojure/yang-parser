@@ -11,7 +11,7 @@
     [tupelo.misc :as tm]
     [tupelo.schema :as tsk]
     [tupelo.string :as ts]
-    [tupelo.x-forest :as tf]))
+    [tupelo.forest :as tf]))
 (t/refer-tupelo)
 
 (defn container? [tree] (= :container (grab :tag tree)))

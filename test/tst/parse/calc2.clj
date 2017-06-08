@@ -5,7 +5,7 @@
   (:require
     [clojure.java.io :as io]
     [tupelo.core :as t]
-    [tupelo.x-forest :as tf] ))
+    [tupelo.forest :as tf] ))
 (t/refer-tupelo)
 
 (def ^:dynamic *rpc-timeout-ms* 100)

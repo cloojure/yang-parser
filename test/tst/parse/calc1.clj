@@ -4,7 +4,7 @@
         tupelo.test )
   (:require
     [tupelo.core :as t]
-    [tupelo.x-forest :as tf]
+    [tupelo.forest :as tf]
     )
   (:import [java.util.concurrent TimeoutException] ))
 (t/refer-tupelo)

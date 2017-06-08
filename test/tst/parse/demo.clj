@@ -2,7 +2,7 @@
   (:use parse.core
         parse.transform
         tupelo.test
-        tupelo.x-forest)
+        tupelo.forest)
   (:require
     [clojure.string :as str]
     [tupelo.core :as t]
