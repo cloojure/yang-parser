@@ -209,7 +209,8 @@
                 [{:type :decimal64, :name :y}]
                 [{:type :decimal64, :name :z}]]
                [{:tag :output} [{:type :decimal64, :name :result}]]]] )
-           (is= rpc-api-clj '(fn fn-mul3 [x y z] (fn-mul3-impl x y z)))
+           (is=      rpc-api-clj   '(fn fn-mul3 [x y z] (fn-mul3-impl x y z))  )
+           (is= (str rpc-api-clj)  "(fn fn-mul3 [x y z] (fn-mul3-impl x y z))" )
            (is= call-msg [:rpc [:mul3 {:message-id 101}
                                 [:x "2"] [:y "3"] [:z "4"]]])
            (is (wild-match? {:rpc-fn :*, :args [2.0 3.0 4.000]} call-unmarshalled))
