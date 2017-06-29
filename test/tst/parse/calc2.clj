@@ -11,6 +11,7 @@
 (def ^:dynamic *rpc-timeout-ms* 100)
 (def ^:dynamic *rpc-delay-simulated-ms* 10)
 
+(comment ;comment=============================================================================
 ;-----------------------------------------------------------------------------
 (dotest
   (let [abnf-src (io/resource "yang3.abnf")
@@ -168,6 +169,7 @@
          ;  (throw (TimeoutException. (format "Timeout Exceed=%s  add: %s %s; " *rpc-timeout-ms* x y))))
          result-value)))
 
+
 (dotest
   (binding [*rpc-timeout-ms*        100
             *rpc-delay-simulated-ms* 10]
@@ -221,3 +223,5 @@
            (is (rel= 24 reply-val :digits 9))
 
            ))))
+
+) ;comment=============================================================================

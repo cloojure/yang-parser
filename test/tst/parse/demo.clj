@@ -6,6 +6,7 @@
   (:require
     [clojure.string :as str]
     [tupelo.core :as t]
+    [tupelo.forest :as tf]
     [tupelo.string :as ts]
   ))
 (t/refer-tupelo)
@@ -27,7 +28,7 @@ digits        = 1*digit           ; 1 or more digits
       (is=
         (hid->tree (add-tree-hiccup (parse-and-transform "123")))
         (hid->tree (add-tree-hiccup (parse-and-transform "  123 ")))
-        {:attrs {:tag :int}, :value 123}))))
+        {:tupelo.forest/kids [], :tag :int, :tupelo.forest/value 123} ))))
 
 ; If we use the InstaParse built-in ability to perform simple "pre-transforms" on the AST, we can greatly
 ; simplify out manual transformations.  Compare how simple tx-map is below with the previous example. Also,
@@ -64,34 +65,34 @@ vis-char                = %x21-7E ; visible (printing) characters
       (is= (hid->bush (add-tree-hiccup (parse-and-transform "girl")))
         [{:tag :tokens}
          [{:tag :token}
-          [{:tag :identifier} "girl"]]])
+          [{:tag :identifier ::tf/value "girl"}]]])
 
       (is= (hid->bush (add-tree-hiccup (parse-and-transform (ts/quotes->double "'abc'"))))
         [{:tag :tokens}
          [{:tag :token}
-          [{:tag :string} "abc"]]])
+          [{:tag :string ::tf/value "abc"}]]])
 
       (is= (hid->bush (add-tree-hiccup (parse-and-transform +123)))
         [{:tag :tokens}
          [{:tag :token}
-          [{:tag :integer} 123]]])
+          [{:tag :integer ::tf/value 123}]]])
 
       (is= (hid->bush (add-tree-hiccup (parse-and-transform -123)))
         [{:tag :tokens}
          [{:tag :token}
-          [{:tag :integer} -123]]])
+          [{:tag :integer ::tf/value -123}]]])
 
       ; All together now!
       (is= (hid->bush (add-tree-hiccup
                         (parse-and-transform
                           (ts/quotes->double "do-re-mi abc 1 23 baby 'you and me girl'"))))
         [{:tag :tokens}
-         [{:tag :token} [{:tag :identifier} "do-re-mi"]]
-         [{:tag :token} [{:tag :identifier} "abc"]]
-         [{:tag :token} [{:tag :integer} 1]]
-         [{:tag :token} [{:tag :integer} 23]]
-         [{:tag :token} [{:tag :identifier} "baby"]]
-         [{:tag :token} [{:tag :string} "you and me girl"]]]))))
+         [{:tag :token} [{:tag :identifier ::tf/value "do-re-mi"}]]
+         [{:tag :token} [{:tag :identifier ::tf/value "abc"}]]
+         [{:tag :token} [{:tag :integer ::tf/value 1}]]
+         [{:tag :token} [{:tag :integer ::tf/value 23}]]
+         [{:tag :token} [{:tag :identifier ::tf/value "baby"}]]
+         [{:tag :token} [{:tag :string ::tf/value "you and me girl"}]]]))))
 
 
 ;-----------------------------------------------------------------------------
@@ -131,6 +132,6 @@ vis-char                = %x21-7E ; visible (printing) characters
       (is= (hid->bush (add-tree-hiccup (parse-and-transform "girl.2")))
         [{:tag :tokens}
          [{:tag :token}
-          [{:tag :identifier} "girl.2"]]]))))
+          [{:tag :identifier, ::tf/value "girl.2"}]]] ))))
 
 
