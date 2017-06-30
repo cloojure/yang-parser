@@ -11,7 +11,6 @@
   ))
 (t/refer-tupelo)
 
-(comment ;comment=============================================================================
 
 (dotest
   (tf/with-forest (tf/new-forest)
@@ -42,32 +41,32 @@
       (is= (only (tf/format-paths (tf/find-paths yang-hid [:module :rpc :identifier])))
         [{:tag :module}
          [{:tag :rpc}
-          [{:tag :identifier} "add"]]])
+          [{:tag :identifier ::tf/value "add"}]]])
 
       (is= (only (tf/format-paths (tf/find-paths yang-hid [:module :revision])))
         [{:tag :module}
          [{:tag :revision}
-          [{:tag :iso-date} "2017-04-01"]
-          [{:tag :description} [{:tag :string} "Prototype 1.0"]]]])
+          [{:tag :iso-date ::tf/value "2017-04-01"}]
+          [{:tag :description} [{:tag :string ::tf/value "Prototype 1.0"}]]]])
 
       (is= (only (tf/format-paths (tf/find-paths yang-hid [:module :rpc :input])))
         [{:tag :module}
          [{:tag :rpc}
           [{:tag :input}
            [{:tag :leaf}
-            [{:tag :identifier} "x"]
-            [{:tag :type} [{:tag :identifier} "decimal64"]]]
+            [{:tag :identifier ::tf/value "x"}]
+            [{:tag :type} [{:tag :identifier ::tf/value "decimal64"}]]]
            [{:tag :leaf}
-            [{:tag :identifier} "y"]
-            [{:tag :type} [{:tag :identifier} "decimal64"]]]]]])
+            [{:tag :identifier ::tf/value "y"}]
+            [{:tag :type} [{:tag :identifier ::tf/value "decimal64"}]]]]]])
 
       (is= (only (tf/format-paths (tf/find-paths yang-hid [:module :rpc :output])))
         [{:tag :module}
          [{:tag :rpc}
           [{:tag :output}
            [{:tag :leaf}
-            [{:tag :identifier} "result"]
-            [{:tag :type} [{:tag :identifier} "decimal64"]]]]]])
+            [{:tag :identifier ::tf/value "result"}]
+            [{:tag :type} [{:tag :identifier ::tf/value "decimal64"}]]]]]])
 
       (let [solns (tf/find-paths yang-hid [:module :rpc :input :leaf])
             soln-elems (mapv last solns)]
@@ -76,36 +75,37 @@
             [{:tag :rpc}
              [{:tag :input}
               [{:tag :leaf}
-               [{:tag :identifier} "x"]
-               [{:tag :type} [{:tag :identifier} "decimal64"]]]]]]
+               [{:tag :identifier ::tf/value "x"}]
+               [{:tag :type} [{:tag :identifier ::tf/value "decimal64"}]]]]]]
            [{:tag :module}
             [{:tag :rpc}
              [{:tag :input}
               [{:tag :leaf}
-               [{:tag :identifier} "y"]
-               [{:tag :type} [{:tag :identifier} "decimal64"]]]]]]])
+               [{:tag :identifier ::tf/value "y"}]
+               [{:tag :type} [{:tag :identifier ::tf/value "decimal64"}]]]]]]])
         (is= (set (forv [elem soln-elems]
-                    (tf/hid->tree elem)))
-          (set [{:attrs {:tag :leaf},
-                 :kids  [{:attrs {:tag :identifier}, :value "y"}
-                         {:attrs {:tag :type},
-                          :kids  [{:attrs {:tag :identifier}, :value "decimal64"}]}]}
-                {:attrs {:tag :leaf},
-                 :kids  [{:attrs {:tag :identifier}, :value "x"}
-                         {:attrs {:tag :type},
-                          :kids  [{:attrs {:tag :identifier}, :value "decimal64"}]}]}])) )
+                                  (tf/hid->tree elem)))
+          #{{:tag :leaf, ::tf/kids
+                  [{::tf/kids [], :tag :identifier, ::tf/value "y"}
+                   {:tag      :type,
+                    ::tf/kids [{::tf/kids [], :tag :identifier, ::tf/value "decimal64"}]}]}
+            {:tag :leaf,
+             ::tf/kids
+                  [{::tf/kids [], :tag :identifier, ::tf/value "x"}
+                   {:tag      :type,
+                    ::tf/kids [{::tf/kids [], :tag :identifier, ::tf/value "decimal64"}]}]}} ) )
 
       (let [soln-hid (last (only (tf/find-paths yang-hid [:module :rpc :input])))]
         (is= (tf/hid->bush soln-hid)
           [{:tag :input}
            [{:tag :leaf}
-            [{:tag :identifier} "x"]
+            [{:tag :identifier ::tf/value "x"}]
             [{:tag :type}
-             [{:tag :identifier} "decimal64"]]]
+             [{:tag :identifier ::tf/value "decimal64"}]]]
            [{:tag :leaf}
-            [{:tag :identifier} "y"]
+            [{:tag :identifier ::tf/value "y"}]
             [{:tag :type}
-             [{:tag :identifier} "decimal64"]]]])
+             [{:tag :identifier ::tf/value "decimal64"}]]]])
         (is= (tf/hid->hiccup soln-hid)
           [:input
            [:leaf
@@ -130,17 +130,16 @@
                            [:result 5]])
 
           add-hid (tf/find-hid rpc-call-hid [:rpc :add])
-          add-kids (grab :kids (tf/hid->node add-hid))]
+          add-kids (grab :khids (tf/hid->node add-hid))]
       (is= (tf/hid->hiccup add-hid)
         [:add [:x 2] [:y 3]])
       (is (val= (mapv tf/hid->leaf add-kids)
-            [{:attrs {:tag :x}, :value 2}
-             {:attrs {:tag :y}, :value 3}])))))
+            [{:khids [], :tag :x, ::tf/value 2}
+             {:khids [], :tag :y, ::tf/value 3}] )))))
 
 ;                               ---------type-------------------   -------pattern------- (or reverse)
 ; #todo need function (conforms [:type [:identifier "decimal64"]] [:type [:identifier :*]]
 ; #todo need function (conforms [:type [:identifier "decimal64"]] [:type [:identifier <string>]]
-
 ;-----------------------------------------------------------------------------
 (dotest
   (is= (container-with-uses? (tf/hiccup->enlive
@@ -209,6 +208,7 @@
           [:leaf [:identifier "real"] [:type [:identifier "decimal64"]]]
           [:leaf [:identifier "imag"] [:type [:identifier "decimal64"]]]
           ]]]] ) ) )
+
 
 ; #todo need to test recursive imports
 (defn import? [arg] (= :import (grab :tag arg)))
@@ -314,7 +314,6 @@ digits                  = 1*digit
       (is (falsey? (fn-validate 999))))))
 
 ;-----------------------------------------------------------------------------
-
 (dotest
   (tf/with-forest (tf/new-forest)
     (let [abnf-src            (io/resource "yang3.abnf")
@@ -343,7 +342,7 @@ digits                  = 1*digit
       (is= (tf/format-paths (tf/find-paths yang-hid [:module :rpc :identifier]))
         [[{:tag :module}
           [{:tag :rpc}
-           [{:tag :identifier} "add"]]]])
+           [{:tag :identifier, ::tf/value "add"}]]]] )
 
       (let [rpc-hid (tf/find-hid yang-hid [:module :rpc])]
         (is= (tf/hid->hiccup rpc-hid)
@@ -366,6 +365,6 @@ digits                  = 1*digit
             [{:type :decimal64, :name :result}]]])
 
         (is= (rpc->api rpc-hid)
-          '(fn fn-add [x y] (fn-add-impl x y)))))))
+          '(fn fn-add [x y] (fn-add-impl x y)))
+    ))))
 
-) ;comment=============================================================================
