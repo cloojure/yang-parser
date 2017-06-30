@@ -11,7 +11,6 @@
 (def ^:dynamic *rpc-timeout-ms* 100)
 (def ^:dynamic *rpc-delay-simulated-ms* 10)
 
-(comment ;comment=============================================================================
 ;-----------------------------------------------------------------------------
 (dotest
   (let [abnf-src (io/resource "yang3.abnf")
@@ -57,19 +56,19 @@
             reply-val          (reply-unmarshall schema-hid reply-hid)]
         (is= schema-bush-before
           [{:tag :rpc}
-           [{:tag :identifier} "add"]
-           [{:tag :description} [{:tag :string} "Add 2 numbers"]]
+           [{:tag :identifier ::tf/value "add"}]
+           [{:tag :description} [{:tag :string ::tf/value "Add 2 numbers"}]]
            [{:tag :input}
             [{:tag :leaf}
-             [{:tag :identifier} "x"]
-             [{:tag :type} [{:tag :identifier} "decimal64"]]]
+             [{:tag :identifier ::tf/value "x"}]
+             [{:tag :type} [{:tag :identifier ::tf/value "decimal64"}]]]
             [{:tag :leaf}
-             [{:tag :identifier} "y"]
-             [{:tag :type} [{:tag :identifier} "decimal64"]]]]
+             [{:tag :identifier ::tf/value "y"}]
+             [{:tag :type} [{:tag :identifier ::tf/value "decimal64"}]]]]
            [{:tag :output}
             [{:tag :leaf}
-             [{:tag :identifier} "result"]
-             [{:tag :type} [{:tag :identifier} "decimal64"]]]]])
+             [{:tag :identifier ::tf/value "result"}]
+             [{:tag :type} [{:tag :identifier ::tf/value "decimal64"}]]]]])
         (is= schema-bush-after
           [{:tag :rpc, :name :add}
            [{:tag :input}
@@ -94,30 +93,30 @@
             module-bush-after  (tf/hid->bush module-hid) ]
         (is= module-bush-before
           [{:tag :module}
-           [{:tag :identifier} "calculator"]
+           [{:tag :identifier ::tf/value "calculator"}]
            [{:tag :namespace}
-            [{:tag :string} "http://brocade.com/ns/calculator"]]
+            [{:tag :string ::tf/value "http://brocade.com/ns/calculator"}]]
            [{:tag :contact}
-            [{:tag :string} "Alan Thompson <athomps@brocade.com>"]]
+            [{:tag :string ::tf/value "Alan Thompson <athomps@brocade.com>"}]]
            [{:tag :description}
-            [{:tag :string} "YANG spec for a simple RPN calculator"]]
+            [{:tag :string ::tf/value "YANG spec for a simple RPN calculator"}]]
            [{:tag :revision}
-            [{:tag :iso-date} "2017-04-01"]
-            [{:tag :description} [{:tag :string} "Prototype 1.0"]]]
+            [{:tag :iso-date ::tf/value "2017-04-01"}]
+            [{:tag :description} [{:tag :string ::tf/value "Prototype 1.0"}]]]
            [{:tag :rpc}
-            [{:tag :identifier} "add"]
-            [{:tag :description} [{:tag :string} "Add 2 numbers"]]
+            [{:tag :identifier ::tf/value "add"}]
+            [{:tag :description} [{:tag :string ::tf/value "Add 2 numbers"}]]
             [{:tag :input}
              [{:tag :leaf}
-              [{:tag :identifier} "x"]
-              [{:tag :type} [{:tag :identifier} "decimal64"]]]
+              [{:tag :identifier ::tf/value "x"}]
+              [{:tag :type} [{:tag :identifier ::tf/value "decimal64"}]]]
              [{:tag :leaf}
-              [{:tag :identifier} "y"]
-              [{:tag :type} [{:tag :identifier} "decimal64"]]]]
+              [{:tag :identifier ::tf/value "y"}]
+              [{:tag :type} [{:tag :identifier ::tf/value "decimal64"}]]]]
             [{:tag :output}
              [{:tag :leaf}
-              [{:tag :identifier} "result"]
-              [{:tag :type} [{:tag :identifier} "decimal64"]]]]]])
+              [{:tag :identifier ::tf/value "result"}]
+              [{:tag :type} [{:tag :identifier ::tf/value "decimal64"}]]]]]])
         (is= module-bush-after
           [{:tag         :module,
             :name        :calculator,
@@ -168,7 +167,6 @@
          ;(when (= ::timeout-failure result)
          ;  (throw (TimeoutException. (format "Timeout Exceed=%s  add: %s %s; " *rpc-timeout-ms* x y))))
          result-value)))
-
 
 (dotest
   (binding [*rpc-timeout-ms*        100
@@ -224,4 +222,3 @@
 
            ))))
 
-) ;comment=============================================================================

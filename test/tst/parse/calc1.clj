@@ -9,7 +9,6 @@
   (:import [java.util.concurrent TimeoutException] ))
 (t/refer-tupelo)
 
-(comment ;comment=============================================================================
 (def ^:dynamic *rpc-timeout-ms* 200)
 (def ^:dynamic *rpc-delay-simulated-ms* 30)
 
@@ -39,4 +38,3 @@
             *rpc-delay-simulated-ms* 30]
     (throws? (add 2 3))))
 
-  ) ;comment=============================================================================

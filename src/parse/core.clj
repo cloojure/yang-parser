@@ -38,13 +38,13 @@
   "Validate & parse a leaf msg value given a leaf arg-schema (Enlive-format)."
   [arg-schema arg-val]
   (let
-    [arg-name-schema (fetch-in arg-schema [:attrs :tag])
-     arg-type-schema (fetch-in arg-schema [:attrs :type])
-     arg-name-val    (fetch-in arg-val [:attrs :tag])
+    [arg-name-schema (fetch-in arg-schema [:tag])
+     arg-type-schema (fetch-in arg-schema [:type])
+     arg-name-val    (fetch-in arg-val [:tag])
      >>              (assert (= arg-name-schema arg-name-val))
      ; #todo does not yet verify any attrs;  what rules?
      parser-fn       (grab arg-type-schema type-unmarshall-map)
-     parsed-value    (parser-fn (grab :value arg-val))]
+     parsed-value    (parser-fn (grab ::tf/value arg-val))]
     parsed-value)
 
   #_(try
@@ -61,19 +61,19 @@
     [rpc-tree       (tf/hid->tree rpc-hid)
      schema-tree    (tf/hid->tree schema-hid)
      >>             (assert (= :rpc
-                              (fetch-in schema-tree [:attrs :tag])
-                              (fetch-in rpc-tree [:attrs :tag])))
-     rpc-attrs      (grab :attrs rpc-tree)
+                              (fetch-in schema-tree [:tag])
+                              (fetch-in rpc-tree [:tag])))
+     rpc-attrs      (dissoc rpc-tree ::tf/kids :tag)
      schema-tag     (tf/find-leaf-value schema-hid [:rpc :identifier])
      rpc-tag        (it-> rpc-tree
-                      (grab :kids it)
+                      (grab ::tf/kids it)
                       (only it)
-                      (fetch-in it [:attrs :tag]))
+                      (fetch-in it [:tag]))
      >>             (assert (= schema-tag rpc-tag))
      ; #todo does not yet verify any attrs ;  what rules?
 
-     fn-args-schema (grab :kids (tf/find-tree schema-hid [:rpc :input]))
-     fn-args-rpc    (grab :kids (tf/find-tree rpc-hid [:rpc rpc-tag]))
+     fn-args-schema (grab ::tf/kids (tf/find-tree schema-hid [:rpc :input]))
+     fn-args-rpc    (grab ::tf/kids (tf/find-tree rpc-hid [:rpc rpc-tag]))
 
      parsed-args    (mapv validate-parse-leaf-tree fn-args-schema fn-args-rpc)
      rpc-fn         (grab rpc-tag rpc-fn-map)
